@@ -89,18 +89,13 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
 .authBtn.secondary{background:#2d6a45}.authBtn.logout{background:#ecefeb;color:#273128}
 .authMessage{font-size:13px;color:#59645b;margin-top:10px;line-height:1.4}.authUser{font-weight:700;color:#183f2b}
 @media(max-width:760px){.authFields{grid-template-columns:1fr}.authBtn{width:100%}}
+.appLocked{display:none!important}
 @media print{.authCard{display:none!important}}
 </style>
 </head>
 <body>
 <main>
 <h1>Калькулятор поддонов</h1>
-<div class="actions">
-<button class="saveBtn" id="saveBtn" type="button">💾 Сохранить расчёт</button>
-<button class="printBtn" id="printBtn" type="button">🖨️ Текущий</button>
-<button class="printAllBtn" id="printAllBtn" type="button">🖨️ Распечатать всё</button>
-<button class="clearBtn" id="clearBtn" type="button">Очистить сохранённые</button>
-</div>
 <section class="authCard" id="authCard">
 <div class="authTop"><div><h2 style="margin:0">Вход / регистрация</h2><div class="authMessage" id="authState">Войдите или создайте аккаунт.</div></div><button class="authBtn logout" id="logoutBtn" type="button" style="display:none">Выйти</button></div>
 <div class="authFields" id="authFields">
@@ -111,6 +106,14 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
 </div>
 <div class="authMessage" id="authMessage">После регистрации Supabase отправит письмо для подтверждения email.</div>
 </section>
+
+<div id="protectedApp" class="appLocked">
+<div class="actions">
+<button class="saveBtn" id="saveBtn" type="button">💾 Сохранить расчёт</button>
+<button class="printBtn" id="printBtn" type="button">🖨️ Текущий</button>
+<button class="printAllBtn" id="printAllBtn" type="button">🖨️ Распечатать всё</button>
+<button class="clearBtn" id="clearBtn" type="button">Очистить сохранённые</button>
+</div>
 
 <section class="card jobCard">
 <h2>Заказ / смена</h2>
@@ -141,6 +144,7 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
   <h2>Сохранённые расчёты</h2>
   <div id="savedList" class="savedEmpty">Пока ничего не сохранено.</div>
 </section>
+</div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -156,12 +160,13 @@ const authMessage=document.getElementById("authMessage");
 const authState=document.getElementById("authState");
 const authFields=document.getElementById("authFields");
 const logoutBtn=document.getElementById("logoutBtn");
+const protectedApp=document.getElementById("protectedApp");
 
 function setAuthMessage(text,isError=false){authMessage.textContent=text;authMessage.style.color=isError?"#a12622":"#59645b";}
 function showSession(session){
  const user=session?.user;
- if(user){authState.innerHTML=`Вы вошли как <span class="authUser">${user.email||"пользователь"}</span>`;authFields.style.display="none";logoutBtn.style.display="inline-block";setAuthMessage("Аккаунт подключён. Расчёты на этом этапе сохраняются на этом устройстве.");}
- else{authState.textContent="Войдите или создайте аккаунт.";authFields.style.display="grid";logoutBtn.style.display="none";setAuthMessage("После регистрации Supabase отправит письмо для подтверждения email.");}
+ if(user){authState.innerHTML=`Вы вошли как <span class="authUser">${user.email||"пользователь"}</span>`;authFields.style.display="none";logoutBtn.style.display="inline-block";protectedApp.classList.remove("appLocked");setAuthMessage("Вход выполнен. Калькулятор открыт.");}
+ else{authState.textContent="Войдите или создайте аккаунт.";authFields.style.display="grid";logoutBtn.style.display="none";protectedApp.classList.add("appLocked");setAuthMessage("После регистрации Supabase отправит письмо для подтверждения email.");}
 }
 
 document.getElementById("signupBtn").addEventListener("click",async()=>{
