@@ -32,7 +32,7 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
 .autoBtn.manual{background:#fff4df;color:#805b17}
 .autoHint{font-size:11px;color:#6b7469;margin-top:4px}
 
-.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.authStatus{font-size:13px;color:#5e685f;margin:-8px 0 14px}.authStatus b{color:#183f2b}.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:0 0 14px}
 .saveBtn,.printAllBtn,.clearBtn{border:0;border-radius:12px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
 .saveBtn{background:#2d6a45;color:#fff}
 .printAllBtn{background:#183f2b;color:#fff}
@@ -56,6 +56,8 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
   main{max-width:none;padding:0}
   h1{font-size:24px;margin-bottom:14px}
   .actions,.card{display:none !important}
+  .jobCard{display:none !important}
+  .printMeta{display:block !important;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #bbb;font-size:14px;color:#000}
   .autoBtn,.autoHint,.deleteSaved,.clearBtn,.saveBtn,.printAllBtn,.printBtn{display:none !important}
   .savedBox{border:0;padding:0;margin-top:18px}
   .savedItem{break-inside:avoid;background:#fff;border:1px solid #bbb}
@@ -90,6 +92,16 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
 <button class="printAllBtn" id="printAllBtn" type="button">🖨️ Распечатать всё</button>
 <button class="clearBtn" id="clearBtn" type="button">Очистить сохранённые</button>
 </div>
+<div class="authStatus" id="authStatus">Облачная регистрация будет подключена следующим шагом.</div>
+
+<section class="card jobCard">
+<h2>Заказ / смена</h2>
+<div class="grid3">
+<div><label>Номер заказа</label><input id="orderNo" type="text" placeholder="Например: 1542"></div>
+<div><label>Сотрудник / смена</label><input id="worker" type="text" placeholder="Имя или смена"></div>
+<div><label>Дата</label><input id="jobDate" type="date"></div>
+</div>
+</section>
 
 <section class="card">
 <h2>Поддон</h2>
@@ -103,6 +115,7 @@ input:focus{outline:3px solid #c8ddce;border-color:#315c40}
 <div id="parts" class="parts"></div>
 
 <section class="result">
+<div id="printMeta" class="printMeta" style="display:none"></div>
 <div class="resultHead"><div><small>Итог для</small><br><strong id="palletSize">1250 × 1180 мм</strong></div><b id="qtyLabel">100 подд.</b></div>
 <div id="results"></div>
 
@@ -213,6 +226,9 @@ function currentRecord(){
   palletLength:pl,
   palletWidth:pw,
   quantity:q,
+  orderNo:document.getElementById("orderNo").value.trim(),
+  worker:document.getElementById("worker").value.trim(),
+  jobDate:document.getElementById("jobDate").value,
   items
  };
 }
@@ -251,7 +267,7 @@ function renderSaved(){
    <div class="savedHead">
     <div>
       <div class="savedTitle">${rec.palletLength} × ${rec.palletWidth} мм — ${Number(rec.quantity).toLocaleString("ru-RU")} подд.</div>
-      <div class="savedMeta">${rec.created||""}</div>
+      <div class="savedMeta">${rec.created||""}${rec.orderNo ? ` • Заказ: ${rec.orderNo}` : ""}${rec.worker ? ` • ${rec.worker}` : ""}${rec.jobDate ? ` • ${rec.jobDate}` : ""}</div>
     </div>
     <button class="deleteSaved" type="button" data-index="${index}">Удалить</button>
    </div>
@@ -294,7 +310,13 @@ document.getElementById("printAllBtn").addEventListener("click",()=>{
  window.print();
 });
 
-document.getElementById("printBtn").addEventListener("click",()=>window.print());
+function updatePrintMeta(){
+ const order=document.getElementById("orderNo").value.trim()||"—";
+ const worker=document.getElementById("worker").value.trim()||"—";
+ const date=document.getElementById("jobDate").value||"—";
+ document.getElementById("printMeta").textContent=`Заказ: ${order} • Сотрудник / смена: ${worker} • Дата: ${date}`;
+}
+document.getElementById("printBtn").addEventListener("click",()=>{updatePrintMeta();window.print();});
 
 document.getElementById("pL").addEventListener("input",()=>{syncAutoLengths();calc();});
 document.getElementById("pW").addEventListener("input",()=>{syncAutoLengths();calc();});
@@ -323,6 +345,12 @@ document.addEventListener("input",(e)=>{
  if(e.target.id!=="pL" && e.target.id!=="pW" && !linkedLength) calc();
 });
 document.addEventListener("change",calc);
+
+const dateInput=document.getElementById("jobDate");
+if(dateInput && !dateInput.value){
+ const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
+ dateInput.value=`${y}-${m}-${day}`;
+}
 
 syncAutoLengths();
 calc();
