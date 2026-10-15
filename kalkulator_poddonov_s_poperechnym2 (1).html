@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Калькулятор поддонов — исправленный</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f5f2;color:#172018;font-family:Arial,sans-serif}
+main{max-width:1050px;margin:auto;padding:24px}
+h1{margin:0 0 20px;font-size:32px}
+.card{background:#fff;border:1px solid #dfe3dc;border-radius:18px;padding:18px;margin-bottom:14px}
+h2{margin:0 0 14px;font-size:21px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:160px 1fr 1fr 1.35fr;gap:12px}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:5px}
+input{width:100%;min-width:0;min-height:48px;padding:10px 12px;border:1px solid #cbd2c8;border-radius:11px;font-size:18px;background:white}
+input:focus{outline:3px solid #c8ddce;border-color:#315c40}
+.parts{display:grid;grid-template-columns:1fr;gap:14px}
+.result{background:#183f2b;color:white;border-radius:20px;padding:20px;margin-top:18px}
+.resultHead{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:10px}
+.resultHead small{opacity:.75}
+.resultHead strong{font-size:25px}
+.row{padding:12px 0;border-bottom:1px solid #ffffff28}
+.row:last-child{border:0}
+.top{display:flex;justify-content:space-between;gap:12px;font-size:18px}
+.top b{font-size:21px;white-space:nowrap}
+.dim{opacity:.75;margin-top:4px;font-size:14px}
+.lengthWrap{display:grid;grid-template-columns:minmax(120px,1fr) auto;gap:8px;align-items:stretch}
+.lengthWrap input{min-width:0;width:100%}
+.autoBtn{min-width:72px;border:1px solid #cbd2c8;border-radius:10px;padding:0 10px;background:#eef3ed;color:#183f2b;font-weight:700;cursor:pointer}
+.autoBtn.manual{background:#fff4df;color:#805b17}
+.autoHint{font-size:11px;color:#6b7469;margin-top:4px}
+
+.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.saveBtn,.printAllBtn,.clearBtn{border:0;border-radius:12px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
+.saveBtn{background:#2d6a45;color:#fff}
+.printAllBtn{background:#183f2b;color:#fff}
+.clearBtn{background:#ecefeb;color:#273128}
+.savedBox{background:#fff;border:1px solid #dfe3dc;border-radius:18px;padding:18px;margin-top:18px}
+.savedBox h2{margin:0 0 12px}
+.savedEmpty{color:#6b7469;font-size:14px}
+.savedItem{border:1px solid #dfe3dc;border-radius:14px;padding:14px;margin-top:10px;background:#fafbf9}
+.savedHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}
+.savedTitle{font-size:18px;font-weight:700}
+.savedMeta{font-size:13px;color:#6b7469;margin-top:3px}
+.savedRows{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+.savedRow{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #dfe3dc;padding:5px 0}
+.savedRow b{white-space:nowrap}
+.deleteSaved{border:1px solid #d6dcd3;background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer}
+@media(max-width:620px){.savedRows{grid-template-columns:1fr}}
+.printBtn{border:0;border-radius:12px;padding:12px 18px;font-size:16px;font-weight:700;background:#183f2b;color:#fff;cursor:pointer}
+.printBtn:hover{filter:brightness(1.08)}
+@media print{
+  body{background:#fff;color:#000}
+  main{max-width:none;padding:0}
+  h1{font-size:24px;margin-bottom:14px}
+  .actions,.card{display:none !important}
+  .autoBtn,.autoHint,.deleteSaved,.clearBtn,.saveBtn,.printAllBtn,.printBtn{display:none !important}
+  .savedBox{border:0;padding:0;margin-top:18px}
+  .savedItem{break-inside:avoid;background:#fff;border:1px solid #bbb}
+  .savedRows{grid-template-columns:1fr 1fr}
+  .result{background:#fff;color:#000;border:1px solid #bbb;border-radius:0;padding:16px;margin:0}
+  .resultHead small,.dim{opacity:1;color:#333}
+  .row{border-bottom:1px solid #ccc;break-inside:avoid}
+  .top b{color:#000}
+}
+@media(max-width:900px){
+ .grid4{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+ main{padding:15px}
+ .parts{grid-template-columns:1fr}
+ .grid3{grid-template-columns:1fr}
+ .grid4{grid-template-columns:1fr 1fr}
+ h1{font-size:27px}
+}
+@media(max-width:430px){
+ .grid4{grid-template-columns:1fr}
+ .lengthWrap{grid-template-columns:minmax(0,1fr) 78px}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Калькулятор поддонов</h1>
+<div class="actions">
+<button class="saveBtn" id="saveBtn" type="button">💾 Сохранить расчёт</button>
+<button class="printBtn" id="printBtn" type="button">🖨️ Текущий</button>
+<button class="printAllBtn" id="printAllBtn" type="button">🖨️ Распечатать всё</button>
+<button class="clearBtn" id="clearBtn" type="button">Очистить сохранённые</button>
+</div>
+
+<section class="card">
+<h2>Поддон</h2>
+<div class="grid3">
+<div><label>Длина, мм</label><input id="pL" type="number" value="1250"></div>
+<div><label>Ширина, мм</label><input id="pW" type="number" value="1180"></div>
+<div><label>Количество поддонов</label><input id="qty" type="number" min="1" value="100"></div>
+</div>
+</section>
+
+<div id="parts" class="parts"></div>
+
+<section class="result">
+<div class="resultHead"><div><small>Итог для</small><br><strong id="palletSize">1250 × 1180 мм</strong></div><b id="qtyLabel">100 подд.</b></div>
+<div id="results"></div>
+
+<section class="savedBox" id="savedBox">
+  <h2>Сохранённые расчёты</h2>
+  <div id="savedList" class="savedEmpty">Пока ничего не сохранено.</div>
+</section>
+</main>
+
+<script>
+const data=[
+ ["Настил",9,22,98,"PL"],
+ ["Поперечный настил",3,22,98,"PW"],
+ ["Поперечный настил 2",0,22,98,"PW"],
+ ["Лыжа",3,22,98,1200],
+ ["Лыжа 2",2,22,98,1200],
+ ["Шашка 1",6,75,98,150],
+ ["Шашка 2",3,75,100,98]
+];
+
+const parts=document.getElementById("parts");
+const results=document.getElementById("results");
+const linkedIndexes=data.map((p,i)=>(p[4]==="PL"||p[4]==="PW")?i:null).filter(i=>i!==null);
+const autoMode={};
+linkedIndexes.forEach(i=>autoMode[i]=true);
+
+const STORAGE_KEY="pallet_calculator_saved_v1";
+let saved=[];
+
+function palletDim(link){
+ const pl=Number(document.getElementById("pL").value);
+ const pw=Number(document.getElementById("pW").value);
+ if(link==="PL") return Number.isFinite(pl) && pl>0 ? Math.floor(pl) : "";
+ if(link==="PW") return Number.isFinite(pw) && pw>0 ? Math.floor(pw) : "";
+ return "";
+}
+
+data.forEach((p,i)=>{
+ const linked=p[4]==="PL" || p[4]==="PW";
+ const initialLen=linked ? palletDim(p[4]) : p[4];
+ const isRunner=(p[0]==="Лыжа" || p[0]==="Лыжа 2");
+ const lengthLimits=isRunner ? 'min="600" max="2500"' : 'min="0"';
+ parts.insertAdjacentHTML("beforeend",`
+ <section class="card">
+ <h2>${p[0]}</h2>
+ <div class="grid4">
+  <div><label>На 1 поддон</label><input id="n${i}" type="number" min="0" value="${p[1]}"></div>
+  <div><label>Толщина, мм</label><input id="t${i}" type="number" min="0" value="${p[2]}"></div>
+  <div><label>Ширина, мм</label><input id="w${i}" type="number" min="0" value="${p[3]}"></div>
+  <div>
+   <label>Длина, мм</label>
+   <div class="lengthWrap">
+    <input id="l${i}" type="number" ${lengthLimits} value="${initialLen}">
+    ${linked ? `<button class="autoBtn" id="a${i}" type="button">Авто</button>` : ""}
+   </div>
+   ${linked ? `<div class="autoHint">${p[4]==="PL" ? "по длине поддона" : "по ширине поддона"}</div>` : ""}
+   ${isRunner ? `<div class="autoHint">ручной ввод 600–2500 мм</div>` : ""}
+  </div>
+ </div></section>`);
+ results.insertAdjacentHTML("beforeend",`
+ <div class="row">
+  <div class="top"><span>${p[0]}</span><b id="r${i}">0 шт.</b></div>
+  <div class="dim" id="d${i}"></div>
+ </div>`);
+});
+
+function number(id,min=0){
+ const x=Number(document.getElementById(id).value);
+ return Number.isFinite(x)&&x>=min?Math.floor(x):null;
+}
+
+function syncAutoLengths(){
+ linkedIndexes.forEach(i=>{
+  if(autoMode[i]){
+   document.getElementById("l"+i).value=palletDim(data[i][4]);
+   const btn=document.getElementById("a"+i);
+   if(btn){btn.textContent="Авто";btn.classList.remove("manual");}
+  }
+ });
+}
+
+function calc(){
+ const q=number("qty",1),pl=number("pL",1),pw=number("pW",1);
+ document.getElementById("palletSize").textContent=(pl&&pw)?`${pl} × ${pw} мм`:"Введите размер";
+ document.getElementById("qtyLabel").textContent=q?`${q.toLocaleString("ru-RU")} подд.`:"Введите количество";
+ data.forEach((_,i)=>{
+  const n=number("n"+i,0),t=number("t"+i,0),w=number("w"+i,0),l=number("l"+i,0);
+  if(n===0){
+   document.getElementById("r"+i).textContent="0 шт.";
+   document.getElementById("d"+i).textContent=(t||w||l)?`${t||0} × ${w||0} × ${l||0} мм`:"не используется";
+   return;
+  }
+  document.getElementById("r"+i).textContent=(q!==null&&n!==null)?`${(q*n).toLocaleString("ru-RU")} шт.`:"—";
+  document.getElementById("d"+i).textContent=(t>0&&w>0&&l>0)?`${t} × ${w} × ${l} мм`:"Введите размер";
+ });
+}
+
+function currentRecord(){
+ const q=number("qty",1),pl=number("pL",1),pw=number("pW",1);
+ if(q===null||pl===null||pw===null) return null;
+ const items=data.map((p,i)=>{
+  const n=number("n"+i,0),t=number("t"+i,0),w=number("w"+i,0),l=number("l"+i,0);
+  return {name:p[0],per:n??0,total:(n??0)*q,t:t??0,w:w??0,l:l??0};
+ });
+ return {
+  id:Date.now(),
+  created:new Date().toLocaleString("ru-RU"),
+  palletLength:pl,
+  palletWidth:pw,
+  quantity:q,
+  items
+ };
+}
+
+function loadSaved(){
+ try{
+  const raw=localStorage.getItem(STORAGE_KEY);
+  saved=raw?JSON.parse(raw):[];
+  if(!Array.isArray(saved)) saved=[];
+ }catch(e){saved=[];}
+ renderSaved();
+}
+
+function persistSaved(){
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(saved));}catch(e){}
+}
+
+function renderSaved(){
+ const list=document.getElementById("savedList");
+ if(saved.length===0){
+  list.className="savedEmpty";
+  list.innerHTML="Пока ничего не сохранено.";
+  return;
+ }
+ list.className="";
+ list.innerHTML="";
+ saved.forEach((rec,index)=>{
+  const item=document.createElement("div");
+  item.className="savedItem";
+  const rows=(rec.items||[]).map(it=>`
+   <div class="savedRow">
+    <span>${it.name}<br><small>${it.t} × ${it.w} × ${it.l} мм</small></span>
+    <b>${Number(it.total||0).toLocaleString("ru-RU")} шт.</b>
+   </div>`).join("");
+  item.innerHTML=`
+   <div class="savedHead">
+    <div>
+      <div class="savedTitle">${rec.palletLength} × ${rec.palletWidth} мм — ${Number(rec.quantity).toLocaleString("ru-RU")} подд.</div>
+      <div class="savedMeta">${rec.created||""}</div>
+    </div>
+    <button class="deleteSaved" type="button" data-index="${index}">Удалить</button>
+   </div>
+   <div class="savedRows">${rows}</div>`;
+  list.appendChild(item);
+ });
+ list.querySelectorAll(".deleteSaved").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+   const i=Number(btn.dataset.index);
+   saved.splice(i,1);
+   persistSaved();
+   renderSaved();
+  });
+ });
+}
+
+document.getElementById("saveBtn").addEventListener("click",()=>{
+ const rec=currentRecord();
+ if(!rec){alert("Проверь размер поддона и количество.");return;}
+ saved.push(rec);
+ persistSaved();
+ renderSaved();
+ alert("Расчёт сохранён.");
+});
+
+document.getElementById("clearBtn").addEventListener("click",()=>{
+ if(saved.length===0) return;
+ if(confirm("Удалить все сохранённые расчёты?")){
+  saved=[];
+  persistSaved();
+  renderSaved();
+ }
+});
+
+document.getElementById("printAllBtn").addEventListener("click",()=>{
+ if(saved.length===0){
+  alert("Сначала сохрани хотя бы один расчёт.");
+  return;
+ }
+ window.print();
+});
+
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
+document.getElementById("pL").addEventListener("input",()=>{syncAutoLengths();calc();});
+document.getElementById("pW").addEventListener("input",()=>{syncAutoLengths();calc();});
+
+linkedIndexes.forEach(i=>{
+ const len=document.getElementById("l"+i);
+ len.addEventListener("input",()=>{
+  autoMode[i]=false;
+  const btn=document.getElementById("a"+i);
+  btn.textContent="Ручной";
+  btn.classList.add("manual");
+  calc();
+ });
+ document.getElementById("a"+i).addEventListener("click",()=>{
+  autoMode[i]=true;
+  len.value=palletDim(data[i][4]);
+  const btn=document.getElementById("a"+i);
+  btn.textContent="Авто";
+  btn.classList.remove("manual");
+  calc();
+ });
+});
+
+document.addEventListener("input",(e)=>{
+ const linkedLength=linkedIndexes.some(i=>e.target.id==="l"+i);
+ if(e.target.id!=="pL" && e.target.id!=="pW" && !linkedLength) calc();
+});
+document.addEventListener("change",calc);
+
+syncAutoLengths();
+calc();
+loadSaved();
+</script>
+</body>
+</html>
