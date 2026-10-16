@@ -308,6 +308,17 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 .accountDropdown[hidden]{display:none!important}.accountDropdown{position:fixed;z-index:12000;width:min(300px,calc(100vw - 20px));padding:12px;background:#fff;border:1px solid #dfe8e3;border-radius:16px;box-shadow:0 18px 50px rgba(16,48,38,.18);animation:accountDropIn .14s ease-out}.accountDropHead{display:flex;align-items:center;gap:10px;padding:4px 3px 10px}.accountDropAvatar{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#dff4e9,#f1faf5);border:1px solid #cee8dc;color:#176b4c;font-size:12px;font-weight:900;letter-spacing:.04em}.accountDropIdentity{min-width:0}.accountDropIdentity strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#182720;font-size:13px}.accountDropIdentity span{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#718078;font-size:10px}.accountDropEmail{display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:9px;background:#f6f9f7;color:#607169;font-size:10px;overflow:hidden}.accountDropEmail span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.accountDropRole{display:inline-flex;align-items:center;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eaf6f0;color:#176b4c;font-size:9px;font-weight:850}.accountDropDivider{height:1px;background:#e7ece9;margin:10px 0 6px}.accountDropAction{width:100%;display:grid;grid-template-columns:25px 1fr 16px;align-items:center;gap:6px;min-height:40px;padding:6px 9px;border:0;border-radius:10px;background:transparent;color:#33433c;text-align:left;cursor:pointer}.accountDropAction:hover{background:#f3f8f5}.accountDropAction span{font-size:14px}.accountDropAction b{font-size:11px;font-weight:800}.accountDropAction i{font-style:normal;color:#97a29d;font-size:18px}.accountDropAction.danger{color:#9d4038}.accountDropAction.danger:hover{background:#fff4f2}.topAccount[aria-expanded="true"]{border-color:#acd2c1!important;box-shadow:0 0 0 3px rgba(32,120,84,.08)}.topAccount[aria-expanded="true"] .accountArrow{transform:rotate(180deg)}.accountArrow{transition:transform .15s ease}@keyframes accountDropIn{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:680px){.accountDropdown{width:min(290px,calc(100vw - 16px));border-radius:14px}.accountDropAction{min-height:44px}}
 
+/* sawPlanResponsiveFixV1 */
+.sawPlan{width:100%;max-width:100%;min-width:0;overflow-y:auto;overflow-x:hidden;padding-right:3px}
+.sawGroup{width:100%;max-width:100%;min-width:0;overflow:hidden}
+.sawGroupTitle{min-width:0;flex-wrap:wrap}.sawGroupTitle b,.sawGroupTitle span{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.stockBar{width:100%;max-width:100%;min-width:0;overflow:hidden}
+.stockPieces{width:100%;max-width:100%;min-width:0;gap:1px;overflow:hidden}
+.stockPiece{min-width:0;max-width:100%;flex-shrink:1;padding-left:2px;padding-right:2px;text-overflow:ellipsis}
+.stockOffcut{max-width:100%}
+.stockMeta{min-width:0;max-width:100%;flex-wrap:wrap}.stockMeta span{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:560px){.shopCard{overflow:hidden}.sawPlan{padding-right:0;gap:8px}.sawGroup{padding:9px}.stockBar{height:28px;margin-top:5px}.stockPieces{padding:2px;gap:1px}.stockPiece{font-size:0;min-width:0;padding:0}.stockMeta{gap:4px;font-size:9px}.stockMeta span:last-child{margin-left:auto;text-align:right}}
+
 </style>
 </head>
 <body>
