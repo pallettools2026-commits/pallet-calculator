@@ -1,0 +1,21 @@
+name: Refine pallet 3D geometry
+on:
+  push:
+    paths:
+      - '.github/workflows/refine-pallet-3d-geometry-v6.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine pallet geometry
+        run: python .github/scripts/refine_pallet_3d_geometry_v6.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Refine 3D pallet boards and blocks" || exit 0
+          git push
