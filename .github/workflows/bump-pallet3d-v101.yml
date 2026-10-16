@@ -1,0 +1,21 @@
+name: Bump Pallet 3D v101
+on:
+  push:
+    paths:
+      - '.github/workflows/bump-pallet3d-v101.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump 3D asset version
+        run: python .github/scripts/bump_pallet3d_v101.py
+      - name: Commit cache bust
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Load Pallet 3D v101" || exit 0
+          git push
