@@ -1,4 +1,4 @@
-/* pallet3dReferenceV121 — flush-edge block pallet geometry */
+/* pallet3dReferenceV122 — all pallet blocks rotated 90 degrees */
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
@@ -114,7 +114,7 @@
     function nail(x,y,z){const n=new THREE.Mesh(nailGeo,nailMat);n.position.set(x,y,z);n.castShadow=true;groups.deck.add(n);}
 
     const runnerT=Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=Math.max(.58,num(runnerParts[0].w,98)*S);
-    const blockH=Math.max(.62,num(block1.t||block2.t,75)*S),blockXSize1=Math.max(.72,num(block1.w,98)*S),blockZSize1=Math.max(.72,num(block1.l,150)*S),blockXSize2=Math.max(.72,num(block2.w,100)*S),blockZSize2=Math.max(.72,num(block2.l,98)*S);
+    const blockH=Math.max(.62,num(block1.t||block2.t,75)*S),blockXSize1=Math.max(.72,num(block1.l,150)*S),blockZSize1=Math.max(.72,num(block1.w,98)*S),blockXSize2=Math.max(.72,num(block2.l,98)*S),blockZSize2=Math.max(.72,num(block2.w,100)*S);
     const bindT=Math.max(.15,num(bindParts[0].t,22)*S),bindDepth=Math.max(.58,num(bindParts[0].w,98)*S);
     const deckT=Math.max(.15,num(deck.t,22)*S),deckW=Math.max(.58,num(deck.w,98)*S);
 
