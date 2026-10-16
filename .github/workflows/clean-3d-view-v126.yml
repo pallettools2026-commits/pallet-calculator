@@ -1,0 +1,21 @@
+name: Clean 3D view v126
+on:
+  push:
+    paths:
+      - '.github/workflows/clean-3d-view-v126.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean 3D view and fix block size
+        run: python .github/scripts/clean_3d_view_v126.py
+      - name: Commit clean 3D update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js index.html
+          git commit -m "Clean 3D view and set 95x95x75 blocks" || exit 0
+          git push
