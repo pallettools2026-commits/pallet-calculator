@@ -1,4 +1,4 @@
-/* pallet3dReferenceV123 — workshop photo reference 1250x1180 */
+/* pallet3dStandardOnlyV124 — standard pallet whitelist */
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
@@ -10,15 +10,14 @@
   const spread=(count,span,item=0)=>count<=1?[0]:Array.from({length:count},(_,i)=>-span/2+item/2+i*(span-item)/(count-1));
 
   function resolveProfile(inputL,inputW){
-    const a=Math.max(300,num(inputL,1250)),b=Math.max(300,num(inputW,1180));
-    if((near(a,1250)&&near(b,1180))||(near(a,1180)&&near(b,1250))){
-      return {key:'1250x1180',width:1250,length:1180,deckMax:9,bindingCount:3,runnerLengths:[1180,1180,1180],spec:'Фото-эталон 1250 × 1180 · 9 досок настила · 3 поперечины · 9 шашек · 3 нижние лыжи'};
-    }
-    if((near(a,800)&&near(b,1200))||(near(a,1200)&&near(b,800))){
-      return {key:'800x1200',width:800,length:1200,deckMax:7,bindingCount:3,runnerLengths:[1200,1200,1200],spec:'Ширина 800 × длина 1200 · 3 лыжи по 1200 · обвязка 3 · настил до 7'};
-    }
+    const a=Math.max(300,num(inputL,1200)),b=Math.max(300,num(inputW,800));
+    const match=(x,y)=>(near(a,x)&&near(b,y))||(near(a,y)&&near(b,x));
     const width=b,length=a;
-    return {key:'dynamic',width,length,deckMax:width<=850?7:9,bindingCount:3,runnerLengths:null,spec:`Ширина ${Math.round(width)} × длина ${Math.round(length)} · динамическая геометрия · настил до ${width<=850?7:9}`};
+    if(match(1200,800))return {key:'epal1',width,length,deckMax:7,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 1 · ${Math.round(length)} × ${Math.round(width)} мм`};
+    if(match(1200,1000))return {key:'epal2',width,length,deckMax:9,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 2 · ${Math.round(length)} × ${Math.round(width)} мм`};
+    if(match(1000,1200))return {key:'epal3',width,length,deckMax:9,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 3 · ${Math.round(length)} × ${Math.round(width)} мм`};
+    if(match(800,600))return {key:'epal6',width,length,deckMax:7,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 6 · ${Math.round(length)} × ${Math.round(width)} мм`};
+    return {key:'unsupported',width,length,deckMax:0,bindingCount:0,runnerLengths:[],spec:'Нестандартный размер'};
   }
 
   function setInput(id,value){const x=el(id);if(!x)return false;const v=String(value);if(x.value===v)return false;x.value=v;return true;}
@@ -75,16 +74,22 @@
     const root=el('palletPreview3D');if(!root)return;
     if(!window.THREE){root.innerHTML='<div class="pallet3dFallback">3D недоступен в этом браузере</div>';return;}
     dispose();
-    const profile=resolveProfile(inputL,inputW);syncProfileInputs(profile);
+    const profile=resolveProfile(inputL,inputW);
+    if(profile.key==='unsupported'){
+      state.mode='3d';state.selected='all';
+      root.innerHTML=`<div style="min-height:390px;display:flex;align-items:center;justify-content:center;padding:28px"><div style="width:min(100%,680px);text-align:center;padding:34px 24px;border:1px solid #dce7e1;border-radius:22px;background:linear-gradient(145deg,#fff,#f3f7f5);box-shadow:0 14px 34px rgba(19,65,53,.07)"><div style="width:56px;height:56px;margin:0 auto 14px;border-radius:17px;display:grid;place-items:center;background:#e7f1ed;color:#1f6f5c;font-size:27px">▦</div><strong style="display:block;font-size:22px;color:#173c33">3D для ${Math.round(inputL)} × ${Math.round(inputW)} мм не предусмотрен</strong><p style="margin:10px auto 16px;max-width:540px;color:#65756d;line-height:1.5">Размер не входит в список стандартных поддонов. Расчёт материалов, раскрой, сохранение заказа и производство работают как обычно.</p><div style="display:inline-flex;max-width:100%;flex-wrap:wrap;justify-content:center;gap:6px;padding:9px 12px;border-radius:12px;background:#edf5f1;color:#31584c;font-size:12px;font-weight:800">3D: 1200 × 800 · 1200 × 1000 · 1000 × 1200 · 800 × 600</div></div></div>`;
+      return;
+    }
+    syncProfileInputs(profile);
     const P=[0,1,2,3,4,5,6].map(part),deck=P[0],bindParts=[P[1],P[2]],runnerParts=[P[3],P[4]],block1=P[5],block2=P[6];
-    const isReference=profile.key==='1250x1180';
+    const isReference=false;
     const rawDeck=Math.max(0,Math.round(num(deck.n))),deckCount=isReference?9:Math.min(profile.deckMax,rawDeck);
     const rawBlocks=Math.max(0,Math.round(num(block1.n)))+Math.max(0,Math.round(num(block2.n))),blockCount=isReference?9:Math.min(9,rawBlocks||9);
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
     const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
     const refTag=isReference?'<span style="display:inline-flex;margin-right:7px;padding:3px 7px;border-radius:999px;background:#173f35;color:#fff;font-size:10px;font-weight:900;letter-spacing:.04em">ФОТО-ЭТАЛОН</span>':'';
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div class="pallet3dSpec" style="display:flex;justify-content:center;text-align:center;margin:8px auto 2px;padding:8px 12px;max-width:780px;border:1px solid rgba(31,111,92,.15);border-radius:12px;background:rgba(240,248,244,.92);color:#31584c;font-size:11px;font-weight:800;line-height:1.4">${refTag}${profile.spec}</div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(profile.width)} × ${Math.round(profile.length)} мм</strong><span>${mode==='explode'?'Разнесённая конструкция':'Конструкция по образцу'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',deckCount)}${chip('cross','Обвязка',3)}${chip('runner','Лыжи',runnerCount)}${chip('block','Шашки',blockCount)}</div><div class="palletModelHint">Для 1250 × 1180 используется отдельная модель по вашим фото · вращайте мышкой или пальцем · колесо — масштаб</div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div class="pallet3dSpec" style="display:flex;justify-content:center;text-align:center;margin:8px auto 2px;padding:8px 12px;max-width:780px;border:1px solid rgba(31,111,92,.15);border-radius:12px;background:rgba(240,248,244,.92);color:#31584c;font-size:11px;font-weight:800;line-height:1.4">${refTag}${profile.spec}</div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(profile.width)} × ${Math.round(profile.length)} мм</strong><span>${mode==='explode'?'Разнесённая конструкция':'Конструкция по образцу'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',deckCount)}${chip('cross','Обвязка',3)}${chip('runner','Лыжи',runnerCount)}${chip('block','Шашки',blockCount)}</div><div class="palletModelHint">Стандартная 3D-модель · вращайте мышкой или пальцем · колесо — масштаб</div>`;
 
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
