@@ -1,0 +1,21 @@
+name: Rotate Pallet 3D blocks v122
+on:
+  push:
+    paths:
+      - '.github/workflows/rotate-blocks-v122.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rotate all pallet blocks
+        run: python .github/scripts/rotate_blocks_v122.py
+      - name: Commit Pallet 3D block rotation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js index.html
+          git commit -m "Rotate all pallet blocks in 3D" || exit 0
+          git push
