@@ -1,0 +1,21 @@
+name: Standard-only active pallet 3D v124
+on:
+  push:
+    paths:
+      - '.github/workflows/standard-only-v124.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restrict active V10 3D to standard pallets
+        run: python .github/scripts/standard_only_v124.py
+      - name: Commit active 3D restriction
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js index.html
+          git commit -m "Restrict active 3D to standard pallet sizes" || exit 0
+          git push
