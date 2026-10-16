@@ -16,8 +16,22 @@ jobs:
       - name: Decode clean pallet images
         shell: bash
         run: |
-          base64 -d assets/clean-pallet-hero.webp.b64.txt > assets/pallet-clean-3d-1.webp
-          base64 -d assets/clean-pallet-preview.webp.b64.txt > assets/pallet-clean-3d-2.webp
+          python - <<'PY'
+          import base64, re
+          from pathlib import Path
+
+          pairs = [
+              ('assets/clean-pallet-hero.webp.b64.txt', 'assets/pallet-clean-3d-1.webp'),
+              ('assets/clean-pallet-preview.webp.b64.txt', 'assets/pallet-clean-3d-2.webp'),
+          ]
+          for src, dst in pairs:
+              raw = Path(src).read_text(encoding='utf-8')
+              clean = re.sub(r'[^A-Za-z0-9+/=]', '', raw)
+              clean += '=' * ((4 - len(clean) % 4) % 4)
+              Path(dst).write_bytes(base64.b64decode(clean, validate=False))
+          PY
+          file assets/pallet-clean-3d-1.webp | grep -i webp
+          file assets/pallet-clean-3d-2.webp | grep -i webp
           rm assets/clean-pallet-hero.webp.b64.txt assets/clean-pallet-preview.webp.b64.txt
       - name: Commit images
         shell: bash
