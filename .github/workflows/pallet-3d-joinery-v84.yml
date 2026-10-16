@@ -1,0 +1,21 @@
+name: Refine pallet 3D joinery
+on:
+  push:
+    paths:
+      - '.github/workflows/pallet-3d-joinery-v84.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Improve pallet joinery realism
+        run: python .github/scripts/pallet_3d_joinery_v84.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Improve pallet joinery and wood end grain" || exit 0
+          git push
