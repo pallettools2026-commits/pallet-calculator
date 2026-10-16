@@ -372,6 +372,14 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 @media(max-width:700px){.palletLegendInteractive .palletPartChip{min-width:calc(50% - 8px)}.palletModelSvgV4{max-height:390px!important}}
 @media(max-width:440px){.palletLegendInteractive{gap:6px!important}.palletLegendInteractive .palletPartChip{min-width:calc(50% - 6px);font-size:9px;padding:7px 8px}.palletModelSvgV4{max-height:350px!important}}
 
+
+/* pallet3dControlsV7 */
+.previewActions{display:flex;flex-wrap:wrap;gap:10px}
+.previewActions button{flex:0 1 auto}
+#resetPalletView{background:#f7faf8;color:#36594c;border:1px solid #dbe6e0}
+#resetPalletView:hover{background:#eef5f1}
+@media(max-width:560px){.previewActions button{flex:1 1 calc(50% - 6px)}#resetPalletView{flex-basis:100%}}
+
 </style>
 </head>
 <body>
@@ -589,7 +597,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
   <section class="previewCard">
     <div class="previewHead"><div class="cardHeadTitle"><div class="headIcon">◇</div><div><h2>3D вид поддона</h2><p>Модель строится по текущим деталям и размерам</p></div></div><span class="sizeBadge" id="previewSize">1250 × 1180 мм</span></div>
     <div class="previewStage dynamicPalletStage" id="previewStage"><div id="palletPreview3D" class="dynamicPalletCanvas" role="img" aria-label="3D модель поддона по выбранным размерам"></div></div>
-    <div class="previewActions"><button id="rotatePallet" type="button">↻ &nbsp; Поворот 3D</button><button id="zoomPallet" type="button">⌕ &nbsp; Приблизить</button></div>
+    <div class="previewActions"><button id="rotatePallet" type="button">↻ &nbsp; Поворот 3D</button><button id="zoomPallet" type="button">⌕ &nbsp; Приблизить</button><button id="resetPalletView" type="button">⌂ &nbsp; Сбросить вид</button></div>
   </section>
 </section>
 <div class="materialsHeader"><div><div class="sectionLabel">МАТЕРИАЛЫ</div><h2>Детали поддона</h2><p>Настил, поперечины, лыжи и шашки</p></div></div>
@@ -1157,7 +1165,7 @@ function renderDynamicPallet(lengthMm,widthMm){
  const p=[0,1,2,3,4,5,6].map(pallet3DPart),deck=p[0],cross=[p[1],p[2]],runners=[p[3],p[4]],blocks=[p[5],p[6]];
  const crossPieces=[];cross.forEach(x=>{for(let i=0;i<Math.min(x.n,20);i++)crossPieces.push(x)});const runnerPieces=[];runners.forEach(x=>{for(let i=0;i<Math.min(x.n,20);i++)runnerPieces.push(x)});const blockPieces=[];blocks.forEach(x=>{for(let i=0;i<Math.min(x.n,30);i++)blockPieces.push(x)});
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- const toolbar=`<div class="pallet3dToolbar" role="tablist" aria-label="Режим просмотра"><button type="button" data-p3d-mode="3d" class="${pallet3DState.mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${pallet3DState.mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${pallet3DState.mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${pallet3DState.mode==='explode'?'active':''}">Разнести</button></div>`;
+ const toolbar=`<div class="pallet3dToolbar" role="tablist" aria-label="Режим просмотра"><button type="button" data-p3d-mode="3d" class="${pallet3DState.mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${pallet3DState.mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${pallet3DState.mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${pallet3DState.mode==='explode'?'active':''}">${pallet3DState.mode==='explode'?'Собрать':'Разнести'}</button></div>`;
  let svg='';
  const woodDefs=`<defs>
   <pattern id="wood-deck" width="96" height="28" patternUnits="userSpaceOnUse"><rect width="96" height="28" fill="#edc994"/><path d="M0 6 C20 1 42 12 96 5 M0 15 C28 10 57 22 96 14 M0 24 C30 18 66 30 96 22" fill="none" stroke="#b98149" stroke-opacity=".24" stroke-width="1.2"/><ellipse cx="69" cy="12" rx="5" ry="2.2" fill="none" stroke="#9d6738" stroke-opacity=".28"/></pattern>
@@ -1204,11 +1212,14 @@ function renderDynamicPallet(lengthMm,widthMm){
  }
  const counts={deck:deck.n,cross:cross.reduce((s,x)=>s+x.n,0),runner:runners.reduce((s,x)=>s+x.n,0),block:blocks.reduce((s,x)=>s+x.n,0)},chip=(kind,label,count,cls)=>`<button type="button" data-p3d-part="${kind}" class="palletPartChip ${pallet3DState.selected===kind?'active':''}"><i class="${cls}"></i>${label} <b>${count}</b></button>`,dragHint=(pallet3DState.mode==='3d'||pallet3DState.mode==='explode')?'Проведите пальцем или мышкой по модели, чтобы вращать на 360°':'Нажмите на группу деталей, чтобы подсветить её';
  root.innerHTML=`${toolbar}<div class="pallet3dDragSurface"><svg class="dynamicPalletSvg palletModelSvgV4" viewBox="0 0 760 540" xmlns="http://www.w3.org/2000/svg">${svg}</svg></div><div class="palletModelLegend palletLegendInteractive">${chip('deck','Настил',counts.deck,'deck')}${chip('cross','Поперечины',counts.cross,'cross')}${chip('runner','Лыжи',counts.runner,'runner')}${chip('block','Шашки',counts.block,'block')}</div><div class="palletModelHint">${dragHint}</div>`;
- root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{pallet3DState.mode=btn.dataset.p3dMode;renderDynamicPallet(L,W)}));root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const kind=btn.dataset.p3dPart;pallet3DState.selected=pallet3DState.selected===kind?'all':kind;renderDynamicPallet(L,W)}));const rotate=document.getElementById('rotatePallet');if(rotate)rotate.textContent='↻ Повернуть на 45°';
+ root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.p3dMode;pallet3DState.mode=(next==='explode'&&pallet3DState.mode==='explode')?'3d':next;renderDynamicPallet(L,W)}));root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const kind=btn.dataset.p3dPart;pallet3DState.selected=pallet3DState.selected===kind?'all':kind;renderDynamicPallet(L,W)}));const rotate=document.getElementById('rotatePallet');if(rotate)rotate.textContent='↻ Повернуть на 45°';
 }
 function rerenderPallet3D(){renderDynamicPallet(Number(document.getElementById("pL")?.value),Number(document.getElementById("pW")?.value));}
 document.getElementById("rotatePallet")?.addEventListener("click",()=>{if(pallet3DState.mode==='top'||pallet3DState.mode==='side')pallet3DState.mode='3d';pallet3DState.angle=(pallet3DState.angle+45)%360;rerenderPallet3D();});
 document.getElementById("zoomPallet")?.addEventListener("click",()=>{document.getElementById("previewStage")?.classList.toggle("zoomed");});
+/* pallet3dControlsV7 */
+document.getElementById("resetPalletView")?.addEventListener("click",()=>{pallet3DState.angle=-28;pallet3DState.mode="3d";pallet3DState.selected="all";document.getElementById("previewStage")?.classList.remove("zoomed");rerenderPallet3D();});
+document.getElementById("previewStage")?.addEventListener("dblclick",e=>{if(e.target.closest("button"))return;pallet3DState.angle=-28;pallet3DState.mode="3d";pallet3DState.selected="all";document.getElementById("previewStage")?.classList.remove("zoomed");rerenderPallet3D();});
 const pallet3DStage=document.getElementById('previewStage');if(pallet3DStage){pallet3DStage.addEventListener('pointerdown',e=>{if(!(pallet3DState.mode==='3d'||pallet3DState.mode==='explode')||e.target.closest('button'))return;pallet3DState.dragging=true;pallet3DState.startX=e.clientX;pallet3DState.startAngle=pallet3DState.angle;pallet3DState.pointerId=e.pointerId;pallet3DStage.classList.add('isDragging');try{pallet3DStage.setPointerCapture(e.pointerId)}catch(_e){}});pallet3DStage.addEventListener('pointermove',e=>{if(!pallet3DState.dragging||e.pointerId!==pallet3DState.pointerId)return;pallet3DState.angle=(pallet3DState.startAngle+(e.clientX-pallet3DState.startX)*.65)%360;rerenderPallet3D();e.preventDefault()},{passive:false});const endDrag=e=>{if(!pallet3DState.dragging)return;pallet3DState.dragging=false;pallet3DStage.classList.remove('isDragging');try{pallet3DStage.releasePointerCapture(e.pointerId)}catch(_e){}};pallet3DStage.addEventListener('pointerup',endDrag);pallet3DStage.addEventListener('pointercancel',endDrag);}
 
 document.getElementById("calculateJump")?.addEventListener("click",()=>{calc();document.querySelector(".result")?.scrollIntoView({behavior:"smooth",block:"start"});});
