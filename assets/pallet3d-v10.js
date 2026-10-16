@@ -1,4 +1,4 @@
-/* pallet3dReferenceV122 — all pallet blocks rotated 90 degrees */
+/* pallet3dReferenceV123 — workshop photo reference 1250x1180 */
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
@@ -12,7 +12,7 @@
   function resolveProfile(inputL,inputW){
     const a=Math.max(300,num(inputL,1250)),b=Math.max(300,num(inputW,1180));
     if((near(a,1250)&&near(b,1180))||(near(a,1180)&&near(b,1250))){
-      return {key:'1250x1180',width:1250,length:1180,deckMax:9,bindingCount:3,runnerLengths:[1180,1050,1050,1050,1180],spec:'Ширина 1250 × длина 1180 · 5 лыж: 2×1180 + 3×1050 · обвязка 3 · настил до 9'};
+      return {key:'1250x1180',width:1250,length:1180,deckMax:9,bindingCount:3,runnerLengths:[1180,1180,1180],spec:'Фото-эталон 1250 × 1180 · 9 досок настила · 3 поперечины · 9 шашек · 3 нижние лыжи'};
     }
     if((near(a,800)&&near(b,1200))||(near(a,1200)&&near(b,800))){
       return {key:'800x1200',width:800,length:1200,deckMax:7,bindingCount:3,runnerLengths:[1200,1200,1200],spec:'Ширина 800 × длина 1200 · 3 лыжи по 1200 · обвязка 3 · настил до 7'};
@@ -23,20 +23,9 @@
 
   function setInput(id,value){const x=el(id);if(!x)return false;const v=String(value);if(x.value===v)return false;x.value=v;return true;}
   function syncProfileInputs(profile){
-    let changed=false;
     const deck=el('n0');
-    if(deck){deck.max=String(profile.deckMax);const n=Math.max(0,Math.round(num(deck.value)));if(n>profile.deckMax){deck.value=String(profile.deckMax);changed=true;}}
-    const bind=el('n1');if(bind&&num(bind.value)<3){bind.value='3';changed=true;}
-    if(profile.key==='1250x1180'){
-      changed=setInput('n3',2)||changed;changed=setInput('l3',1180)||changed;
-      changed=setInput('n4',3)||changed;changed=setInput('l4',1050)||changed;
-    }else if(profile.key==='800x1200'){
-      changed=setInput('n3',3)||changed;changed=setInput('l3',1200)||changed;
-      changed=setInput('n4',0)||changed;changed=setInput('l4',1200)||changed;
-    }
-    if(changed&&!syncQueued&&typeof window.calc==='function'){
-      syncQueued=true;setTimeout(()=>{syncQueued=false;try{window.calc();}catch(_){}},0);
-    }
+    if(deck)deck.max=String(profile.deckMax);
+    // 3D reference must never rewrite production calculator values.
   }
 
   function currentSignature(){
@@ -88,12 +77,14 @@
     dispose();
     const profile=resolveProfile(inputL,inputW);syncProfileInputs(profile);
     const P=[0,1,2,3,4,5,6].map(part),deck=P[0],bindParts=[P[1],P[2]],runnerParts=[P[3],P[4]],block1=P[5],block2=P[6];
-    const rawDeck=Math.max(0,Math.round(num(deck.n))),deckCount=Math.min(profile.deckMax,rawDeck);
-    const rawBlocks=Math.max(0,Math.round(num(block1.n)))+Math.max(0,Math.round(num(block2.n))),blockCount=Math.min(9,rawBlocks||9);
-    const runnerCount=profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3));
+    const isReference=profile.key==='1250x1180';
+    const rawDeck=Math.max(0,Math.round(num(deck.n))),deckCount=isReference?9:Math.min(profile.deckMax,rawDeck);
+    const rawBlocks=Math.max(0,Math.round(num(block1.n)))+Math.max(0,Math.round(num(block2.n))),blockCount=isReference?9:Math.min(9,rawBlocks||9);
+    const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
     const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div class="pallet3dSpec" style="display:flex;justify-content:center;text-align:center;margin:8px auto 2px;padding:8px 12px;max-width:780px;border:1px solid rgba(31,111,92,.15);border-radius:12px;background:rgba(240,248,244,.92);color:#31584c;font-size:11px;font-weight:800;line-height:1.4">${profile.spec}</div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(profile.width)} × ${Math.round(profile.length)} мм</strong><span>${mode==='explode'?'Разнесённая конструкция':'Конструкция по образцу'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',deckCount)}${chip('cross','Обвязка',3)}${chip('runner','Лыжи',runnerCount)}${chip('block','Шашки',blockCount)}</div><div class="palletModelHint">Настил идёт по длине · обвязка поперёк · шашки 3×3 · размеры перестраивают модель автоматически</div>`;
+    const refTag=isReference?'<span style="display:inline-flex;margin-right:7px;padding:3px 7px;border-radius:999px;background:#173f35;color:#fff;font-size:10px;font-weight:900;letter-spacing:.04em">ФОТО-ЭТАЛОН</span>':'';
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div class="pallet3dSpec" style="display:flex;justify-content:center;text-align:center;margin:8px auto 2px;padding:8px 12px;max-width:780px;border:1px solid rgba(31,111,92,.15);border-radius:12px;background:rgba(240,248,244,.92);color:#31584c;font-size:11px;font-weight:800;line-height:1.4">${refTag}${profile.spec}</div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(profile.width)} × ${Math.round(profile.length)} мм</strong><span>${mode==='explode'?'Разнесённая конструкция':'Конструкция по образцу'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',deckCount)}${chip('cross','Обвязка',3)}${chip('runner','Лыжи',runnerCount)}${chip('block','Шашки',blockCount)}</div><div class="palletModelHint">Для 1250 × 1180 используется отдельная модель по вашим фото · вращайте мышкой или пальцем · колесо — масштаб</div>`;
 
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
@@ -105,18 +96,18 @@
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,36),new THREE.ShadowMaterial({color:0x64584e,opacity:.13}));floor.rotation.x=-Math.PI/2;floor.position.y=-.025;floor.receiveShadow=true;scene.add(floor);
 
     const S=.01,PW=profile.width*S,PL=profile.length*S,selected=state.selected||'all';
-    const textures={deck:woodTexture(17,'#edc998','#8d6138'),cross:woodTexture(31,'#e4be89','#855a35'),runner:woodTexture(47,'#ddb27b','#7b5130'),block:woodTexture(61,'#d6a56d','#764c2e')};
+    const textures={deck:woodTexture(17,'#f3dfbd','#9a724b'),cross:woodTexture(31,'#ecd2a8','#906642'),runner:woodTexture(47,'#e8ca9a','#875d39'),block:woodTexture(61,'#dfbb86','#805433')};
     Object.values(textures).forEach((t,i)=>t.repeat.set(i===3?1.4:3.2,1));
-    const colors={deck:[0xf0d2a5,0xe8c28e,0xf2d7ad],cross:[0xe4bd87,0xdbad76,0xe9c795],runner:[0xd8aa70,0xcf9c61,0xdfb57e],block:[0xc9955e,0xd2a16b,0xc48c55]};
+    const colors={deck:[0xf3dab2,0xefd1a4,0xf6e0bf],cross:[0xeccda0,0xe6c18f,0xf0d5ad],runner:[0xe4c08d,0xddb47f,0xe9ca9a],block:[0xd8aa72,0xdfb783,0xd2a069]};
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
     function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
     const nailGeo=new THREE.CylinderGeometry(.026,.026,.016,12),nailMat=new THREE.MeshStandardMaterial({color:0x5d5a56,roughness:.38,metalness:.45});
     function nail(x,y,z){const n=new THREE.Mesh(nailGeo,nailMat);n.position.set(x,y,z);n.castShadow=true;groups.deck.add(n);}
 
-    const runnerT=Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=Math.max(.58,num(runnerParts[0].w,98)*S);
-    const blockH=Math.max(.62,num(block1.t||block2.t,75)*S),blockXSize1=Math.max(.72,num(block1.l,150)*S),blockZSize1=Math.max(.72,num(block1.w,98)*S),blockXSize2=Math.max(.72,num(block2.l,98)*S),blockZSize2=Math.max(.72,num(block2.w,100)*S);
-    const bindT=Math.max(.15,num(bindParts[0].t,22)*S),bindDepth=Math.max(.58,num(bindParts[0].w,98)*S);
-    const deckT=Math.max(.15,num(deck.t,22)*S),deckW=Math.max(.58,num(deck.w,98)*S);
+    const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
+    const blockH=isReference?.78:Math.max(.62,num(block1.t||block2.t,75)*S),blockXSize1=isReference?1.50:Math.max(.72,num(block1.l,150)*S),blockZSize1=isReference?.98:Math.max(.72,num(block1.w,98)*S),blockXSize2=isReference?.98:Math.max(.72,num(block2.l,98)*S),blockZSize2=isReference?1.00:Math.max(.72,num(block2.w,100)*S);
+    const bindT=isReference?.22:Math.max(.15,num(bindParts[0].t,22)*S),bindDepth=isReference?.98:Math.max(.58,num(bindParts[0].w,98)*S);
+    const deckT=isReference?.22:Math.max(.15,num(deck.t,22)*S),deckW=isReference?.98:Math.max(.58,num(deck.w,98)*S);
 
     const runnerLengths=profile.runnerLengths||Array.from({length:runnerCount},(_,i)=>Math.min(profile.length,num((i<Math.max(0,num(runnerParts[0].n)))?runnerParts[0].l:runnerParts[1].l,profile.length)));
     const runnerActualW=Math.min(runnerW,PW/Math.max(3,runnerLengths.length)*.56);
