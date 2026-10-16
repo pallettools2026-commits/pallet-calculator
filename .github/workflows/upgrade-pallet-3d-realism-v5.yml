@@ -1,0 +1,21 @@
+name: Upgrade pallet 3D realism
+on:
+  push:
+    paths:
+      - '.github/workflows/upgrade-pallet-3d-realism-v5.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply realistic 3D pallet upgrade
+        run: python .github/scripts/upgrade_pallet_3d_realism_v5.py
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Make pallet 3D model more realistic" || exit 0
+          git push
