@@ -1,0 +1,196 @@
+name: Reference style redesign
+
+on:
+  push:
+    paths:
+      - '.github/workflows/reference-style-redesign.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  redesign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Redesign dashboard to reference style
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          css = r'''
+/* Reference-style dashboard refresh */
+body{background:#f4f6f5;color:#17211d}
+main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
+.topNav{position:sticky;top:0;z-index:60;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:22px;min-height:84px;margin:0 -20px 0;padding:10px 24px;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid #e3e8e5;box-shadow:0 4px 18px rgba(27,52,43,.05)}
+.brandLockup{display:flex;align-items:center;gap:12px;min-width:265px}.brandLockup img{width:78px;height:54px;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(72,51,22,.12))}.brandTitle{font-size:27px;font-weight:900;letter-spacing:-.5px;line-height:1;color:#102b23}.brandTitle span{color:#15734f}.brandSub{font-size:12px;color:#6c7772;margin-top:5px}
+.navLinks{display:flex;align-items:center;justify-content:center;gap:8px}.navLink{display:inline-flex;align-items:center;gap:8px;border:0;background:transparent;color:#5b6762;border-radius:10px;padding:13px 14px;font-size:14px;font-weight:750;cursor:pointer;transition:.18s}.navLink:hover{background:#f2f7f4;color:#155b43}.navLink.active{color:#126541;border-bottom:3px solid #15734f;border-radius:0}.navIcon{font-size:18px}.adminNav{display:none}
+.topAccount{display:flex;align-items:center;gap:10px;min-width:236px;padding:10px 12px;border:1px solid #dfe7e2;border-radius:13px;background:#fff;cursor:pointer;text-align:left;box-shadow:0 4px 12px rgba(29,63,50,.04)}.accountShield{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#e7f3ec;color:#126541;font-size:19px}.accountMain{min-width:0}.accountMain strong{display:block;color:#173c2f;font-size:13px}.accountMain small{display:block;color:#65726c;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}.accountArrow{margin-left:auto;color:#52625a}
+.siteHero{position:relative;isolation:isolate;min-height:465px;margin:0 -20px 18px;overflow:hidden;border-radius:0 0 26px 26px;background:linear-gradient(90deg,#f7f0e5 0%,#f6f3ed 40%,#ebe5dc 100%);box-shadow:0 14px 30px rgba(58,54,43,.08)}.siteHero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 22% 20%,rgba(255,255,255,.92),transparent 36%),linear-gradient(100deg,rgba(255,255,255,.52),rgba(255,255,255,.06) 65%);z-index:-1}.siteHero:after{content:"";position:absolute;right:-2%;top:0;width:42%;height:100%;background:repeating-linear-gradient(90deg,rgba(111,79,43,.05) 0 10px,transparent 10px 76px);filter:blur(1px);z-index:-1}
+.heroInner{display:grid;grid-template-columns:minmax(0,.88fr) minmax(470px,1.12fr);align-items:center;gap:20px;max-width:1360px;margin:0 auto;padding:54px 48px 42px}.heroCopy{padding-left:8px}.heroKicker{font-size:13px;font-weight:900;color:#15734f;letter-spacing:.12em;margin-bottom:8px}.siteHero h1{margin:0;font-size:68px;line-height:.98;letter-spacing:-2.3px;color:#0c1512}.siteHero h1 span{color:#15734f}.heroSubtitle{font-size:27px;font-weight:850;margin:11px 0 20px;color:#101815}.heroLead{font-size:18px;line-height:1.55;color:#28312d;max-width:590px;margin:0}.heroFeatures{display:flex;gap:44px;margin-top:36px}.heroFeature{min-width:115px}.featureIcon{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:rgba(31,124,84,.10);color:#126541;font-size:28px;margin-bottom:10px}.heroFeature b{display:block;font-size:14px;color:#1a2420}.heroFeature span{display:block;font-size:12px;color:#59655f;line-height:1.25}.heroVisual{position:relative;display:flex;align-items:center;justify-content:center;min-height:360px}.heroVisual img{width:min(100%,690px);height:auto;object-fit:contain;filter:drop-shadow(0 28px 26px rgba(77,52,24,.22));transform:perspective(900px) rotateX(1deg) rotateZ(-1deg)}
+.authCard{margin:20px 0 18px}.authCard.loggedIn{display:none!important}
+.sectionLabel{font-size:12px;font-weight:900;letter-spacing:.1em;color:#15734f;margin-bottom:6px}.sectionTitle{font-size:26px;font-weight:900;color:#18231f;margin:0}.sectionDesc{font-size:13px;color:#6a756f;margin-top:4px}
+.dashboardCards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0 20px}.dashboardCards>.card,.previewCard{margin:0;background:#fff;border:1px solid #e1e7e3;border-radius:18px;box-shadow:0 8px 22px rgba(32,58,48,.07)}.calculatorCard{padding:22px}.cardHead,.previewHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.cardHeadTitle{display:flex;gap:12px;align-items:center}.headIcon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#e9f4ee;color:#15734f;font-size:22px;flex:0 0 auto}.cardHead h2,.previewHead h2{margin:0;font-size:23px;color:#17211d}.cardHead p,.previewHead p{margin:4px 0 0;color:#67736d;font-size:12px}.calculatorCard .grid3{grid-template-columns:1fr 1fr 1fr}.calculateJump{width:100%;margin-top:16px;min-height:54px;border:0;border-radius:10px;background:linear-gradient(90deg,#117044,#167c4c);color:#fff;font-size:16px;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(18,111,69,.18)}.calculateJump:hover{filter:brightness(1.05)}
+.previewCard{padding:22px;overflow:hidden}.sizeBadge{white-space:nowrap;background:#e4f3ea;color:#145c42;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:850}.previewStage{display:flex;align-items:center;justify-content:center;min-height:265px;border-radius:16px;background:linear-gradient(180deg,#fbfcfb,#f5f7f6);overflow:hidden;transition:.25s}.previewStage img{width:min(92%,520px);height:auto;object-fit:contain;filter:drop-shadow(0 18px 20px rgba(68,48,24,.16));transition:transform .3s ease}.previewStage.zoomed img{transform:scale(1.28)}.previewActions{display:flex;gap:10px;margin-top:13px}.previewActions button{border:1px solid #dce4df;background:#fff;color:#34433c;border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.previewActions button:hover{background:#f3f7f5}
+.materialsHeader{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:24px 0 12px}.materialsHeader h2{margin:0;font-size:25px}.materialsHeader p{margin:4px 0 0;color:#6c7772;font-size:13px}
+.parts{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.parts .card{margin:0}.result{margin-top:20px}
+.savedBox{background:#fff;color:var(--text);border-color:#dfe7e2}.savedBox h2{color:#173c33}
+@media(max-width:1100px){.topNav{grid-template-columns:auto 1fr}.topAccount{grid-column:1/-1;justify-self:end;margin-top:-6px}.heroInner{grid-template-columns:1fr 1fr;padding:42px 32px}.siteHero h1{font-size:52px}.heroSubtitle{font-size:23px}.heroFeatures{gap:22px}.calculatorCard .grid3{grid-template-columns:1fr 1fr}.dashboardCards{grid-template-columns:1fr}.parts{grid-template-columns:1fr}}
+@media(max-width:760px){main{padding:0 12px 30px}.topNav{position:relative;margin:0 -12px;padding:10px 14px;grid-template-columns:1fr auto;gap:8px}.brandLockup{min-width:0}.brandLockup img{width:56px;height:42px}.brandTitle{font-size:21px}.brandSub{display:none}.navLinks{grid-column:1/-1;justify-content:flex-start;overflow-x:auto;padding-bottom:3px}.navLink{padding:9px 10px;white-space:nowrap;font-size:12px}.topAccount{grid-column:auto;min-width:0;width:46px;height:46px;padding:4px;justify-content:center}.accountMain,.accountArrow{display:none}.accountShield{width:36px;height:36px}.siteHero{margin:0 -12px 14px;min-height:0}.heroInner{grid-template-columns:1fr;padding:30px 20px 20px}.heroCopy{padding:0}.siteHero h1{font-size:46px}.heroSubtitle{font-size:21px}.heroLead{font-size:15px}.heroFeatures{gap:10px;justify-content:space-between;margin-top:24px}.heroFeature{min-width:0;flex:1}.featureIcon{width:48px;height:48px;font-size:22px}.heroVisual{min-height:220px}.heroVisual img{width:min(100%,480px)}.calculatorCard .grid3{grid-template-columns:1fr}.dashboardCards{gap:14px}.previewStage{min-height:210px}.parts{grid-template-columns:1fr}.materialsHeader{align-items:flex-start;flex-direction:column}}
+@media(max-width:430px){.siteHero h1{font-size:40px}.heroFeatures{flex-direction:column}.heroFeature{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center}.featureIcon{grid-row:1/3;margin:0}.previewActions{flex-direction:column}.previewActions button{width:100%}}
+@media print{.topNav,.siteHero,.dashboardCards,.materialsHeader{display:none!important}}
+'''
+
+          top_and_hero = r'''
+<header class="topNav">
+  <div class="brandLockup">
+    <img src="assets/pallet-clean-3d-2.webp" alt="Pallet Tools">
+    <div><div class="brandTitle"><span>Pallet</span> Tools</div><div class="brandSub">Калькулятор деревянных поддонов</div></div>
+  </div>
+  <nav class="navLinks" aria-label="Навигация">
+    <button class="navLink active" type="button" data-scroll="home"><span class="navIcon">⌂</span>Главная</button>
+    <button class="navLink" type="button" data-scroll="calculator"><span class="navIcon">▦</span>Калькулятор</button>
+    <button class="navLink" type="button" data-scroll="savedBox"><span class="navIcon">▤</span>Мои расчёты</button>
+    <button class="navLink adminNav" id="adminNav" type="button" data-scroll="adminPanel"><span class="navIcon">⚙</span>Админ-панель</button>
+  </nav>
+  <button class="topAccount" id="topAccount" type="button" title="Аккаунт">
+    <span class="accountShield">♜</span>
+    <span class="accountMain"><strong id="topAccountText">Войти</strong><small id="topAccountSub">Аккаунт</small></span>
+    <span class="accountArrow">⌄</span>
+  </button>
+</header>
+
+<section class="siteHero" id="home" aria-label="Pallet Tools">
+  <div class="heroInner">
+    <div class="heroCopy">
+      <div class="heroKicker">PALLET TOOLS</div>
+      <h1><span>Pallet</span> Tools</h1>
+      <div class="heroSubtitle">Калькулятор деревянных поддонов</div>
+      <p class="heroLead">Быстрый и удобный расчёт материалов для производства деревянных поддонов.</p>
+      <div class="heroFeatures">
+        <div class="heroFeature"><div class="featureIcon">▦</div><b>Точный</b><span>расчёт</span></div>
+        <div class="heroFeature"><div class="featureIcon">◒</div><b>Экономия</b><span>материалов</span></div>
+        <div class="heroFeature"><div class="featureIcon">⚙</div><b>Удобный</b><span>инструмент</span></div>
+      </div>
+    </div>
+    <div class="heroVisual"><img src="assets/pallet-clean-3d-1.webp" alt="Новый чистый деревянный поддон"></div>
+  </div>
+</section>
+'''
+
+          old_calc = r'''
+<section class="card">
+<h2>Поддон</h2>
+<div class="grid3">
+<div><label>Длина, мм</label><input id="pL" type="number" value="1250"></div>
+<div><label>Ширина, мм</label><input id="pW" type="number" value="1180"></div>
+<div><label>Количество поддонов</label><input id="qty" type="number" min="1" value="100"></div>
+</div>
+</section>
+
+<div id="parts" class="parts"></div>
+'''
+
+          new_calc = r'''
+<section class="dashboardCards" id="calculator">
+  <section class="card calculatorCard">
+    <div class="cardHead">
+      <div class="cardHeadTitle"><div class="headIcon">▦</div><div><h2>Калькулятор поддонов</h2><p>Введите размер и количество поддонов</p></div></div>
+    </div>
+    <div class="grid3">
+      <div><label>Длина поддона, мм</label><input id="pL" type="number" value="1250"></div>
+      <div><label>Ширина поддона, мм</label><input id="pW" type="number" value="1180"></div>
+      <div><label>Количество поддонов</label><input id="qty" type="number" min="1" value="100"></div>
+    </div>
+    <button class="calculateJump" id="calculateJump" type="button">▦ &nbsp; Рассчитать материалы</button>
+  </section>
+  <section class="previewCard">
+    <div class="previewHead">
+      <div class="cardHeadTitle"><div class="headIcon">◇</div><div><h2>3D вид поддона</h2><p>Наглядный пример чистого нового поддона</p></div></div>
+      <span class="sizeBadge" id="previewSize">1250 × 1180 мм</span>
+    </div>
+    <div class="previewStage" id="previewStage"><img id="previewPallet" src="assets/pallet-clean-3d-2.webp" alt="3D вид деревянного поддона"></div>
+    <div class="previewActions"><button id="rotatePallet" type="button">↻ &nbsp; Поворот 3D</button><button id="zoomPallet" type="button">⌕ &nbsp; Приблизить</button></div>
+  </section>
+</section>
+<div class="materialsHeader"><div><div class="sectionLabel">МАТЕРИАЛЫ</div><h2>Детали поддона</h2><p>Настил, поперечины, лыжи и шашки</p></div></div>
+<div id="parts" class="parts"></div>
+'''
+
+          start = text.find('<section class="siteHero"')
+          auth = text.find('<section class="authCard"', start if start >= 0 else 0)
+          if start >= 0 and auth > start:
+              text = text[:start] + top_and_hero + '\n' + text[auth:]
+          elif '<header class="topNav">' not in text:
+              marker = '<section class="authCard"'
+              pos = text.find(marker)
+              if pos < 0:
+                  raise SystemExit('auth marker not found')
+              text = text[:pos] + top_and_hero + '\n' + text[pos:]
+
+          if old_calc in text:
+              text = text.replace(old_calc, new_calc, 1)
+          elif 'id="calculator"' not in text:
+              raise SystemExit('calculator block not found')
+
+          if '/* Reference-style dashboard refresh */' not in text:
+              text = text.replace('</style>', css + '\n</style>', 1)
+
+          old_qty_line = 'document.getElementById("qtyLabel").textContent=q?`${q.toLocaleString("ru-RU")} подд.`:"Введите количество";'
+          new_qty_line = old_qty_line + '\n const previewSize=document.getElementById("previewSize");if(previewSize)previewSize.textContent=(pl&&pw)?`${pl} × ${pw} мм`:"Размер не задан";'
+          if new_qty_line not in text and old_qty_line in text:
+              text = text.replace(old_qty_line, new_qty_line, 1)
+
+          admin_line = '   const admin=role==="admin";'
+          if 'topAccountText.textContent=admin?' not in text and admin_line in text:
+              state_js = admin_line + r'''
+   const topAccountText=document.getElementById("topAccountText"),topAccountSub=document.getElementById("topAccountSub"),adminNav=document.getElementById("adminNav"),authCard=document.getElementById("authCard");
+   if(topAccountText)topAccountText.textContent=admin?"Администратор":"Сотрудник";
+   if(topAccountSub)topAccountSub.textContent=user.email||"Аккаунт";
+   if(adminNav)adminNav.style.display=admin?"inline-flex":"none";
+   if(authCard)authCard.classList.add("loggedIn");'''
+              text = text.replace(admin_line, state_js, 1)
+
+          else_line = ' }else{\n   authState.textContent="Войдите или создайте аккаунт.";'
+          if 'topAccountText.textContent="Войти"' not in text and else_line in text:
+              else_js = r''' }else{
+   const topAccountText=document.getElementById("topAccountText"),topAccountSub=document.getElementById("topAccountSub"),adminNav=document.getElementById("adminNav"),authCard=document.getElementById("authCard");
+   if(topAccountText)topAccountText.textContent="Войти";
+   if(topAccountSub)topAccountSub.textContent="Аккаунт";
+   if(adminNav)adminNav.style.display="none";
+   if(authCard)authCard.classList.remove("loggedIn");
+   authState.textContent="Войдите или создайте аккаунт.";'''
+              text = text.replace(else_line, else_js, 1)
+
+          hook = 'syncAutoLengths();\ncalc();\nloadSaved();'
+          if 'const previewImages=[' not in text and hook in text:
+              extra_js = r'''
+const previewImages=["assets/pallet-clean-3d-2.webp","assets/pallet-clean-3d-1.webp"];
+let previewIndex=0;
+document.getElementById("rotatePallet")?.addEventListener("click",()=>{previewIndex=(previewIndex+1)%previewImages.length;const img=document.getElementById("previewPallet");if(img)img.src=previewImages[previewIndex];});
+document.getElementById("zoomPallet")?.addEventListener("click",()=>{document.getElementById("previewStage")?.classList.toggle("zoomed");});
+document.getElementById("calculateJump")?.addEventListener("click",()=>{calc();document.querySelector(".result")?.scrollIntoView({behavior:"smooth",block:"start"});});
+document.querySelectorAll("[data-scroll]").forEach(btn=>btn.addEventListener("click",()=>{const el=document.getElementById(btn.dataset.scroll);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}));
+document.getElementById("topAccount")?.addEventListener("click",async()=>{if(currentUser){await sb.auth.signOut();}else{document.getElementById("authCard")?.scrollIntoView({behavior:"smooth",block:"center"});}});
+'''
+              text = text.replace(hook, extra_js + '\n' + hook, 1)
+
+          text = text.replace('<title>Калькулятор поддонов — исправленный</title>','<title>Pallet Tools — калькулятор поддонов</title>')
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit redesign
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Redesign site to Pallet Tools reference style"
+            git push
+          fi
