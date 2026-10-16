@@ -568,7 +568,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
         <div class="dashPanelHead"><div><span class="dashPanelIcon">▤</span><div><h3>Активный заказ</h3><p>Данные берутся из текущего расчёта Pallet Tools.</p></div></div><button type="button" data-jump="calculator">Изменить →</button></div>
         <div class="orderFocus">
           <img src="assets/pallet-clean-3d-2.webp" alt="Чистый деревянный поддон">
-          <div class="orderFocusMain"><div class="orderBadges"><span class="statusLive">● В работе</span><span id="dashOrderBadge">Новый заказ</span></div><h2 id="dashOrderTitle">Поддон 1250 × 1180</h2><p id="dashOrderMeta">Заполните номер заказа и данные смены.</p><div class="orderProgress"><div class="orderProgressTop"><span>Выполнение</span><b id="dashProgressLabel">0 / 100</b></div><div class="dashBar"><i id="dashProgressBar" style="width:0%"></i></div></div></div>
+          <div class="orderFocusMain"><div class="orderBadges"><span class="statusLive">● В работе</span><span id="dashOrderBadge">Новый заказ</span></div><h2 id="dashOrderTitle">Поддон 1200 × 800</h2><p id="dashOrderMeta">Заполните номер заказа и данные смены.</p><div class="orderProgress"><div class="orderProgressTop"><span>Выполнение</span><b id="dashProgressLabel">0 / 100</b></div><div class="dashBar"><i id="dashProgressBar" style="width:0%"></i></div></div></div>
           <div class="orderFocusAside"><small>Ответственный</small><b id="dashWorker">Не указан</b><small>Дата</small><b id="dashWorkDate">—</b></div>
         </div>
       </article>
@@ -580,7 +580,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
     </div>
 
     <div class="dashSideCol">
-      <article class="dashPanel palletViewPanel"><div class="dashPanelHead"><div><span class="dashPanelIcon">◇</span><div><h3>Вид поддона</h3><p id="dashPreviewSize">1250 × 1180 мм</p></div></div><button type="button" data-jump="calculator">Открыть</button></div><div class="dashPalletImage"><img src="assets/pallet-clean-3d-2.webp" alt="Деревянный поддон"></div></article>
+      <article class="dashPanel palletViewPanel"><div class="dashPanelHead"><div><span class="dashPanelIcon">◇</span><div><h3>Вид поддона</h3><p id="dashPreviewSize">1200 × 800 мм</p></div></div><button type="button" data-jump="calculator">Открыть</button></div><div class="dashPalletImage"><img src="assets/pallet-clean-3d-2.webp" alt="Деревянный поддон"></div></article>
       <article class="dashPanel quickPanel"><div class="dashPanelHead"><div><span class="dashPanelIcon">⚡</span><div><h3>Быстрые действия</h3><p>Основные инструменты</p></div></div></div><div class="quickGrid"><button type="button" data-jump="calculator"><span>▦</span>Расчёт поддона</button><button type="button" data-jump="workshop"><span>⌁</span>План распила</button><button type="button" data-jump="production"><span>▥</span>Статус заказа</button><button type="button" data-jump="savedBox"><span>▤</span>Мои расчёты</button></div></article>
     </div>
   </div>
@@ -606,14 +606,14 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
   <section class="card calculatorCard">
     <div class="cardHead"><div class="cardHeadTitle"><div class="headIcon">▦</div><div><h2>Калькулятор поддонов</h2><p>Введите размер и количество поддонов</p></div></div></div>
     <div class="grid3">
-      <div><label>Длина поддона, мм</label><input id="pL" type="number" value="1250"></div>
-      <div><label>Ширина поддона, мм</label><input id="pW" type="number" value="1180"></div>
+      <div><label>Длина поддона, мм</label><input id="pL" type="number" value="1200"></div>
+      <div><label>Ширина поддона, мм</label><input id="pW" type="number" value="800"></div>
       <div><label>Количество поддонов</label><input id="qty" type="number" min="1" value="100"></div>
     </div>
     <button class="calculateJump" id="calculateJump" type="button">▦ &nbsp; Рассчитать материалы</button>
   </section>
   <section class="previewCard">
-    <div class="previewHead"><div class="cardHeadTitle"><div class="headIcon">◇</div><div><h2>3D вид поддона</h2><p>Модель строится по текущим деталям и размерам</p></div></div><span class="sizeBadge" id="previewSize">1250 × 1180 мм</span></div>
+    <div class="previewHead"><div class="cardHeadTitle"><div class="headIcon">◇</div><div><h2>3D вид поддона</h2><p>Модель строится по текущим деталям и размерам</p></div></div><span class="sizeBadge" id="previewSize">1200 × 800 мм</span></div>
     <div class="previewStage dynamicPalletStage" id="previewStage"><div id="palletPreview3D" class="dynamicPalletCanvas" role="img" aria-label="3D модель поддона по выбранным размерам"></div></div>
     <div class="previewActions"><button id="rotatePallet" type="button">↻ &nbsp; Поворот 3D</button><button id="zoomPallet" type="button">⌕ &nbsp; Приблизить</button><button id="resetPalletView" type="button">⌂ &nbsp; Сбросить вид</button></div>
   </section>
@@ -640,7 +640,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 
 <section class="result">
 <div id="printMeta" class="printMeta" style="display:none"></div>
-<div class="resultHead"><div><small>Итог для</small><br><strong id="palletSize">1250 × 1180 мм</strong></div><b id="qtyLabel">100 подд.</b></div>
+<div class="resultHead"><div><small>Итог для</small><br><strong id="palletSize">1200 × 800 мм</strong></div><b id="qtyLabel">100 подд.</b></div>
 <div id="results"></div>
 
 
@@ -1498,7 +1498,7 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
 
-<script src="assets/pallet3d-v10.js?v=125"></script>
+<script src="assets/pallet3d-v10.js?v=126"></script>
 
 </body>
 </html>

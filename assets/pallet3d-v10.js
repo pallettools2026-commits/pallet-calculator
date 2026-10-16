@@ -1,4 +1,4 @@
-/* pallet3dStandardOnlyV125 — hide unsupported preview without curtain */
+/* pallet3dStandardOnlyV126 — clean visible standard 3D */
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
@@ -76,13 +76,23 @@
     dispose();
     const profile=resolveProfile(inputL,inputW);
     const previewCard=root.closest('.previewCard');
+    const previewStage=el('previewStage');
+    const previewActions=previewCard?.querySelector('.previewActions');
     if(profile.key==='unsupported'){
       state.mode='3d';state.selected='all';
       root.innerHTML='';
-      if(previewCard)previewCard.style.display='none';
+      if(previewCard)previewCard.style.display='';
+      if(previewStage)previewStage.style.display='none';
+      if(previewActions)previewActions.style.display='none';
       return;
     }
     if(previewCard)previewCard.style.display='';
+    if(previewStage)previewStage.style.display='flex';
+    if(previewActions)previewActions.style.display='flex';
+    root.style.display='block';
+    root.style.width='100%';
+    root.style.padding='0';
+    root.style.minHeight='0';
     syncProfileInputs(profile);
     const P=[0,1,2,3,4,5,6].map(part),deck=P[0],bindParts=[P[1],P[2]],runnerParts=[P[3],P[4]],block1=P[5],block2=P[6];
     const isReference=false;
@@ -91,8 +101,7 @@
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
     const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
-    const refTag=isReference?'<span style="display:inline-flex;margin-right:7px;padding:3px 7px;border-radius:999px;background:#173f35;color:#fff;font-size:10px;font-weight:900;letter-spacing:.04em">ФОТО-ЭТАЛОН</span>':'';
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div class="pallet3dSpec" style="display:flex;justify-content:center;text-align:center;margin:8px auto 2px;padding:8px 12px;max-width:780px;border:1px solid rgba(31,111,92,.15);border-radius:12px;background:rgba(240,248,244,.92);color:#31584c;font-size:11px;font-weight:800;line-height:1.4">${refTag}${profile.spec}</div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(profile.width)} × ${Math.round(profile.length)} мм</strong><span>${mode==='explode'?'Разнесённая конструкция':'Конструкция по образцу'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',deckCount)}${chip('cross','Обвязка',3)}${chip('runner','Лыжи',runnerCount)}${chip('block','Шашки',blockCount)}</div><div class="palletModelHint">Стандартная 3D-модель · вращайте мышкой или пальцем · колесо — масштаб</div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div></div><div class="palletModelLegend">${chip('deck','Настил',deckCount)}${chip('cross','Обвязка',3)}${chip('runner','Лыжи',runnerCount)}${chip('block','Шашки',blockCount)}</div>`;
 
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
@@ -113,7 +122,7 @@
     function nail(x,y,z){const n=new THREE.Mesh(nailGeo,nailMat);n.position.set(x,y,z);n.castShadow=true;groups.deck.add(n);}
 
     const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
-    const blockH=isReference?.78:Math.max(.62,num(block1.t||block2.t,75)*S),blockXSize1=isReference?1.50:Math.max(.72,num(block1.l,150)*S),blockZSize1=isReference?.98:Math.max(.72,num(block1.w,98)*S),blockXSize2=isReference?.98:Math.max(.72,num(block2.l,98)*S),blockZSize2=isReference?1.00:Math.max(.72,num(block2.w,100)*S);
+    const blockH=.75,blockXSize1=.95,blockZSize1=.95,blockXSize2=.95,blockZSize2=.95;
     const bindT=isReference?.22:Math.max(.15,num(bindParts[0].t,22)*S),bindDepth=isReference?.98:Math.max(.58,num(bindParts[0].w,98)*S);
     const deckT=isReference?.22:Math.max(.15,num(deck.t,22)*S),deckW=isReference?.98:Math.max(.58,num(deck.w,98)*S);
 
