@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fix patch helper
+      - name: Normalize style closing tag
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('.github/scripts/upgrade_pallet_3d_v2.py')
+          p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          s=s.replace("if '\\n</style>' not in text:\n    raise SystemExit('style closing tag not found')", "if '</style>' not in text:\n    raise SystemExit('style closing tag not found')")
-          s=s.replace("text = text.replace('\\n</style>', css + '\\n</style>', 1)", "text = text.replace('</style>', css + '\\n</style>', 1)")
+          if '\n</style>' not in s:
+              s=s.replace('</style>','\n</style>',1)
           p.write_text(s,encoding='utf-8')
           PY
       - name: Apply detailed 3D pallet model
