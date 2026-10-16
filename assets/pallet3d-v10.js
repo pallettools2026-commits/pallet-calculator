@@ -1,4 +1,4 @@
-/* pallet3dStandardOnlyV124 — standard pallet whitelist */
+/* pallet3dStandardOnlyV125 — hide unsupported preview without curtain */
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
@@ -75,11 +75,14 @@
     if(!window.THREE){root.innerHTML='<div class="pallet3dFallback">3D недоступен в этом браузере</div>';return;}
     dispose();
     const profile=resolveProfile(inputL,inputW);
+    const previewCard=root.closest('.previewCard');
     if(profile.key==='unsupported'){
       state.mode='3d';state.selected='all';
-      root.innerHTML=`<div style="min-height:390px;display:flex;align-items:center;justify-content:center;padding:28px"><div style="width:min(100%,680px);text-align:center;padding:34px 24px;border:1px solid #dce7e1;border-radius:22px;background:linear-gradient(145deg,#fff,#f3f7f5);box-shadow:0 14px 34px rgba(19,65,53,.07)"><div style="width:56px;height:56px;margin:0 auto 14px;border-radius:17px;display:grid;place-items:center;background:#e7f1ed;color:#1f6f5c;font-size:27px">▦</div><strong style="display:block;font-size:22px;color:#173c33">3D для ${Math.round(inputL)} × ${Math.round(inputW)} мм не предусмотрен</strong><p style="margin:10px auto 16px;max-width:540px;color:#65756d;line-height:1.5">Размер не входит в список стандартных поддонов. Расчёт материалов, раскрой, сохранение заказа и производство работают как обычно.</p><div style="display:inline-flex;max-width:100%;flex-wrap:wrap;justify-content:center;gap:6px;padding:9px 12px;border-radius:12px;background:#edf5f1;color:#31584c;font-size:12px;font-weight:800">3D: 1200 × 800 · 1200 × 1000 · 1000 × 1200 · 800 × 600</div></div></div>`;
+      root.innerHTML='';
+      if(previewCard)previewCard.style.display='none';
       return;
     }
+    if(previewCard)previewCard.style.display='';
     syncProfileInputs(profile);
     const P=[0,1,2,3,4,5,6].map(part),deck=P[0],bindParts=[P[1],P[2]],runnerParts=[P[3],P[4]],block1=P[5],block2=P[6];
     const isReference=false;
