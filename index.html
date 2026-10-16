@@ -995,15 +995,26 @@ document.getElementById("printAllBtn").addEventListener("click",()=>{
   alert("Сначала сохрани хотя бы один расчёт.");
   return;
  }
+ updatePrintMeta();
  window.print();
 });
+
+function currentPrinterFullName(){
+ let name=currentUser?.user_metadata?.full_name||"";
+ try{
+  const remembered=JSON.parse(localStorage.getItem("pallettools:lastEmployee")||"null");
+  if(remembered?.full_name)name=remembered.full_name;
+ }catch(_){ }
+ return name||"Ф.И.О. не указано";
+}
 
 function updatePrintMeta(){
  const order=document.getElementById("orderNo").value.trim()||"—";
  const worker=document.getElementById("worker").value.trim()||"—";
  const date=document.getElementById("jobDate").value||"—";
  const time=document.getElementById("jobTime")?.value||"";
- document.getElementById("printMeta").textContent=`Заказ: ${order} • Сотрудник / смена: ${worker} • Дата и время: ${date}${time?` ${time}`:""}`;
+ const printer=currentPrinterFullName();
+ document.getElementById("printMeta").textContent=`Заказ: ${order} • Сотрудник / смена: ${worker} • Дата и время: ${date}${time?` ${time}`:""} • Распечатал: ${printer}`;
 }
 document.getElementById("printBtn").addEventListener("click",()=>{updatePrintMeta();window.print();});
 
