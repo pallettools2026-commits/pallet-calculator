@@ -686,7 +686,7 @@ document.getElementById("loginBtn").addEventListener("click",async()=>{
  showSession(data.session);
 });
 
-logoutBtn.addEventListener("click",async()=>{const {error}=await sb.auth.signOut();if(error)setAuthMessage("Ошибка выхода: "+error.message,true);});
+logoutBtn.addEventListener("click",async()=>{try{localStorage.removeItem("pallettools:lastEmployee");}catch(_){}const {error}=await sb.auth.signOut();if(error)setAuthMessage("Ошибка выхода: "+error.message,true);});
 sb.auth.getSession().then(({data})=>showSession(data.session));
 sb.auth.onAuthStateChange((_event,session)=>showSession(session));
 
@@ -966,7 +966,22 @@ async function showSession(session){
    if(adminNav)adminNav.style.display="none";
    if(authCard)authCard.classList.remove("loggedIn");
    authState.textContent="Войдите или создайте аккаунт.";authFields.style.display="grid";logoutBtn.style.display="none";protectedApp.classList.add("appLocked");if(panel)panel.style.display="none";
-   if(typeof renderLastEmployeeCard==="function")renderLastEmployeeCard();
+   // logoutPrivacyCleanupV1 — после выхода не оставляем данные прошлого сотрудника на экране входа
+   try{localStorage.removeItem("pallettools:lastEmployee");}catch(_){}
+   if(authEmail)authEmail.value="";
+   if(authPassword)authPassword.value="";
+   const fullNameInput=document.getElementById("authFullName"),positionInput=document.getElementById("authPosition");
+   if(fullNameInput)fullNameInput.value="";
+   if(positionInput)positionInput.value="";
+   const reg=document.getElementById("authRegisterOnly"),signup=document.getElementById("signupBtn");
+   if(reg)reg.hidden=true;
+   if(signup){delete signup.dataset.mode;signup.innerHTML='<span>♙</span> Регистрация';}
+   const lastCard=document.getElementById("lastEmployeeCard");
+   if(lastCard)lastCard.hidden=true;
+   const lastName=document.getElementById("lastEmployeeName"),lastPosition=document.getElementById("lastEmployeePosition");
+   if(lastName)lastName.textContent="—";
+   if(lastPosition)lastPosition.textContent="—";
+   if(typeof closeEmployeeProfile==="function")closeEmployeeProfile();
    setAuthMessage("После регистрации Supabase отправит письмо для подтверждения email.");
  }
 }
@@ -1260,6 +1275,7 @@ document.getElementById('profileSave')?.addEventListener('click',async e=>{
 });
 document.getElementById('profileLogout')?.addEventListener('click',async()=>{
  closeEmployeeProfile();
+ try{localStorage.removeItem('pallettools:lastEmployee');}catch(_){}
  const {error}=await sb.auth.signOut();
  if(error&&typeof setAuthMessage==='function')setAuthMessage('Ошибка выхода: '+error.message,true);
 });
