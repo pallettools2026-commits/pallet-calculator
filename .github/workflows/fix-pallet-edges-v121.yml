@@ -1,0 +1,21 @@
+name: Fix Pallet 3D edges v121
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-pallet-edges-v121.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix pallet geometry alignment
+        run: python .github/scripts/fix_pallet_edges_v121.py
+      - name: Commit pallet geometry fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js index.html
+          git commit -m "Align pallet runners and blocks to edges" || exit 0
+          git push
