@@ -1496,6 +1496,18 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
 (function(){
  const fallback=window.renderDynamicPallet;
  if(typeof fallback!=="function")return;
+ /* pallet3dWebGLPerfV81 */
+ let active3D=null;
+ function disposeActive(){
+   if(!active3D)return;
+   try{active3D.scene.traverse(o=>{if(o.geometry)o.geometry.dispose?.();if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>{m.map?.dispose?.();m.dispose?.();});}});active3D.renderer.dispose();}catch(_){}
+   active3D=null;
+ }
+ function updateCameraOnly(){
+   if(!active3D)return false;
+   const a=(Number(pallet3DState.angle)||-28)*Math.PI/180,dist=active3D.exploded?22:19,camY=active3D.exploded?11.5:8.8,targetY=active3D.exploded?3.1:1.1;
+   active3D.camera.position.set(Math.cos(a)*dist,camY,Math.sin(a)*dist);active3D.camera.lookAt(0,targetY,0);active3D.renderer.render(active3D.scene,active3D.camera);return true;
+ }
  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
  function part(i){return typeof pallet3DPart==='function'?pallet3DPart(i):{n:0,t:0,w:0,l:0,name:'Деталь',index:i};}
  function woodTexture(base,grain,seed){
@@ -1512,13 +1524,14 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
  }
  function renderWebGL(L,W){
    const root=document.getElementById('palletPreview3D');if(!root)return;
-   if(!window.THREE || pallet3DState.mode==='top' || pallet3DState.mode==='side'){fallback(L,W);return;}
+   if(!window.THREE || pallet3DState.mode==='top' || pallet3DState.mode==='side'){disposeActive();fallback(L,W);return;}
    try{
      L=Math.max(300,Number(L)||1200);W=Math.max(300,Number(W)||800);
      const p=[0,1,2,3,4,5,6].map(part),deck=p[0],cross=[p[1],p[2]],runners=[p[3],p[4]],blocks=[p[5],p[6]];
      const counts={deck:deck.n,cross:cross.reduce((s,x)=>s+x.n,0),runner:runners.reduce((s,x)=>s+x.n,0),block:blocks.reduce((s,x)=>s+x.n,0)};
      const toolbar=`<div class="pallet3dToolbar" role="tablist" aria-label="Режим просмотра"><button type="button" data-p3d-mode="3d" class="${pallet3DState.mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top">Сверху</button><button type="button" data-p3d-mode="side">Сбоку</button><button type="button" data-p3d-mode="explode" class="${pallet3DState.mode==='explode'?'active':''}">${pallet3DState.mode==='explode'?'Собрать':'Разнести'}</button></div>`;
      const chip=(kind,label,count,cls)=>`<button type="button" data-p3d-part="${kind}" class="palletPartChip ${pallet3DState.selected===kind?'active':''}"><i class="${cls}"></i>${label} <b>${count}</b></button>`;
+     disposeActive();
      root.innerHTML=`${toolbar}<div class="pallet3dDragSurface palletWebGLSurface"><div class="palletWebGLTitle">${pallet3DState.mode==='explode'?'Разнесённая модель':'3D модель'} · ${Math.round(L)} × ${Math.round(W)} мм</div><div class="palletWebGLHost"></div><div class="palletWebGLBadge">REAL 3D</div></div><div class="palletModelLegend palletLegendInteractive">${chip('deck','Настил',counts.deck,'deck')}${chip('cross','Поперечины',counts.cross,'cross')}${chip('runner','Лыжи',counts.runner,'runner')}${chip('block','Шашки',counts.block,'block')}</div><div class="palletModelHint">Проведите пальцем или мышкой по модели, чтобы вращать на 360°</div>`;
      root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.p3dMode;pallet3DState.mode=(next==='explode'&&pallet3DState.mode==='explode')?'3d':next;renderWebGL(L,W);}));
      root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const k=btn.dataset.p3dPart;pallet3DState.selected=pallet3DState.selected===k?'all':k;renderWebGL(L,W);}));
@@ -1552,15 +1565,15 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
      if(crossParts.length){const avgW=crossParts.reduce((s,x)=>s+(x.w||98),0)/crossParts.length*scale,xx=distribute(crossParts.length,SL*.92,avgW);crossParts.forEach((r,i)=>addBox('cross',{x:Math.max(.18,(r.w||98)*scale),y:Math.max(.12,(r.t||22)*scale),z:clamp((r.l||W)*scale,SW*.25,SW)},{x:xx[i],y:crossY,z:0},i,true));}
      if(deck.n>0){const cnt=Math.min(20,deck.n),bw=Math.max(.18,(deck.w||98)*scale),zz=distribute(cnt,SW*.94,bw);for(let i=0;i<cnt;i++)addBox('deck',{x:clamp((deck.l||L)*scale,SL*.25,SL),y:Math.max(.12,(deck.t||22)*scale),z:bw},{x:0,y:deckY,z:zz[i]},i,true);}
      const floor=new THREE.Mesh(new THREE.PlaneGeometry(28,22),new THREE.MeshStandardMaterial({color:0xf1eee7,roughness:1,metalness:0}));floor.rotation.x=-Math.PI/2;floor.position.y=-.025;floor.receiveShadow=true;scene.add(floor);
-     const a=(Number(pallet3DState.angle)||-28)*Math.PI/180,dist=exploded?22:19,camY=exploded?11.5:8.8,targetY=exploded?3.1:1.1;camera.position.set(Math.cos(a)*dist,camY,Math.sin(a)*dist);camera.lookAt(0,targetY,0);
-     renderer.render(scene,camera);
+     active3D={renderer,scene,camera,exploded,mode:pallet3DState.mode};
+     updateCameraOnly();
      if(document.getElementById('rotatePallet'))document.getElementById('rotatePallet').textContent='↻ Повернуть на 45°';
    }catch(err){console.warn('WebGL pallet fallback',err);fallback(L,W);}
  }
  window.renderDynamicPallet=renderWebGL;
- window.rerenderPallet3D=function(){renderWebGL(Number(document.getElementById('pL')?.value),Number(document.getElementById('pW')?.value));};
+ window.rerenderPallet3D=function(){if(active3D&&active3D.mode===pallet3DState.mode&&document.querySelector('.palletWebGLHost canvas')){updateCameraOnly();return;}renderWebGL(Number(document.getElementById('pL')?.value),Number(document.getElementById('pW')?.value));};
  setTimeout(()=>window.rerenderPallet3D(),120);
- let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(pallet3DState.mode==='3d'||pallet3DState.mode==='explode')window.rerenderPallet3D();},180);});
+ let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(pallet3DState.mode==='3d'||pallet3DState.mode==='explode')renderWebGL(Number(document.getElementById('pL')?.value),Number(document.getElementById('pW')?.value));},180);});
 })();
 </script>
 
