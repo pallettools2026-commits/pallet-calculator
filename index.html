@@ -391,6 +391,9 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 .previewStage.zoomed .palletWebGLSurface{min-height:560px}.previewStage.zoomed .palletWebGLHost{height:530px}
 @media(max-width:620px){.palletWebGLSurface{min-height:390px}.palletWebGLHost{height:360px}.palletWebGLTitle{font-size:11px;top:12px}.palletWebGLBadge{right:9px;bottom:8px}.previewStage.zoomed .palletWebGLSurface{min-height:455px}.previewStage.zoomed .palletWebGLHost{height:425px}}
 
+
+/* pallet3dBevelV83 */
+.palletWebGLBadge::before{content:"◆";font-size:7px;margin-right:5px;opacity:.75}
 </style>
 </head>
 <body>
@@ -1547,9 +1550,15 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
      Object.values(tex).forEach(t=>{t.repeat.set(2.8,1);});
      const baseMat={deck:0xe3b77b,cross:0xd6a46c,runner:0xc38e55,block:0xb9824b};
      const selected=pallet3DState.selected;
-     function mat(kind,idx){const active=selected==='all'||selected===kind;const m=new THREE.MeshStandardMaterial({map:tex[kind],color:active?baseMat[kind]:0xb8b0a5,roughness:.72,metalness:0,transparent:!active,opacity:active?1:.16,emissive:selected===kind?0x143e2f:0x000000,emissiveIntensity:selected===kind?.16:0});m.map=tex[kind].clone();m.map.needsUpdate=true;m.map.offset.x=((idx*0.173)%1);return m;}
+     function mat(kind,idx){const active=selected==='all'||selected===kind;const m=new THREE.MeshStandardMaterial({map:tex[kind],color:active?baseMat[kind]:0xb8b0a5,roughness:.72,metalness:0,transparent:!active,opacity:active?1:.16,depthWrite:active,emissive:selected===kind?0x143e2f:0x000000,emissiveIntensity:selected===kind?.16:0});m.map=tex[kind].clone();m.map.needsUpdate=true;m.map.offset.x=((idx*0.173)%1);return m;}
+     /* pallet3dBevelV83 */
+     function bevelBoxGeometry(dims,kind){
+       const bx=Math.max(.006,Math.min(kind==='block'?.055:.035,dims.y*.16,dims.z*.09,dims.x*.025));
+       const sh=new THREE.Shape();sh.moveTo(-dims.x/2,-dims.z/2);sh.lineTo(dims.x/2,-dims.z/2);sh.lineTo(dims.x/2,dims.z/2);sh.lineTo(-dims.x/2,dims.z/2);sh.closePath();
+       const g=new THREE.ExtrudeGeometry(sh,{depth:dims.y,steps:1,bevelEnabled:true,bevelThickness:bx,bevelSize:bx,bevelSegments:1,curveSegments:1});g.center();g.rotateX(Math.PI/2);g.computeVertexNormals();return g;
+     }
      function addBox(kind,dims,pos,idx,nails){
-       const g=new THREE.BoxGeometry(dims.x,dims.y,dims.z,1,1,1);const mesh=new THREE.Mesh(g,mat(kind,idx));mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;mesh.receiveShadow=true;world.add(mesh);
+       const g=bevelBoxGeometry(dims,kind);const mesh=new THREE.Mesh(g,mat(kind,idx));mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;mesh.receiveShadow=true;world.add(mesh);
        const edgeOpacity=(selected==='all'||selected===kind)?.28:.05;const edges=new THREE.LineSegments(new THREE.EdgesGeometry(g,20),new THREE.LineBasicMaterial({color:0x6b4528,transparent:true,opacity:edgeOpacity}));edges.position.copy(mesh.position);world.add(edges);
        if(nails && (selected==='all'||selected===kind)){
          const nailMat=new THREE.MeshStandardMaterial({color:0x4f4c48,roughness:.38,metalness:.28});const ng=new THREE.CylinderGeometry(.027,.027,.016,12);const dx=dims.x*.34,dz=dims.z*.27;
@@ -1565,6 +1574,7 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
      if(crossParts.length){const avgW=crossParts.reduce((s,x)=>s+(x.w||98),0)/crossParts.length*scale,xx=distribute(crossParts.length,SL*.92,avgW);crossParts.forEach((r,i)=>addBox('cross',{x:Math.max(.18,(r.w||98)*scale),y:Math.max(.12,(r.t||22)*scale),z:clamp((r.l||W)*scale,SW*.25,SW)},{x:xx[i],y:crossY,z:0},i,true));}
      if(deck.n>0){const cnt=Math.min(20,deck.n),bw=Math.max(.18,(deck.w||98)*scale),zz=distribute(cnt,SW*.94,bw);for(let i=0;i<cnt;i++)addBox('deck',{x:clamp((deck.l||L)*scale,SL*.25,SL),y:Math.max(.12,(deck.t||22)*scale),z:bw},{x:0,y:deckY,z:zz[i]},i,true);}
      const floor=new THREE.Mesh(new THREE.PlaneGeometry(28,22),new THREE.MeshStandardMaterial({color:0xf1eee7,roughness:1,metalness:0}));floor.rotation.x=-Math.PI/2;floor.position.y=-.025;floor.receiveShadow=true;scene.add(floor);
+     Object.values(tex).forEach(t=>t.dispose());
      active3D={renderer,scene,camera,exploded,mode:pallet3DState.mode};
      updateCameraOnly();
      if(document.getElementById('rotatePallet'))document.getElementById('rotatePallet').textContent='↻ Повернуть на 45°';
