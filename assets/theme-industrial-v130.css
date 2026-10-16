@@ -1,0 +1,82 @@
+/* Pallet Tools — light industrial theme v130 */
+:root{
+  --bg:#f3f3f0;
+  --surface:#ffffff;
+  --surface-soft:#f8f7f3;
+  --text:#23282b;
+  --muted:#6c7377;
+  --line:#e1dfd9;
+  --primary:#b8793d;
+  --primary-dark:#8f5b2e;
+  --primary-deep:#2b3134;
+  --accent:#f3e6d7;
+  --warning-bg:#fff3dc;
+  --warning-text:#7a5720;
+  --danger:#a3483f;
+  --shadow:0 10px 28px rgba(35,40,43,.075);
+}
+html{background:#f3f3f0!important}
+body{background:linear-gradient(180deg,#f7f6f2 0,#f1f1ee 360px,#f5f4f1 100%)!important;color:var(--text)!important}
+h1,h2,.dashIntro h1,.orderFocusMain h2,.dashPanelHead h3,.savedTitle,.adminCalcTitle{color:#252b2e!important}
+label{color:#50575a!important}
+input,.adminRole{border-color:#d6d3cc!important;background:#fff!important;color:#252b2e!important}
+input:hover{border-color:#bdb8ae!important}
+input:focus{border-color:#b8793d!important;box-shadow:0 0 0 4px rgba(184,121,61,.13)!important}
+.card,.authCard,.savedBox,.dashPanel,.dashKpi,.adminPanel,.shopCard,.prodCard{border-color:#e2dfd8!important;box-shadow:var(--shadow)!important;background:#fff!important}
+.appSidebar{background:linear-gradient(180deg,#2c3235 0%,#242a2d 68%,#1e2427 100%)!important;color:#fff!important;box-shadow:10px 0 30px rgba(27,31,34,.11)!important}
+.appSideLink{color:#d8dcde!important}
+.appSideLink:hover{background:rgba(255,255,255,.075)!important;color:#fff!important}
+.appSideLink.active{background:rgba(190,132,73,.17)!important;color:#fff!important;box-shadow:inset 3px 0 #c58a4e!important}
+.sideFactoryCard{border-color:rgba(255,255,255,.09)!important;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(190,132,73,.12))!important}
+.sideFactoryCard small{color:#bfc4c6!important}.sideVersion{color:#7f898d!important}
+.appSearch{border-color:#e0ddd7!important;background:#f8f7f4!important}
+.appSearch span{color:#77716a!important}
+.appTopChip{border-color:#e0ddd7!important;color:#41484b!important}
+.liveDot{background:#32926a!important;box-shadow:0 0 0 4px #e7f4ed!important}
+.saveBtn,.authBtn.secondary,.shopPrimary,.dashIntroActions button{background:#b8793d!important;color:#fff!important;box-shadow:0 7px 18px rgba(184,121,61,.18)!important}
+.printBtn{background:#555f64!important;color:#fff!important;box-shadow:0 7px 18px rgba(51,59,63,.15)!important}
+.printAllBtn,.authBtn{background:#30373a!important;color:#fff!important;box-shadow:0 7px 18px rgba(37,42,45,.16)!important}
+.clearBtn,.authBtn.logout,.shopGhost,.dashIntroActions button.secondary,.dashPanelHead button{background:#f7f6f2!important;color:#4e5558!important;border-color:#ddd9d1!important}
+.calculateJump{background:#b8793d!important;color:#fff!important;border-color:#b8793d!important}
+.autoBtn{background:#f3e8db!important;border-color:#ddc3a6!important;color:#7c512b!important}
+.autoBtn:hover{background:#ecddcd!important;border-color:#cba77e!important}
+.dashEyebrow,.sectionLabel,.eyebrow,.heroEyebrow,.palletShowcaseText span{color:#a46631!important}
+.dashKpiIcon.green,.dashPanelIcon,.prodIcon,.shopIcon{background:#f4e8da!important;color:#a76631!important}
+.dashKpiIcon.wood{background:#f2e5d5!important;color:#9a642f!important}
+.dashBar i,.miniBar i{background:linear-gradient(90deg,#b8793d,#d09b64)!important}
+.orderBadges span{background:#f0efeb!important;color:#62686b!important}
+.orderBadges .statusLive{background:#e7f3ec!important;color:#26724f!important}
+.quickGrid button{border-color:#e2dfd8!important;background:#f8f7f4!important;color:#4e5558!important}
+.quickGrid button:hover{background:#f3e9dd!important;border-color:#dfc7ac!important}
+.quickGrid span{color:#a76631!important}
+.shiftMini div{border-color:#e6e2db!important;background:#faf9f6!important}
+.shiftMini b{color:#7c552f!important}
+.orderFocus{border-color:#e7e3dc!important;background:#fbfaf7!important}
+.result{background:linear-gradient(145deg,#343a3d,#262c2f)!important;box-shadow:0 16px 38px rgba(32,36,39,.18)!important}
+.top b{color:#f7e9d8!important}
+.costTotal{background:linear-gradient(135deg,#353b3e,#292f32)!important}
+.inventoryPill,.statusPill{background:#f1ebe3!important;color:#715335!important;border-color:#dfd0be!important}
+.routeStep{border-color:#e1ddd5!important;background:#faf9f6!important}
+.routeStep b{color:#5a4a3d!important}
+.sectionLine strong,.sawStat b,.flowStat b,.miniMetric strong{color:#4d5356!important}
+.stockPiece{background:#c18a54!important}
+.stockOffcut{background:#dedbd4!important}
+.flowBar span{background:linear-gradient(90deg,#b8793d,#d19a63)!important}
+.adminBadge{background:#f2e5d6!important;color:#8a592d!important;border-color:#dcc1a2!important}
+.adminRefresh{border-color:#ddd7ce!important;background:#f8f7f4!important;color:#555b5e!important}
+.adminStat,.adminBox{background:#faf9f6!important;border-color:#e3dfd7!important}
+.adminStat b{color:#9a642f!important}
+.adminBox h3{color:#373e41!important}
+.adminUser,.adminCalc{border-color:#e7e3dc!important}
+.savedItem{border-color:#e2ded6!important;background:#faf9f6!important}
+.savedRow{border-color:#dedbd4!important}
+.savedRow b{color:#8d5d31!important}
+.authCard{border-top-color:#b8793d!important}
+.authStatus b,.authUser{color:#8f5b2e!important}
+.profilePanel{border-color:#dfdbd3!important}
+.profileEyebrow{color:#a46631!important}
+.profileSave{background:#b8793d!important;color:#fff!important}
+.previewCard,.dynamicPalletStage{border-color:#e2ded6!important}
+.dynamicPalletStage{background:radial-gradient(circle at 50% 30%,#fff 0%,#f5f3ee 72%,#eeece6 100%)!important}
+.sizeBadge{background:#f3e8db!important;color:#7e532d!important;border-color:#ddc3a6!important}
+@media(max-width:1150px){.appSidebar{background:#292f32!important}}
