@@ -1,4 +1,4 @@
-name: Bump Pallet 3D v101
+name: Apply Pallet 3D photo reference
 on:
   push:
     paths:
@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bump 3D asset version
+      - name: Apply active 3D reference patch
         run: python .github/scripts/bump_pallet3d_v101.py
-      - name: Commit cache bust
+      - name: Commit 3D reference
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git commit -m "Load Pallet 3D v101" || exit 0
+          git add assets/pallet3d-v10.js index.html
+          git commit -m "Match 1250x1180 3D to workshop photos" || exit 0
           git push
