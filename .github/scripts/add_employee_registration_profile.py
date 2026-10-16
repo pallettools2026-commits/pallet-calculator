@@ -23,15 +23,16 @@ if old not in text:
     raise SystemExit('signup handler marker not found')
 text=text.replace(old,new,1)
 
-text=text.replace('.select("role,email")','.select("role,email,full_name,position")',1)
-role_line='''   if(data?.role)role=data.role;}catch(e){}'''
-role_new='''   if(data?.role)role=data.role;\n   const remembered={email:user.email||data?.email||"",full_name:data?.full_name||user.user_metadata?.full_name||"",position:data?.position||user.user_metadata?.position||"",role};\n   try{localStorage.setItem("pallettools:lastEmployee",JSON.stringify(remembered));}catch(e){}\n  }catch(e){\n   const remembered={email:user.email||"",full_name:user.user_metadata?.full_name||"",position:user.user_metadata?.position||"",role};\n   try{localStorage.setItem("pallettools:lastEmployee",JSON.stringify(remembered));}catch(_){}\n  }'''
-if role_line not in text:
-    raise SystemExit('profile role line not found')
-text=text.replace(role_line,role_new,1)
+profile_old='''   try{const {data}=await sb.from("profiles").select("role,email").eq("id",user.id).single();if(data?.role)role=data.role;}catch(e){}'''
+profile_new='''   try{\n     const {data}=await sb.from("profiles").select("role,email,full_name,position").eq("id",user.id).single();\n     if(data?.role)role=data.role;\n     const remembered={email:user.email||data?.email||"",full_name:data?.full_name||user.user_metadata?.full_name||"",position:data?.position||user.user_metadata?.position||"",role};\n     try{localStorage.setItem("pallettools:lastEmployee",JSON.stringify(remembered));}catch(_){}\n   }catch(e){\n     const remembered={email:user.email||"",full_name:user.user_metadata?.full_name||"",position:user.user_metadata?.position||"",role};\n     try{localStorage.setItem("pallettools:lastEmployee",JSON.stringify(remembered));}catch(_){}\n   }'''
+if profile_old not in text:
+    raise SystemExit('profile query marker not found')
+text=text.replace(profile_old,profile_new,1)
 
-else_line='''   authState.textContent="Войдите или создайте аккаунт.";'''
-else_new='''   authState.textContent="Войдите или создайте аккаунт.";\n   if(typeof renderLastEmployeeCard==="function")renderLastEmployeeCard();'''
+else_line='''   authState.textContent="Войдите или создайте аккаунт.";authFields.style.display="grid";logoutBtn.style.display="none";protectedApp.classList.add("appLocked");if(panel)panel.style.display="none";'''
+else_new='''   authState.textContent="Войдите или создайте аккаунт.";authFields.style.display="grid";logoutBtn.style.display="none";protectedApp.classList.add("appLocked");if(panel)panel.style.display="none";\n   if(typeof renderLastEmployeeCard==="function")renderLastEmployeeCard();'''
+if else_line not in text:
+    raise SystemExit('logged-out session marker not found')
 text=text.replace(else_line,else_new,1)
 
 css='''\n/* employeeRegistrationProfileV1 */\n.authRegisterOnly{display:grid;gap:14px}.authRegisterOnly[hidden]{display:none!important}.lastEmployeeCard{display:grid;grid-template-columns:42px 1fr;gap:10px;align-items:center;margin:-6px 0 16px;padding:11px 12px;border:1px solid #dbe5ef;border-radius:11px;background:linear-gradient(180deg,#f6faff,#eef6ff)}.lastEmployeeAvatar{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#fff;color:#5878a6;border:1px solid #dce6f0}.lastEmployeeInfo{display:grid;grid-template-columns:78px 1fr;gap:3px 10px;align-items:center;min-width:0}.lastEmployeeInfo small{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#8a94a5;font-weight:850}.lastEmployeeInfo strong,.lastEmployeeInfo span{font-size:11px;color:#293247;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lastEmployeeInfo strong{font-weight:850}.authRegisterBtn[data-mode="register"]{background:#176b4c!important;color:#fff!important;border-color:#176b4c!important}\n'''
