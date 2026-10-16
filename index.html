@@ -304,6 +304,10 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 .profileModal[hidden]{display:none!important}.profileModal{position:fixed;inset:0;z-index:11000;display:grid;place-items:center;padding:18px}.profileModalBackdrop{position:absolute;inset:0;background:rgba(12,27,23,.42);backdrop-filter:blur(5px)}.profilePanel{position:relative;width:min(100%,470px);max-height:calc(100vh - 36px);overflow:auto;background:#fff;border:1px solid #dce7e2;border-radius:20px;padding:22px;box-shadow:0 28px 70px rgba(9,42,32,.24)}.profilePanelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.profileEyebrow{font-size:9px;letter-spacing:.14em;font-weight:900;color:#247357;margin-bottom:4px}.profilePanelHead h2{margin:0!important;font-size:23px!important;color:#17231f!important}.profilePanelHead p{margin:5px 0 0;color:#718078;font-size:11px;line-height:1.45;max-width:330px}.profileClose{width:36px;height:36px;flex:0 0 auto;border:1px solid #e0e7e3;border-radius:10px;background:#f7faf8;color:#53655d;font-size:22px;line-height:1;cursor:pointer}.profileIdentity{display:flex;align-items:center;gap:11px;margin:18px 0;padding:12px;border:1px solid #dfe9e4;border-radius:13px;background:linear-gradient(135deg,#f4faf7,#fbfcfb)}.profileAvatar{display:grid;place-items:center;width:43px;height:43px;border-radius:12px;background:#e4f4ec;font-size:21px}.profileIdentity strong{display:block;color:#1b2b25;font-size:14px}.profileIdentity span{display:block;margin-top:2px;color:#718078;font-size:10px}.profileForm{display:grid;gap:12px}.profileForm label{font-size:10px!important;letter-spacing:.06em;text-transform:uppercase;color:#627269!important;font-weight:850!important}.profileForm input{min-height:47px!important;font-size:14px!important;border-radius:11px!important}.profileEmailRow{display:grid;gap:6px}.profileEmailRow>div{padding:12px;border:1px solid #e1e8e4;border-radius:11px;background:#f8faf9;color:#5d6d65;font-size:13px;overflow-wrap:anywhere}.profileMessage{min-height:17px;margin-top:12px;color:#718078;font-size:11px;line-height:1.4}.profileActions{display:flex;justify-content:space-between;gap:9px;margin-top:16px}.profileActions button{min-height:45px;border-radius:11px;padding:10px 14px;font-size:12px;font-weight:850;cursor:pointer}.profileLogout{border:1px solid #e0e5e3;background:#f6f8f7;color:#6a504d}.profileSave{border:0;background:#176b4c;color:#fff;box-shadow:0 8px 18px rgba(23,107,76,.18)}.profileSave:disabled{opacity:.6;cursor:wait}
 @media(max-width:560px){.profileModal{padding:10px;align-items:end}.profilePanel{width:100%;max-height:88vh;border-radius:20px 20px 14px 14px;padding:19px}.profileActions{flex-direction:column-reverse}.profileActions button{width:100%;min-height:49px}}
 
+/* accountDropdownV1 */
+.accountDropdown[hidden]{display:none!important}.accountDropdown{position:fixed;z-index:12000;width:min(300px,calc(100vw - 20px));padding:12px;background:#fff;border:1px solid #dfe8e3;border-radius:16px;box-shadow:0 18px 50px rgba(16,48,38,.18);animation:accountDropIn .14s ease-out}.accountDropHead{display:flex;align-items:center;gap:10px;padding:4px 3px 10px}.accountDropAvatar{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#dff4e9,#f1faf5);border:1px solid #cee8dc;color:#176b4c;font-size:12px;font-weight:900;letter-spacing:.04em}.accountDropIdentity{min-width:0}.accountDropIdentity strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#182720;font-size:13px}.accountDropIdentity span{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#718078;font-size:10px}.accountDropEmail{display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:9px;background:#f6f9f7;color:#607169;font-size:10px;overflow:hidden}.accountDropEmail span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.accountDropRole{display:inline-flex;align-items:center;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eaf6f0;color:#176b4c;font-size:9px;font-weight:850}.accountDropDivider{height:1px;background:#e7ece9;margin:10px 0 6px}.accountDropAction{width:100%;display:grid;grid-template-columns:25px 1fr 16px;align-items:center;gap:6px;min-height:40px;padding:6px 9px;border:0;border-radius:10px;background:transparent;color:#33433c;text-align:left;cursor:pointer}.accountDropAction:hover{background:#f3f8f5}.accountDropAction span{font-size:14px}.accountDropAction b{font-size:11px;font-weight:800}.accountDropAction i{font-style:normal;color:#97a29d;font-size:18px}.accountDropAction.danger{color:#9d4038}.accountDropAction.danger:hover{background:#fff4f2}.topAccount[aria-expanded="true"]{border-color:#acd2c1!important;box-shadow:0 0 0 3px rgba(32,120,84,.08)}.topAccount[aria-expanded="true"] .accountArrow{transform:rotate(180deg)}.accountArrow{transition:transform .15s ease}@keyframes accountDropIn{from{opacity:0;transform:translateY(-5px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:680px){.accountDropdown{width:min(290px,calc(100vw - 16px));border-radius:14px}.accountDropAction{min-height:44px}}
+
 </style>
 </head>
 <body>
@@ -329,11 +333,23 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
     <div class="appTopChip"><span>▣</span><div><small>Сегодня</small><b id="dashboardToday">—</b></div></div>
     <div class="appTopChip shift"><span class="liveDot"></span><div><small>Текущая смена</small><b id="dashboardShift">Смена</b></div></div>
   </div>
-  <button class="topAccount" id="topAccount" type="button" title="Аккаунт">
+  <button class="topAccount" id="topAccount" type="button" title="Аккаунт" aria-haspopup="menu" aria-expanded="false">
     <span class="accountShield">♜</span>
     <span class="accountMain"><strong id="topAccountText">Войти</strong><small id="topAccountSub">Аккаунт</small></span>
     <span class="accountArrow">⌄</span>
   </button>
+  <!-- accountDropdownV1 -->
+  <div class="accountDropdown" id="accountDropdown" role="menu" hidden>
+    <div class="accountDropHead">
+      <div class="accountDropAvatar" id="accountDropAvatar">PT</div>
+      <div class="accountDropIdentity"><strong id="accountDropName">Сотрудник</strong><span id="accountDropPosition">Pallet Tools</span></div>
+    </div>
+    <div class="accountDropEmail"><span>✉</span><span id="accountDropEmail">—</span></div>
+    <div class="accountDropRole" id="accountDropRole">Сотрудник</div>
+    <div class="accountDropDivider"></div>
+    <button class="accountDropAction" id="accountDropProfile" type="button" role="menuitem"><span>👤</span><b>Мой профиль</b><i>›</i></button>
+    <button class="accountDropAction danger" id="accountDropLogout" type="button" role="menuitem"><span>↪</span><b>Выйти</b><i>›</i></button>
+  </div>
 </header>
 <section class="siteHero" id="home" aria-label="Pallet Tools">
   <div class="heroInner">
@@ -1093,7 +1109,7 @@ document.getElementById("rotatePallet")?.addEventListener("click",()=>{palletPre
 document.getElementById("zoomPallet")?.addEventListener("click",()=>{document.getElementById("previewStage")?.classList.toggle("zoomed");});
 document.getElementById("calculateJump")?.addEventListener("click",()=>{calc();document.querySelector(".result")?.scrollIntoView({behavior:"smooth",block:"start"});});
 document.querySelectorAll("[data-scroll]").forEach(btn=>btn.addEventListener("click",()=>{const el=document.getElementById(btn.dataset.scroll);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}));
-document.getElementById("topAccount")?.addEventListener("click",async()=>{if(currentUser){if(typeof openEmployeeProfile==="function")await openEmployeeProfile();}else{document.getElementById("authCard")?.scrollIntoView({behavior:"smooth",block:"center"});}});
+document.getElementById("topAccount")?.addEventListener("click",async()=>{if(currentUser){if(typeof toggleAccountDropdown==="function")await toggleAccountDropdown();}else{document.getElementById("authCard")?.scrollIntoView({behavior:"smooth",block:"center"});}});
 
 
 /* workshopHubV1 */
@@ -1271,6 +1287,7 @@ document.getElementById('profileSave')?.addEventListener('click',async e=>{
  const topName=document.getElementById('topAccountText');if(topName)topName.textContent=fullName;
  const topSub=document.getElementById('topAccountSub');if(topSub)topSub.textContent=position;
  if(typeof renderLastEmployeeCard==='function')renderLastEmployeeCard();
+ if(typeof refreshAccountDropdown==='function')refreshAccountDropdown();
  btn.disabled=false;if(msg){msg.textContent='Профиль сохранён.';msg.style.color='#176b4c';}
 });
 document.getElementById('profileLogout')?.addEventListener('click',async()=>{
@@ -1279,6 +1296,71 @@ document.getElementById('profileLogout')?.addEventListener('click',async()=>{
  const {error}=await sb.auth.signOut();
  if(error&&typeof setAuthMessage==='function')setAuthMessage('Ошибка выхода: '+error.message,true);
 });
+</script>
+
+
+<script>
+/* accountDropdownV1 */
+function accountDropdownInitials(name,email){
+ const source=(name||'').trim();
+ if(source){const p=source.split(/\s+/).filter(Boolean);return ((p[0]?.[0]||'')+(p[1]?.[0]||'')).toUpperCase()||'PT';}
+ return ((email||'P')[0]||'P').toUpperCase();
+}
+function positionAccountDropdown(){
+ const btn=document.getElementById('topAccount'),menu=document.getElementById('accountDropdown');
+ if(!btn||!menu)return;
+ const r=btn.getBoundingClientRect();
+ const right=Math.max(10,window.innerWidth-r.right);
+ menu.style.top=Math.min(window.innerHeight-10,r.bottom+8)+'px';
+ menu.style.right=right+'px';
+}
+function closeAccountDropdown(){
+ const menu=document.getElementById('accountDropdown'),btn=document.getElementById('topAccount');
+ if(menu)menu.hidden=true;
+ if(btn)btn.setAttribute('aria-expanded','false');
+}
+async function refreshAccountDropdown(){
+ if(!currentUser)return;
+ let fullName=currentUser.user_metadata?.full_name||'';
+ let position=currentUser.user_metadata?.position||'';
+ let email=currentUser.email||'';
+ let role=currentRole||currentUser.app_metadata?.role||'employee';
+ try{
+   const {data}=await sb.from('profiles').select('email,full_name,position,role').eq('id',currentUser.id).single();
+   if(data){fullName=data.full_name||fullName;position=data.position||position;email=data.email||email;role=data.role||role;}
+ }catch(_){ }
+ const roleText=role==='admin'?'Администратор':'Сотрудник';
+ const nameEl=document.getElementById('accountDropName'),posEl=document.getElementById('accountDropPosition'),emailEl=document.getElementById('accountDropEmail'),roleEl=document.getElementById('accountDropRole'),avatar=document.getElementById('accountDropAvatar');
+ if(nameEl)nameEl.textContent=fullName||roleText;
+ if(posEl)posEl.textContent=position||roleText;
+ if(emailEl)emailEl.textContent=email||'—';
+ if(roleEl)roleEl.textContent=roleText;
+ if(avatar)avatar.textContent=accountDropdownInitials(fullName,email);
+}
+async function toggleAccountDropdown(){
+ const menu=document.getElementById('accountDropdown'),btn=document.getElementById('topAccount');
+ if(!menu||!btn||!currentUser)return;
+ if(!menu.hidden){closeAccountDropdown();return;}
+ await refreshAccountDropdown();
+ positionAccountDropdown();
+ menu.hidden=false;
+ btn.setAttribute('aria-expanded','true');
+}
+document.getElementById('accountDropProfile')?.addEventListener('click',async()=>{closeAccountDropdown();if(typeof openEmployeeProfile==='function')await openEmployeeProfile();});
+document.getElementById('accountDropLogout')?.addEventListener('click',async()=>{
+ closeAccountDropdown();
+ try{localStorage.removeItem('pallettools:lastEmployee');}catch(_){}
+ const {error}=await sb.auth.signOut();
+ if(error&&typeof setAuthMessage==='function')setAuthMessage('Ошибка выхода: '+error.message,true);
+});
+document.addEventListener('click',e=>{
+ const menu=document.getElementById('accountDropdown'),btn=document.getElementById('topAccount');
+ if(!menu||menu.hidden)return;
+ if(!menu.contains(e.target)&&!btn?.contains(e.target))closeAccountDropdown();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAccountDropdown();});
+window.addEventListener('resize',()=>{const menu=document.getElementById('accountDropdown');if(menu&&!menu.hidden)positionAccountDropdown();});
+window.addEventListener('scroll',()=>{const menu=document.getElementById('accountDropdown');if(menu&&!menu.hidden)positionAccountDropdown();},{passive:true});
 </script>
 
 </body>
