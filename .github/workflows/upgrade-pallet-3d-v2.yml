@@ -10,15 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Normalize style closing tag
+      - name: Prepare 3D patch helper
         run: |
           python - <<'PY'
           from pathlib import Path
-          p=Path('index.html')
+          p=Path('.github/scripts/upgrade_pallet_3d_v2.py')
           s=p.read_text(encoding='utf-8')
-          if '\n</style>' not in s:
-              s=s.replace('</style>','\n</style>',1)
+          s=s.replace('start = text.find(start_marker)', 'start = text.rfind(start_marker)')
           p.write_text(s,encoding='utf-8')
+          q=Path('index.html')
+          html=q.read_text(encoding='utf-8')
+          if '\n</style>' not in html:
+              html=html.replace('</style>','\n</style>',1)
+          q.write_text(html,encoding='utf-8')
           PY
       - name: Apply detailed 3D pallet model
         run: python .github/scripts/upgrade_pallet_3d_v2.py
