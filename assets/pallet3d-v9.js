@@ -1,9 +1,17 @@
-/* pallet3dReferenceV101 */
+/* pallet3dReferenceV102 */
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const near=(a,b,t=2)=>Math.abs(Number(a)-Number(b))<=t;
+  /* pallet3dStandardOnlyV102 */
+  const STANDARD_3D_PALLETS=[
+    {l:1200,w:800,name:'EUR / EPAL 1'},
+    {l:1200,w:1000,name:'EUR / EPAL 2'},
+    {l:1000,w:1200,name:'EUR / EPAL 3'},
+    {l:800,w:600,name:'EUR / EPAL 6'}
+  ];
+  function standard3DProfile(L,W){return STANDARD_3D_PALLETS.find(x=>near(L,x.l)&&near(W,x.w))||null;}
   const part=i=>typeof window.pallet3DPart==='function'?window.pallet3DPart(i):{n:0,t:0,w:0,l:0,name:'Деталь',index:i};
   const distribute=(count,span,item=0)=>count<=1?[0]:Array.from({length:count},(_,i)=>-span/2+item/2+i*(span-item)/(count-1));
 
@@ -63,8 +71,16 @@
     const root=document.getElementById('palletPreview3D');if(!root)return;
     if(!window.THREE){root.innerHTML='<div class="pallet3dFallback">3D недоступен в этом браузере</div>';return;}
     dispose();
-    L=Math.max(300,Number(L)||1250);W=Math.max(300,Number(W)||1180);
-    const profile=profileFor(L,W),reference=profile.reference,mode=state.mode||'3d';
+    L=Math.max(300,Number(L)||1200);W=Math.max(300,Number(W)||800);
+    const standard=standard3DProfile(L,W);
+    if(!standard){
+      state.mode='3d';state.selected='all';
+      const supported=STANDARD_3D_PALLETS.map(x=>`${x.l} × ${x.w}`).join(' · ');
+      root.innerHTML=`<div style="min-height:390px;display:flex;align-items:center;justify-content:center;padding:28px"><div style="width:min(100%,680px);text-align:center;padding:34px 24px;border:1px solid #dce7e1;border-radius:22px;background:linear-gradient(145deg,#fff,#f3f7f5);box-shadow:0 14px 34px rgba(19,65,53,.07)"><div style="width:56px;height:56px;margin:0 auto 14px;border-radius:17px;display:grid;place-items:center;background:#e7f1ed;color:#1f6f5c;font-size:27px">▦</div><strong style="display:block;font-size:22px;color:#173c33">3D для ${Math.round(L)} × ${Math.round(W)} мм не предусмотрен</strong><p style="margin:10px auto 16px;max-width:520px;color:#65756d;line-height:1.5">Это нестандартный размер. Расчёт материалов, раскрой, сохранение заказа и производство продолжают работать без 3D-модели.</p><div style="display:inline-flex;max-width:100%;flex-wrap:wrap;justify-content:center;gap:6px;padding:9px 12px;border-radius:12px;background:#edf5f1;color:#31584c;font-size:12px;font-weight:800">3D доступен: ${supported}</div></div></div>`;
+      return;
+    }
+    const profile=profileFor(L,W),reference=false,mode=state.mode||'3d';
+    profile.spec=`${standard.name} · стандартный поддон ${standard.l} × ${standard.w} мм`;
     const p=[0,1,2,3,4,5,6].map(part),deck=p[0],crossParts=[p[1],p[2]],runnerParts=[p[3],p[4]],blockParts=[p[5],p[6]];
     const rawCounts={
       deck:Math.max(0,Math.round(deck.n||0)),
@@ -78,7 +94,7 @@
     const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
     const specStyle='display:flex;justify-content:center;align-items:center;text-align:center;flex-wrap:wrap;gap:6px;margin:8px auto 2px;padding:8px 12px;max-width:760px;border:1px solid rgba(31,111,92,.14);border-radius:12px;background:rgba(247,250,248,.95);color:#31584c;font-size:11px;font-weight:800;line-height:1.35';
     const referenceBadge=reference?'<span style="display:inline-flex;align-items:center;padding:3px 7px;border-radius:999px;background:#173f35;color:#fff;font-size:10px;font-weight:850;letter-spacing:.03em">ФОТО-ЭТАЛОН</span>':'';
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div style="${specStyle}">${referenceBadge}<span>${profile.spec}</span></div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(L)} × ${Math.round(W)} мм</strong><span>${reference?'Поддон по образцу':'Динамическая модель'} · ${mode==='explode'?'разнесённый вид':'реальный 3D'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',counts.deck)}${chip('cross','Поперечины',counts.cross)}${chip('runner','Лыжи',counts.runner)}${chip('block','Шашки',counts.block)}</div><div class="palletModelHint">Перетаскивайте модель для вращения · колесо — масштаб · кнопки сверху — технические виды</div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div><div style="${specStyle}">${referenceBadge}<span>${profile.spec}</span></div><div class="palletReferenceStage"><div class="palletReferenceTitle"><strong>${Math.round(L)} × ${Math.round(W)} мм</strong><span>${standard.name} · ${mode==='explode'?'разнесённый вид':'реальный 3D'}</span></div><div class="palletReferenceHost"></div></div><div class="palletModelLegend">${chip('deck','Настил',counts.deck)}${chip('cross','Поперечины',counts.cross)}${chip('runner','Лыжи',counts.runner)}${chip('block','Шашки',counts.block)}</div><div class="palletModelHint">Перетаскивайте модель для вращения · колесо — масштаб · кнопки сверху — технические виды</div>`;
 
     const host=root.querySelector('.palletReferenceHost'),width=Math.max(320,host.clientWidth||760),height=window.innerWidth<620?390:500;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
