@@ -101,7 +101,7 @@
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
     const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
-    const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — углы и лыжи</span><span>● 2,5×40 мм — настил</span></div>':'';
+    const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — узлы над шашками и лыжи</span><span>● 2,5×40 мм — настил вне шашек</span></div>':'';
     root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div></div>`;
 
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
@@ -156,7 +156,7 @@
     else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
     runnerLengths.forEach((mm,i)=>{const rz=clamp(mm*S,Math.min(PL*.55,10.5),PL);piece('runner',runnerActualW,runnerT,rz,runnerXs[i],runnerT/2,0,i,groups.runner);});
 
-    const blockY=runnerT+blockH/2,blockRows=[];
+    const blockY=runnerT+blockH/2,blockRows=[],blockPoints=[];
     for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){
       const idx=zi*3+xi;if(idx>=blockCount)continue;
       const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;
@@ -164,6 +164,7 @@
       const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03);
       const bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);
       blockRows[zi]=bzPos;
+      blockPoints.push({x:bxPos,z:bzPos,bx,bz});
       piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);
     }
     if(selected==='all'||selected==='runner'){
@@ -181,12 +182,14 @@
     const actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW;
     const topXs=deckCount?spread(deckCount,PW,actualDeckW):[];
     const nailY=topY+deckT/2+.014;
+    const overBlock=(x,z)=>blockPoints.some(p=>Math.abs(x-p.x)<=Math.max(actualDeckW*.55,p.bx*.55)&&Math.abs(z-p.z)<=Math.max(bindDepth*.55,p.bz*.55));
     topXs.forEach((x,i)=>{
       piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);
       if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{
         const edgeBoard=i===0||i===topXs.length-1;
         const edgeCross=zi===0||zi===bindZ.length-1;
         if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));
+        else if(overBlock(x,z))pairNails(nail80,groups.deck,x,nailY,z,Math.min(.072,actualDeckW*.23),-1);
         else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);
       });
     });
