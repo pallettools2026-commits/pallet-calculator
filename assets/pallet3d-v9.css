@@ -8,6 +8,7 @@
 .palletModelLegend{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:8px!important;margin:12px 0 0!important;position:relative!important;z-index:5!important}
 .palletPartChip{min-width:0!important;display:inline-flex!important;align-items:center!important;gap:7px!important;white-space:nowrap!important;padding:8px 11px!important;border-radius:999px!important}.palletPartChip b{font-size:11px!important}
 .pallet3dToolbar{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin-bottom:10px!important}
+.pallet3dToolbar button:focus-visible,.palletPartChip:focus-visible{outline:3px solid rgba(31,111,92,.32)!important;outline-offset:2px!important}
 .pallet3dFallback{padding:28px;text-align:center;color:#7b817d;background:#f5f4f0;border-radius:18px}
 @media(max-width:620px){.palletReferenceHost{height:390px}.palletReferenceStage{border-radius:16px}.palletReferenceTitle{top:10px;left:10px;padding:7px 9px}.palletReferenceTitle strong{font-size:11px}.palletReferenceTitle span{font-size:9px}.pallet3dToolbar{gap:4px!important}.pallet3dToolbar button{font-size:11px!important;padding:9px 4px!important}.palletModelLegend{gap:6px!important}.palletPartChip{font-size:10px!important;padding:7px 9px!important}.palletModelHint{font-size:10px!important;text-align:center!important}}
 @media(max-width:420px){.palletModelLegend{width:100%!important}.palletModelLegend .palletPartChip{flex:1 1 calc(50% - 6px)!important;justify-content:center!important;min-height:40px!important}}
