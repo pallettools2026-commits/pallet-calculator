@@ -22,6 +22,7 @@ label{color:#50575a!important}
 input,.adminRole{border-color:#d6d3cc!important;background:#fff!important;color:#252b2e!important}
 input:hover{border-color:#bdb8ae!important}
 input:focus{border-color:#b8793d!important;box-shadow:0 0 0 4px rgba(184,121,61,.13)!important}
+button:focus-visible,a:focus-visible{outline:3px solid rgba(184,121,61,.38)!important;outline-offset:3px}
 .card,.authCard,.savedBox,.dashPanel,.dashKpi,.adminPanel,.shopCard,.prodCard{border-color:#e2dfd8!important;box-shadow:var(--shadow)!important;background:#fff!important}
 .appSidebar{background:linear-gradient(180deg,#2c3235 0%,#242a2d 68%,#1e2427 100%)!important;color:#fff!important;box-shadow:10px 0 30px rgba(27,31,34,.11)!important}
 .appSideLink{color:#d8dcde!important}
