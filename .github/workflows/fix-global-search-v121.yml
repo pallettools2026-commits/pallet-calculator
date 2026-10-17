@@ -59,14 +59,14 @@ jobs:
           if 'content:"Pallet Tools · v1.0.20"' not in css or 'content:"Pallet Tools · v1.0.20 · обновление №304"' not in css:
               raise SystemExit('CSS version strings not found')
           css = css.replace('content:"Pallet Tools · v1.0.20"', 'content:"Pallet Tools · v1.0.21"', 1)
-          css = css.replace('content:"Pallet Tools · v1.0.20 · обновление №304"', 'content:"Pallet Tools · v1.0.21 · обновление №306"', 1)
+          css = css.replace('content:"Pallet Tools · v1.0.20 · обновление №304"', 'content:"Pallet Tools · v1.0.21 · обновление №307"', 1)
           css += '''\n\n/* Global search v1.0.21 */\n.appSearch{position:relative!important}\n.appSearch input[type="search"]{font-size:13px!important}\n.appSearchStatus{position:absolute;left:0;right:0;top:calc(100% + 7px);z-index:80;padding:9px 11px;border:1px solid #d7e4dd;border-radius:10px;background:#fff;color:#31584c;font-size:11px;font-weight:800;box-shadow:0 9px 24px rgba(35,40,43,.12);white-space:normal}\n.appSearchStatus.error{border-color:#ead8d4;color:#93483f;background:#fffafa}\n.appSearchStatus[hidden]{display:none!important}\n'''
           css_path.write_text(css)
 
           js_path = Path('assets/pallet3d-v10.js')
           js = js_path.read_text()
           old_js = "node.textContent=admin?'Pallet Tools · v1.0.20 · обновление №304':'Pallet Tools · v1.0.20';"
-          new_js = "node.textContent=admin?'Pallet Tools · v1.0.21 · обновление №306':'Pallet Tools · v1.0.21';"
+          new_js = "node.textContent=admin?'Pallet Tools · v1.0.21 · обновление №307':'Pallet Tools · v1.0.21';"
           if old_js not in js:
               raise SystemExit('JS version string not found')
           js_path.write_text(js.replace(old_js, new_js, 1))
@@ -80,3 +80,5 @@ jobs:
           git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js .github/workflows/fix-global-search-v121.yml
           git commit -m 'Fix global search and email autofill'
           git push
+
+# trigger existing workflow
