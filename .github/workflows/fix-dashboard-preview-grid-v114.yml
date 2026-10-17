@@ -1,0 +1,77 @@
+name: Fix dashboard pallet preview grid v1.0.14
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-dashboard-preview-grid-v114.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix dashboard preview grid and bounds
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          css_path = Path('assets/theme-industrial-v130.css')
+          css = css_path.read_text(encoding='utf-8')
+          old_grid = '.dashPalletImage:before{content:"";position:absolute!important;inset:0!important;pointer-events:none!important;background:linear-gradient(90deg,rgba(137,115,91,.035) 1px,transparent 1px),linear-gradient(rgba(137,115,91,.035) 1px,transparent 1px)!important;background-size:22px 22px!important;mask-image:linear-gradient(to bottom,rgba(0,0,0,.6),transparent 88%)!important}'
+          new_grid = '.dashPalletImage:before{content:none!important;display:none!important;background:none!important}'
+          if old_grid not in css:
+              raise SystemExit('dashboard grid marker not found')
+          css = css.replace(old_grid, new_grid, 1)
+
+          old_img = '.dashPalletImage img.dashDynamicPallet{position:relative!important;z-index:1!important;width:min(96%,440px)!important;height:218px!important;object-fit:contain!important;filter:drop-shadow(0 14px 15px rgba(72,55,38,.14))!important;transform:none!important}'
+          new_img = '.dashPalletImage img.dashDynamicPallet{position:relative!important;z-index:1!important;width:min(88%,400px)!important;height:198px!important;object-fit:contain!important;padding:8px!important;filter:drop-shadow(0 12px 13px rgba(72,55,38,.12))!important;transform:none!important}'
+          if old_img not in css:
+              raise SystemExit('dashboard image marker not found')
+          css = css.replace(old_img, new_img, 1)
+
+          css = css.replace('height:192px!important','height:176px!important',1)
+          css = css.replace('height:168px!important','height:154px!important',1)
+          css = css.replace('Pallet Tools · v1.0.13 · обновление №287','Pallet Tools · v1.0.14 · обновление №289')
+          css = css.replace('Pallet Tools · v1.0.13','Pallet Tools · v1.0.14')
+          css = css.replace('Dashboard live pallet preview v1.0.13','Dashboard live pallet preview v1.0.14')
+          css_path.write_text(css, encoding='utf-8')
+
+          js_path = Path('assets/pallet3d-v10.js')
+          js = js_path.read_text(encoding='utf-8')
+          js = js.replace("Pallet Tools · v1.0.13 · обновление №287", "Pallet Tools · v1.0.14 · обновление №289")
+          js = js.replace("Pallet Tools · v1.0.13'", "Pallet Tools · v1.0.14'")
+          js_path.write_text(js, encoding='utf-8')
+
+          index_path = Path('index.html')
+          index = index_path.read_text(encoding='utf-8')
+          if 'assets/theme-industrial-v130.css?v=133' not in index:
+              raise SystemExit('theme cache marker not found')
+          if 'assets/pallet3d-v10.js?v=129' not in index:
+              raise SystemExit('js cache marker not found')
+          index = index.replace('assets/theme-industrial-v130.css?v=133','assets/theme-industrial-v130.css?v=134',1)
+          index = index.replace('assets/pallet3d-v10.js?v=129','assets/pallet3d-v10.js?v=130',1)
+          index_path.write_text(index, encoding='utf-8')
+
+          workflow = Path('.github/workflows/fix-dashboard-preview-grid-v114.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Validate JavaScript
+        run: node --check assets/pallet3d-v10.js
+
+      - name: Commit dashboard preview fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix dashboard pallet preview grid"
+          git push
