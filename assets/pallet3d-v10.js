@@ -3,7 +3,7 @@
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const near=(a,b,t=2)=>Math.abs(Number(a)-Number(b))<=t;
+  const near=(a,b,t=2)=>Math.abs(Number(a)-Number(b,v))<=t;
   const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
   const el=id=>document.getElementById(id);
   const part=i=>typeof window.pallet3DPart==='function'?window.pallet3DPart(i):{n:0,t:22,w:98,l:0,name:'Деталь',index:i};
@@ -118,14 +118,27 @@
     const colors={deck:[0xf3dab2,0xefd1a4,0xf6e0bf],cross:[0xeccda0,0xe6c18f,0xf0d5ad],runner:[0xe4c08d,0xddb47f,0xe9ca9a],block:[0xd8aa72,0xdfb783,0xd2a069]};
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
     function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
-    const nailExplodeLength=1.30;
-    const nailHeadGeo=new THREE.CylinderGeometry(.036,.036,.024,16),nailShankGeo=new THREE.CylinderGeometry(.012,.014,nailExplodeLength,10),nailMat=new THREE.MeshStandardMaterial({color:0x44474a,roughness:.42,metalness:.40});
-    function nail(x,y,z){
-      const head=new THREE.Mesh(nailHeadGeo,nailMat);head.position.set(x,y,z);head.castShadow=true;groups.deck.add(head);
+    const nail40Length=.40,nail80Length=.80;
+    const nail40HeadGeo=new THREE.CylinderGeometry(.030,.030,.020,14),nail80HeadGeo=new THREE.CylinderGeometry(.037,.037,.024,16);
+    const nail40ShankGeo=new THREE.CylinderGeometry(.010,.011,nail40Length,10),nail80ShankGeo=new THREE.CylinderGeometry(.013,.014,nail80Length,10);
+    const nail40Mat=new THREE.MeshStandardMaterial({color:0x53565a,roughness:.44,metalness:.36});
+    const nail80Mat=new THREE.MeshStandardMaterial({color:0x45484b,roughness:.40,metalness:.42});
+    function addNail(group,headGeo,shankGeo,mat,x,y,z,direction=-1){
+      const head=new THREE.Mesh(headGeo,mat);head.position.set(x,y,z);head.castShadow=true;group.add(head);
       if(mode==='explode'){
-        const shank=new THREE.Mesh(nailShankGeo,nailMat);shank.position.set(x,y-nailExplodeLength/2,z);shank.castShadow=true;groups.deck.add(shank);
+        const shank=new THREE.Mesh(shankGeo,mat),len=shankGeo.parameters.height||.4;
+        shank.position.set(x,y+direction*len/2,z);shank.castShadow=true;group.add(shank);
       }
     }
+    const nail40=(group,x,y,z,direction=-1)=>addNail(group,nail40HeadGeo,nail40ShankGeo,nail40Mat,x,y,z,direction);
+    const nail80=(group,x,y,z,direction=-1)=>addNail(group,nail80HeadGeo,nail80ShankGeo,nail80Mat,x,y,z,direction);
+    const pairNails=(fn,group,x,y,z,dx,direction=-1)=>{fn(group,x-dx,y,z,direction);fn(group,x+dx,y,z,direction);};
+    const cornerTriple=(x,y,z,dx)=>{
+      const inward=z<0?1:-1;
+      nail80(groups.deck,x-dx,y,z-.03*inward,-1);
+      nail80(groups.deck,x+dx,y,z-.03*inward,-1);
+      nail80(groups.deck,x,y,z+.05*inward,-1);
+    };
 
     const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
     const blockH=.75,blockXSize1=.95,blockZSize1=.95,blockXSize2=.95,blockZSize2=.95;
@@ -141,14 +154,21 @@
     else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
     runnerLengths.forEach((mm,i)=>{const rz=clamp(mm*S,Math.min(PL*.55,10.5),PL);piece('runner',runnerActualW,runnerT,rz,runnerXs[i],runnerT/2,0,i,groups.runner);});
 
-    const blockY=runnerT+blockH/2;
+    const blockY=runnerT+blockH/2,blockRows=[];
     for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){
       const idx=zi*3+xi;if(idx>=blockCount)continue;
       const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;
       const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;
       const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03);
       const bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);
+      blockRows[zi]=bzPos;
       piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);
+    }
+    if(selected==='all'||selected==='runner'){
+      runnerXs.forEach((x,xi)=>blockRows.forEach((z,zi)=>{
+        if(z==null||zi*3+Math.min(xi,2)>=blockCount)return;
+        pairNails(nail80,groups.runner,x,runnerT+.014,z,Math.min(.072,runnerActualW*.22),1);
+      }));
     }
 
     const bindY=runnerT+blockH+bindT/2;
@@ -158,9 +178,15 @@
     const topY=runnerT+blockH+bindT+deckT/2;
     const actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW;
     const topXs=deckCount?spread(deckCount,PW,actualDeckW):[];
+    const nailY=topY+deckT/2+.014;
     topXs.forEach((x,i)=>{
       piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);
-      if(selected==='all'||selected==='deck')bindZ.forEach(z=>{const dx=Math.min(.07,actualDeckW*.23);nail(x-dx,topY+deckT/2+.014,z);nail(x+dx,topY+deckT/2+.014,z);});
+      if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{
+        const edgeBoard=i===0||i===topXs.length-1;
+        const edgeCross=zi===0||zi===bindZ.length-1;
+        if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));
+        else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);
+      });
     });
 
     const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};
