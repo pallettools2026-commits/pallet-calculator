@@ -212,7 +212,7 @@
       const prism=(x0,z0,x1,z1,y,h,top,front,side)=>{const A=p(x0,z0,y+h),B=p(x1,z0,y+h),C=p(x1,z1,y+h),D=p(x0,z1,y+h),B0=p(x1,z0,y),C0=p(x1,z1,y),D0=p(x0,z1,y);return `<polygon points="${pts([D,C,C0,D0])}" fill="${front}"/><polygon points="${pts([B,C,C0,B0])}" fill="${side}"/><polygon points="${pts([A,B,C,D])}" fill="${top}" stroke="#8d623b" stroke-opacity=".24" stroke-width=".8"/>`;};
       let shape='';
       const runnerCenters=[-W*.34,0,W*.34],runnerW=Math.max(11,W*.12),runnerH=11;
-      runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.47,x+runnerW/2,L*.47,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));
+      runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.43,x+runnerW/2,L*.43,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));
       const blockW=Math.max(15,W*.16),blockL=Math.max(15,L*.11),blockH=28;
       runnerCenters.forEach(x=>[-L*.32,0,L*.32].forEach(z=>shape+=prism(x-blockW/2,z-blockL/2,x+blockW/2,z+blockL/2,runnerH,blockH,'url(#blockTop)','#c4874d','#9d6337')));
       const crossH=9,crossDepth=Math.max(9,L*.055);
@@ -228,7 +228,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.16 · обновление №295':'Pallet Tools · v1.0.16';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.17 · обновление №297':'Pallet Tools · v1.0.17';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
