@@ -82,3 +82,4 @@ button,a{-webkit-tap-highlight-color:rgba(184,121,61,.12)}
 .dynamicPalletStage{background:radial-gradient(circle at 50% 30%,#fff 0%,#f5f3ee 72%,#eeece6 100%)!important}
 .sizeBadge{background:#f3e8db!important;color:#7e532d!important;border-color:#ddc3a6!important}
 @media(max-width:1150px){.appSidebar{background:#292f32!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
