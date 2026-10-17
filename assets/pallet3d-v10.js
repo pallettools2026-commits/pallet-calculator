@@ -217,17 +217,65 @@
     const showRecovery=()=>{recoveryMode=true;const card=el('authCard'),reg=el('authRegisterOnly');card?.classList.remove('loggedIn');authFields.style.display='grid';if(reg)reg.hidden=true;if(signup)signup.style.display='none';email.closest('.authField')?.setAttribute('hidden','');forgot.style.display='none';password.value='';password.placeholder='Новый пароль, минимум 6 символов';password.autocomplete='new-password';login.innerHTML='Сохранить новый пароль <span>→</span>';if(typeof setAuthMessage==='function')setAuthMessage('Введите новый пароль минимум из 6 символов.');setTimeout(()=>password.focus(),40);};
     forgot.addEventListener('click',async()=>{const address=email.value.trim();if(!address){if(typeof setAuthMessage==='function')setAuthMessage('Введите email, затем нажмите «Забыли пароль?».',true);email.focus();return;}forgot.disabled=true;forgot.textContent='Отправляем…';const {error}=await sb.auth.resetPasswordForEmail(address,{redirectTo:typeof SITE_URL!=='undefined'?SITE_URL:location.origin+location.pathname});forgot.disabled=false;forgot.textContent='Забыли пароль?';if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось отправить письмо: '+error.message,true);return;}if(typeof setAuthMessage==='function')setAuthMessage('Письмо для восстановления отправлено. Откройте ссылку из письма и задайте новый пароль.');});
     login.addEventListener('click',async e=>{if(!recoveryMode)return;e.preventDefault();e.stopImmediatePropagation();const next=password.value;if(next.length<6){if(typeof setAuthMessage==='function')setAuthMessage('Новый пароль должен содержать минимум 6 символов.',true);return;}login.disabled=true;const {error}=await sb.auth.updateUser({password:next});login.disabled=false;if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось изменить пароль: '+error.message,true);return;}if(typeof setAuthMessage==='function')setAuthMessage('Пароль установлен. Теперь войдите с новым паролем.');await sb.auth.signOut();recoveryMode=false;email.closest('.authField')?.removeAttribute('hidden');forgot.style.display='';password.value='';password.placeholder='Минимум 6 символов';password.autocomplete='current-password';login.innerHTML='Войти <span>→</span>';setupPrivateRegistration();},true);
-    const linkType=new URLSearchParams((location.hash||'').replace(/^#/,'')).get('type');if(linkType==='invite'||linkType==='recovery')setTimeout(showRecovery,0);
+    const linkType=new URLSearchParams((location.hash||'').replace(/^#/,'' )).get('type');if(linkType==='invite'||linkType==='recovery')setTimeout(showRecovery,0);
     sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0);});
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.7 · обновление №273':'Pallet Tools · v1.0.7';}
+  function setupUserPresence(){
+    if(!window.sb||window.__palletPresenceReady)return;window.__palletPresenceReady=true;
+    let lastActive=Date.now(),lastSent=0,sending=false;
+    const send=async(force=false)=>{
+      if(sending||(!force&&document.hidden))return;
+      const now=Date.now();if(!force&&now-lastSent<10000)return;
+      const {data}=await sb.auth.getSession();const user=data?.session?.user;if(!user)return;
+      sending=true;lastSent=now;
+      const stamp=new Date(now).toISOString();
+      try{await sb.from('user_presence').upsert({user_id:user.id,last_seen:stamp,last_active:new Date(lastActive).toISOString(),updated_at:stamp},{onConflict:'user_id'});}catch(_){}
+      sending=false;
+    };
+    const touch=()=>{lastActive=Date.now();send(false);};
+    ['pointerdown','keydown','input','click','touchstart'].forEach(name=>document.addEventListener(name,touch,{passive:true,capture:true}));
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastActive=Date.now();send(true);}});
+    setInterval(()=>send(false),30000);
+    sb.auth.onAuthStateChange((_event,session)=>{if(session){lastActive=Date.now();setTimeout(()=>send(true),300);}});
+    setTimeout(()=>send(true),900);
+  }
+
+  function setupAdminPresenceStatus(){
+    const usersBox=el('adminUsersList');if(!usersBox||usersBox.dataset.presenceReady==='1'||!window.sb)return;usersBox.dataset.presenceReady='1';
+    const box=usersBox.closest('.adminBox');
+    let busy=false,timer=0;
+    const ago=ms=>{const min=Math.max(1,Math.round(ms/60000));if(min<60)return `${min} мин назад`;const h=Math.round(min/60);return h<24?`${h} ч назад`:`${Math.round(h/24)} дн назад`;};
+    const refresh=async()=>{
+      if(busy||typeof currentRole==='undefined'||currentRole!=='admin')return;busy=true;
+      try{
+        const {data,error}=await sb.from('user_presence').select('user_id,last_seen,last_active');if(error)throw error;
+        const map=new Map((data||[]).map(p=>[p.user_id,p])),now=Date.now();let onlineCount=0,activeCount=0;
+        usersBox.querySelectorAll('.adminUser').forEach(row=>{
+          const role=row.querySelector('.adminRole'),id=role?.dataset?.user;if(!id)return;
+          const p=map.get(id),seen=p?now-new Date(p.last_seen).getTime():Infinity,act=p?now-new Date(p.last_active).getTime():Infinity;
+          const online=seen<=75000,activeNow=online&&act<=120000;if(online)onlineCount++;if(activeNow)activeCount++;
+          let badge=row.querySelector('.adminPresence');if(!badge){badge=document.createElement('div');badge.className='adminPresence';badge.style.cssText='font-size:11px;font-weight:850;margin-top:4px;white-space:nowrap;';const meta=row.querySelector('.adminMeta')||row.querySelector('.adminEmail')?.parentElement;if(meta?.parentElement)meta.parentElement.appendChild(badge);else row.appendChild(badge);}
+          if(activeNow){badge.textContent='● Онлайн · активно работает';badge.style.color='#16804f';}
+          else if(online){badge.textContent='● Онлайн · без действий';badge.style.color='#5f7b70';}
+          else if(p){badge.textContent='○ Не в сети · '+ago(seen);badge.style.color='#87938d';}
+          else{badge.textContent='○ Ещё не заходил';badge.style.color='#9aa39f';}
+        });
+        if(box){let summary=el('adminPresenceSummary');if(!summary){summary=document.createElement('div');summary.id='adminPresenceSummary';summary.style.cssText='margin:0 0 10px;padding:9px 11px;border:1px solid #dbe8e1;border-radius:10px;background:#f6fbf8;color:#31584c;font-size:12px;font-weight:800;';box.insertBefore(summary,usersBox);}summary.textContent=`Сейчас онлайн: ${onlineCount} · Активно работают: ${activeCount}`;}
+      }catch(_){}finally{busy=false;}
+    };
+    const schedule=()=>{clearTimeout(timer);timer=setTimeout(refresh,350);};
+    if(window.MutationObserver)new MutationObserver(schedule).observe(usersBox,{childList:true,subtree:true});
+    setInterval(refresh,20000);setTimeout(refresh,1800);
+  }
+
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.8 · обновление №274':'Pallet Tools · v1.0.8';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
   window.renderDynamicPallet=render;
   window.rerenderPallet3D=function(){const sig=currentSignature();if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}render(num(el('pL')?.value),num(el('pW')?.value));};
-  setupDeckCountControl();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();updateSiteVersion();
+  setupDeckCountControl();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();setupUserPresence();setupAdminPresenceStatus();updateSiteVersion();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
 })();
