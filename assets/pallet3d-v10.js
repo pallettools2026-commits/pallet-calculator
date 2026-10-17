@@ -273,11 +273,64 @@
     decorate();
   }
 
+  function setupPasswordRecovery(){
+    const email=el('authEmail'),password=el('authPassword'),login=el('loginBtn'),signup=el('signupBtn'),authFields=el('authFields');
+    if(!email||!password||!login||!authFields||el('forgotPasswordBtn')||!window.sb)return;
+    const forgot=document.createElement('button');
+    forgot.type='button';forgot.id='forgotPasswordBtn';forgot.textContent='Забыли пароль?';
+    forgot.style.cssText='border:0;background:transparent;color:#4d6f96;font-size:11px;font-weight:800;cursor:pointer;margin:-6px 0 0 auto;padding:2px 0;';
+    const passwordField=password.closest('.authField');
+    passwordField?.appendChild(forgot);
+    let recoveryMode=false;
+    const showRecovery=()=>{
+      recoveryMode=true;
+      const card=el('authCard'),reg=el('authRegisterOnly');
+      card?.classList.remove('loggedIn');
+      if(authFields)authFields.style.display='grid';
+      if(reg)reg.hidden=true;
+      if(signup)signup.style.display='none';
+      email.closest('.authField')?.setAttribute('hidden','');
+      forgot.style.display='none';
+      password.value='';password.placeholder='Новый пароль, минимум 6 символов';password.autocomplete='new-password';
+      login.innerHTML='Сохранить новый пароль <span>→</span>';
+      if(typeof setAuthMessage==='function')setAuthMessage('Введите новый пароль минимум из 6 символов.');
+      setTimeout(()=>password.focus(),40);
+    };
+    forgot.addEventListener('click',async()=>{
+      const address=email.value.trim();
+      if(!address){if(typeof setAuthMessage==='function')setAuthMessage('Введите email, затем нажмите «Забыли пароль?».',true);email.focus();return;}
+      forgot.disabled=true;forgot.textContent='Отправляем…';
+      const {error}=await sb.auth.resetPasswordForEmail(address,{redirectTo:typeof SITE_URL!=='undefined'?SITE_URL:location.origin+location.pathname});
+      forgot.disabled=false;forgot.textContent='Забыли пароль?';
+      if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось отправить письмо: '+error.message,true);return;}
+      if(typeof setAuthMessage==='function')setAuthMessage('Письмо для восстановления отправлено. Откройте ссылку из письма и задайте новый пароль.');
+    });
+    login.addEventListener('click',async e=>{
+      if(!recoveryMode)return;
+      e.preventDefault();e.stopImmediatePropagation();
+      const next=password.value;
+      if(next.length<6){if(typeof setAuthMessage==='function')setAuthMessage('Новый пароль должен содержать минимум 6 символов.',true);return;}
+      login.disabled=true;
+      const {error}=await sb.auth.updateUser({password:next});
+      login.disabled=false;
+      if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось изменить пароль: '+error.message,true);return;}
+      if(typeof setAuthMessage==='function')setAuthMessage('Пароль изменён. Выполните вход с новым паролем.');
+      await sb.auth.signOut();
+      recoveryMode=false;
+      email.closest('.authField')?.removeAttribute('hidden');
+      forgot.style.display='';
+      if(signup)signup.style.display='';
+      password.value='';password.placeholder='Минимум 6 символов';password.autocomplete='current-password';
+      login.innerHTML='Войти <span>→</span>';
+    },true);
+    sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0);});
+  }
+
   function updateSiteVersion(){
     const node=document.querySelector('.sideVersion');
     if(!node)return;
     const admin=typeof currentRole!=='undefined'&&currentRole==='admin';
-    node.textContent=admin?'Pallet Tools · v1.0.3 · обновление №269':'Pallet Tools · v1.0.3';
+    node.textContent=admin?'Pallet Tools · v1.0.4 · обновление №270':'Pallet Tools · v1.0.4';
   }
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');
@@ -293,6 +346,7 @@
   };
   setupDeckCountControl();
   setupAdminEmployeeDelete();
+  setupPasswordRecovery();
   updateSiteVersion();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
