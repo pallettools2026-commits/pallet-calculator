@@ -120,27 +120,15 @@
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
     function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
     const nail40Length=.40,nail80Length=.80;
-    // Крепёж слегка утолщён только визуально, чтобы реальные 2,5/2,8 мм не терялись на экране.
     const nail40HeadGeo=new THREE.CylinderGeometry(.044,.044,.026,16),nail80HeadGeo=new THREE.CylinderGeometry(.052,.052,.030,18);
     const nail40ShankGeo=new THREE.CylinderGeometry(.018,.020,nail40Length,12),nail80ShankGeo=new THREE.CylinderGeometry(.022,.025,nail80Length,12);
     const nail40Mat=new THREE.MeshStandardMaterial({color:0x596166,roughness:.34,metalness:.58});
     const nail80Mat=new THREE.MeshStandardMaterial({color:0x3f4549,roughness:.30,metalness:.66});
-    function addNail(group,headGeo,shankGeo,mat,x,y,z,direction=-1){
-      const head=new THREE.Mesh(headGeo,mat);head.position.set(x,y,z);head.castShadow=true;group.add(head);
-      if(mode==='explode'){
-        const shank=new THREE.Mesh(shankGeo,mat),len=shankGeo.parameters.height||.4;
-        shank.position.set(x,y+direction*len/2,z);shank.castShadow=true;group.add(shank);
-      }
-    }
+    function addNail(group,headGeo,shankGeo,mat,x,y,z,direction=-1){const head=new THREE.Mesh(headGeo,mat);head.position.set(x,y,z);head.castShadow=true;group.add(head);if(mode==='explode'){const shank=new THREE.Mesh(shankGeo,mat),len=shankGeo.parameters.height||.4;shank.position.set(x,y+direction*len/2,z);shank.castShadow=true;group.add(shank);}}
     const nail40=(group,x,y,z,direction=-1)=>addNail(group,nail40HeadGeo,nail40ShankGeo,nail40Mat,x,y,z,direction);
     const nail80=(group,x,y,z,direction=-1)=>addNail(group,nail80HeadGeo,nail80ShankGeo,nail80Mat,x,y,z,direction);
     const pairNails=(fn,group,x,y,z,dx,direction=-1)=>{fn(group,x-dx,y,z,direction);fn(group,x+dx,y,z,direction);};
-    const cornerTriple=(x,y,z,dx)=>{
-      const inward=z<0?1:-1;
-      nail80(groups.deck,x-dx,y,z-.03*inward,-1);
-      nail80(groups.deck,x+dx,y,z-.03*inward,-1);
-      nail80(groups.deck,x,y,z+.05*inward,-1);
-    };
+    const cornerTriple=(x,y,z,dx)=>{const inward=z<0?1:-1;nail80(groups.deck,x-dx,y,z-.03*inward,-1);nail80(groups.deck,x+dx,y,z-.03*inward,-1);nail80(groups.deck,x,y,z+.05*inward,-1);};
 
     const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
     const blockH=.75,blockXSize1=.95,blockZSize1=.95,blockXSize2=.95,blockZSize2=.95;
@@ -150,204 +138,97 @@
     const runnerLengths=profile.runnerLengths||Array.from({length:runnerCount},(_,i)=>Math.min(profile.length,num((i<Math.max(0,num(runnerParts[0].n)))?runnerParts[0].l:runnerParts[1].l,profile.length)));
     const runnerActualW=Math.min(runnerW,PW/Math.max(3,runnerLengths.length)*.56);
     const edgeRunnerX=Math.max(0,PW/2-runnerActualW/2-.03);
-    let runnerXs;
-    if(runnerLengths.length===5) runnerXs=[-edgeRunnerX,-edgeRunnerX*.5,0,edgeRunnerX*.5,edgeRunnerX];
-    else if(runnerLengths.length===3) runnerXs=[-edgeRunnerX,0,edgeRunnerX];
-    else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
+    let runnerXs;if(runnerLengths.length===5)runnerXs=[-edgeRunnerX,-edgeRunnerX*.5,0,edgeRunnerX*.5,edgeRunnerX];else if(runnerLengths.length===3)runnerXs=[-edgeRunnerX,0,edgeRunnerX];else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
     runnerLengths.forEach((mm,i)=>{const rz=clamp(mm*S,Math.min(PL*.55,10.5),PL);piece('runner',runnerActualW,runnerT,rz,runnerXs[i],runnerT/2,0,i,groups.runner);});
 
     const blockY=runnerT+blockH/2,blockRows=[],blockPoints=[];
-    for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){
-      const idx=zi*3+xi;if(idx>=blockCount)continue;
-      const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;
-      const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;
-      const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03);
-      const bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);
-      blockRows[zi]=bzPos;
-      blockPoints.push({x:bxPos,z:bzPos,bx,bz});
-      piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);
-    }
-    if(selected==='all'||selected==='runner'){
-      runnerXs.forEach((x,xi)=>blockRows.forEach((z,zi)=>{
-        if(z==null||zi*3+Math.min(xi,2)>=blockCount)return;
-        pairNails(nail80,groups.runner,x,runnerT+.014,z,Math.min(.072,runnerActualW*.22),1);
-      }));
-    }
+    for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){const idx=zi*3+xi;if(idx>=blockCount)continue;const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03);const bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);blockRows[zi]=bzPos;blockPoints.push({x:bxPos,z:bzPos,bx,bz});piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);}
+    if(selected==='all'||selected==='runner'){runnerXs.forEach((x,xi)=>blockRows.forEach((z,zi)=>{if(z==null||zi*3+Math.min(xi,2)>=blockCount)return;pairNails(nail80,groups.runner,x,runnerT+.014,z,Math.min(.072,runnerActualW*.22),1);}));}
 
-    const bindY=runnerT+blockH+bindT/2;
-    const bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];
+    const bindY=runnerT+blockH+bindT/2,bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];
     bindZ.forEach((z,i)=>piece('cross',PW,bindT,bindDepth,0,bindY,z,i,groups.cross));
-
-    const topY=runnerT+blockH+bindT+deckT/2;
-    const actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW;
-    const topXs=deckCount?spread(deckCount,PW,actualDeckW):[];
-    const nailY=topY+deckT/2+.014;
+    const topY=runnerT+blockH+bindT+deckT/2,actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW,topXs=deckCount?spread(deckCount,PW,actualDeckW):[],nailY=topY+deckT/2+.014;
     const pairNailsDepth=(fn,group,x,y,z,dz,direction=-1)=>{fn(group,x,y,z-dz,direction);fn(group,x,y,z+dz,direction);};
-    if(selected==='all'||selected==='cross'){
-      // Гвозди поперечина → шашка остаются строго над реальной шашкой.
-      // Если сверху проходит доска настила, в собранном виде она естественно скрывает этот крепёж.
-      blockPoints.forEach(p=>{
-        pairNailsDepth(nail80,groups.cross,p.x,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1);
-      });
-    }
-    topXs.forEach((x,i)=>{
-      piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);
-      if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{
-        const edgeBoard=i===0||i===topXs.length-1;
-        const edgeCross=zi===0||zi===bindZ.length-1;
-        if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));
-        else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);
-      });
-    });
+    if(selected==='all'||selected==='cross'){blockPoints.forEach(p=>pairNailsDepth(nail80,groups.cross,p.x,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1));}
+    topXs.forEach((x,i)=>{piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
 
     const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};
     let yaw=num(state.angle,-34)*Math.PI/180,pitch=.43,distance=clamp(Math.max(PW,PL)*1.68,15,28);
-    function draw(){
-      if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.0,.001);camera.lookAt(0,topY*.55,0);}
-      else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}
-      else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}
-      renderer.render(scene,camera);
-    }
+    function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.0,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);}
     active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
     if(exploded){const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/420,0,1),e=1-Math.pow(1-q,3);groups.block.position.y=offsets.block*e;groups.cross.position.y=offsets.cross*e;groups.deck.position.y=offsets.deck*e;draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else draw();
-
     const canvas=renderer.domElement;let dragging=false,lastX=0,lastY=0;
     canvas.addEventListener('pointerdown',e=>{if(mode==='top'||mode==='side')return;dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture?.(e.pointerId);canvas.classList.add('dragging');});
     canvas.addEventListener('pointermove',e=>{if(!dragging||mode==='top'||mode==='side')return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;yaw-=dx*.009;pitch=clamp(pitch-dy*.006,.15,.95);state.angle=yaw*180/Math.PI;draw();});
     const stop=()=>{dragging=false;canvas.classList.remove('dragging');};canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);
     canvas.addEventListener('wheel',e=>{if(mode==='top'||mode==='side')return;e.preventDefault();distance=clamp(distance*(e.deltaY>0?1.08:.92),10,38);draw();},{passive:false});
-
     root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{state.mode=btn.dataset.p3dMode;render(num(el('pL')?.value),num(el('pW')?.value));}));
     root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const k=btn.dataset.p3dPart;state.selected=state.selected===k?'all':k;render(num(el('pL')?.value),num(el('pW')?.value));}));
-
-    if(window.ResizeObserver){
-      const observer=new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!active||!host.isConnected)return;const w=Math.max(280,host.clientWidth),h=window.innerWidth<620?390:510;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();draw();},100);});observer.observe(host);active.observer=observer;
-    }
+    if(window.ResizeObserver){const observer=new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!active||!host.isConnected)return;const w=Math.max(280,host.clientWidth),h=window.innerWidth<620?390:510;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();draw();},100);});observer.observe(host);active.observer=observer;}
   }
 
   function setupDeckCountControl(){
-    const qty=el('qty'),deck=el('n0');
-    if(!qty||!deck||el('deckQty'))return;
-    const cell=qty.parentElement;if(!cell)return;
+    const qty=el('qty'),deck=el('n0');if(!qty||!deck||el('deckQty'))return;const cell=qty.parentElement;if(!cell)return;
     const label=document.createElement('label');label.htmlFor='deckQty';label.textContent='Количество настила';label.style.marginTop='10px';
     const input=document.createElement('input');input.id='deckQty';input.type='number';input.min='0';input.step='1';input.value=deck.value||'0';
     const syncLimit=()=>{const profile=resolveProfile(num(el('pL')?.value,1200),num(el('pW')?.value,800));if(profile.deckMax>0)input.max=String(profile.deckMax);};
     input.addEventListener('input',()=>{syncLimit();const max=num(input.max,99),value=clamp(Math.round(num(input.value,0)),0,max);input.value=String(value);deck.value=String(value);deck.dispatchEvent(new Event('input',{bubbles:true}));});
-    deck.addEventListener('input',()=>{input.value=deck.value||'0';syncLimit();});
-    el('pL')?.addEventListener('input',syncLimit);el('pW')?.addEventListener('input',syncLimit);
-    cell.append(label,input);syncLimit();
+    deck.addEventListener('input',()=>{input.value=deck.value||'0';syncLimit();});el('pL')?.addEventListener('input',syncLimit);el('pW')?.addEventListener('input',syncLimit);cell.append(label,input);syncLimit();
   }
 
   function setupAdminEmployeeDelete(){
-    const usersBox=el('adminUsersList');
-    if(!usersBox||usersBox.dataset.employeeDeleteReady==='1')return;
-    usersBox.dataset.employeeDeleteReady='1';
-    const decorate=()=>{
+    const usersBox=el('adminUsersList');if(!usersBox||usersBox.dataset.employeeDeleteReady==='1')return;usersBox.dataset.employeeDeleteReady='1';
+    const decorate=()=>{if(typeof currentRole==='undefined'||currentRole!=='admin')return;usersBox.querySelectorAll('.adminUser').forEach(row=>{const roleSelect=row.querySelector('.adminRole');if(!roleSelect||roleSelect.disabled||roleSelect.value!=='employee'||row.querySelector('.adminDeleteEmployee'))return;const btn=document.createElement('button');btn.type='button';btn.className='adminDeleteEmployee';btn.textContent='Удалить';btn.style.cssText='min-height:36px;border:1px solid #e2b8b4;border-radius:9px;padding:7px 10px;background:#fff6f5;color:#8a2f28;font-weight:800;cursor:pointer;';btn.addEventListener('click',async()=>{const label=row.querySelector('.adminEmail')?.textContent?.trim()||'этого сотрудника';if(!confirm(`Удалить сотрудника ${label}? Доступ к аккаунту будет закрыт. Его прошлые расчёты останутся в истории.`))return;btn.disabled=true;btn.textContent='Удаление…';try{const {data,error}=await sb.functions.invoke('admin-delete-employee',{body:{user_id:roleSelect.dataset.user}});if(error||!data?.ok)throw new Error(data?.error||error?.message||'Не удалось удалить сотрудника');alert('Сотрудник удалён. Прошлые расчёты сохранены в истории.');if(typeof loadAdminData==='function')await loadAdminData();}catch(err){alert('Не удалось удалить сотрудника: '+(err?.message||'неизвестная ошибка'));btn.disabled=false;btn.textContent='Удалить';}});row.appendChild(btn);});};
+    if(window.MutationObserver)new MutationObserver(()=>queueMicrotask(decorate)).observe(usersBox,{childList:true,subtree:true});decorate();
+  }
+
+  function setupAdminEmployeeInvite(){
+    const usersBox=el('adminUsersList');if(!usersBox||el('adminInviteEmployee'))return;const box=usersBox.closest('.adminBox');if(!box)return;
+    const btn=document.createElement('button');btn.type='button';btn.id='adminInviteEmployee';btn.textContent='+ Добавить сотрудника';btn.style.cssText='width:100%;margin:0 0 10px;min-height:40px;border:0;border-radius:10px;background:#176b4c;color:#fff;font-weight:850;cursor:pointer;';
+    btn.addEventListener('click',async()=>{
       if(typeof currentRole==='undefined'||currentRole!=='admin')return;
-      usersBox.querySelectorAll('.adminUser').forEach(row=>{
-        const roleSelect=row.querySelector('.adminRole');
-        if(!roleSelect||roleSelect.disabled||roleSelect.value!=='employee'||row.querySelector('.adminDeleteEmployee'))return;
-        const btn=document.createElement('button');
-        btn.type='button';
-        btn.className='adminDeleteEmployee';
-        btn.textContent='Удалить';
-        btn.style.cssText='min-height:36px;border:1px solid #e2b8b4;border-radius:9px;padding:7px 10px;background:#fff6f5;color:#8a2f28;font-weight:800;cursor:pointer;';
-        btn.addEventListener('click',async()=>{
-          const label=row.querySelector('.adminEmail')?.textContent?.trim()||'этого сотрудника';
-          if(!confirm(`Удалить сотрудника ${label}? Доступ к аккаунту будет закрыт. Его прошлые расчёты останутся в истории.`))return;
-          btn.disabled=true;btn.textContent='Удаление…';
-          try{
-            const {data,error}=await sb.functions.invoke('admin-delete-employee',{body:{user_id:roleSelect.dataset.user}});
-            if(error||!data?.ok)throw new Error(data?.error||error?.message||'Не удалось удалить сотрудника');
-            alert('Сотрудник удалён. Прошлые расчёты сохранены в истории.');
-            if(typeof loadAdminData==='function')await loadAdminData();
-          }catch(err){
-            alert('Не удалось удалить сотрудника: '+(err?.message||'неизвестная ошибка'));
-            btn.disabled=false;btn.textContent='Удалить';
-          }
-        });
-        row.appendChild(btn);
-      });
-    };
-    if(window.MutationObserver)new MutationObserver(()=>queueMicrotask(decorate)).observe(usersBox,{childList:true,subtree:true});
-    decorate();
+      const fullName=(prompt('Ф.И.О. нового сотрудника:')||'').trim();if(!fullName)return;
+      const position=(prompt('Должность сотрудника:')||'').trim();if(!position)return;
+      const email=(prompt('Email сотрудника:')||'').trim().toLowerCase();if(!email)return;
+      btn.disabled=true;btn.textContent='Создаём приглашение…';
+      try{
+        const {data,error}=await sb.functions.invoke('admin-invite-employee',{body:{email,full_name:fullName,position}});
+        if(error||!data?.ok||!data?.invite_link)throw new Error(data?.error||error?.message||'Не удалось создать приглашение');
+        try{await navigator.clipboard.writeText(data.invite_link);}catch(_){}
+        prompt('Сотрудник создан. Отправьте ему эту ссылку. По ссылке он задаст только свой пароль. Ссылка также скопирована в буфер обмена:',data.invite_link);
+        if(typeof loadAdminData==='function')await loadAdminData();
+      }catch(err){alert('Не удалось добавить сотрудника: '+(err?.message||'неизвестная ошибка'));}
+      btn.disabled=false;btn.textContent='+ Добавить сотрудника';
+    });
+    box.insertBefore(btn,usersBox);
+  }
+
+  function setupPrivateRegistration(){
+    const signup=el('signupBtn'),reg=el('authRegisterOnly'),divider=document.querySelector('.authDivider');
+    if(signup){signup.hidden=true;signup.style.display='none';}
+    if(reg)reg.hidden=true;
+    if(divider){divider.hidden=true;divider.style.display='none';}
+    const welcome=document.querySelector('.authWelcome p');if(welcome)welcome.innerHTML='Вход только для сотрудников,<br>добавленных администратором';
   }
 
   function setupPasswordRecovery(){
-    const email=el('authEmail'),password=el('authPassword'),login=el('loginBtn'),signup=el('signupBtn'),authFields=el('authFields');
-    if(!email||!password||!login||!authFields||el('forgotPasswordBtn')||!window.sb)return;
-    const forgot=document.createElement('button');
-    forgot.type='button';forgot.id='forgotPasswordBtn';forgot.textContent='Забыли пароль?';
-    forgot.style.cssText='border:0;background:transparent;color:#4d6f96;font-size:11px;font-weight:800;cursor:pointer;margin:-6px 0 0 auto;padding:2px 0;';
-    const passwordField=password.closest('.authField');
-    passwordField?.appendChild(forgot);
+    const email=el('authEmail'),password=el('authPassword'),login=el('loginBtn'),signup=el('signupBtn'),authFields=el('authFields');if(!email||!password||!login||!authFields||el('forgotPasswordBtn')||!window.sb)return;
+    const forgot=document.createElement('button');forgot.type='button';forgot.id='forgotPasswordBtn';forgot.textContent='Забыли пароль?';forgot.style.cssText='border:0;background:transparent;color:#4d6f96;font-size:11px;font-weight:800;cursor:pointer;margin:-6px 0 0 auto;padding:2px 0;';password.closest('.authField')?.appendChild(forgot);
     let recoveryMode=false;
-    const showRecovery=()=>{
-      recoveryMode=true;
-      const card=el('authCard'),reg=el('authRegisterOnly');
-      card?.classList.remove('loggedIn');
-      if(authFields)authFields.style.display='grid';
-      if(reg)reg.hidden=true;
-      if(signup)signup.style.display='none';
-      email.closest('.authField')?.setAttribute('hidden','');
-      forgot.style.display='none';
-      password.value='';password.placeholder='Новый пароль, минимум 6 символов';password.autocomplete='new-password';
-      login.innerHTML='Сохранить новый пароль <span>→</span>';
-      if(typeof setAuthMessage==='function')setAuthMessage('Введите новый пароль минимум из 6 символов.');
-      setTimeout(()=>password.focus(),40);
-    };
-    forgot.addEventListener('click',async()=>{
-      const address=email.value.trim();
-      if(!address){if(typeof setAuthMessage==='function')setAuthMessage('Введите email, затем нажмите «Забыли пароль?».',true);email.focus();return;}
-      forgot.disabled=true;forgot.textContent='Отправляем…';
-      const {error}=await sb.auth.resetPasswordForEmail(address,{redirectTo:typeof SITE_URL!=='undefined'?SITE_URL:location.origin+location.pathname});
-      forgot.disabled=false;forgot.textContent='Забыли пароль?';
-      if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось отправить письмо: '+error.message,true);return;}
-      if(typeof setAuthMessage==='function')setAuthMessage('Письмо для восстановления отправлено. Откройте ссылку из письма и задайте новый пароль.');
-    });
-    login.addEventListener('click',async e=>{
-      if(!recoveryMode)return;
-      e.preventDefault();e.stopImmediatePropagation();
-      const next=password.value;
-      if(next.length<6){if(typeof setAuthMessage==='function')setAuthMessage('Новый пароль должен содержать минимум 6 символов.',true);return;}
-      login.disabled=true;
-      const {error}=await sb.auth.updateUser({password:next});
-      login.disabled=false;
-      if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось изменить пароль: '+error.message,true);return;}
-      if(typeof setAuthMessage==='function')setAuthMessage('Пароль изменён. Выполните вход с новым паролем.');
-      await sb.auth.signOut();
-      recoveryMode=false;
-      email.closest('.authField')?.removeAttribute('hidden');
-      forgot.style.display='';
-      if(signup)signup.style.display='';
-      password.value='';password.placeholder='Минимум 6 символов';password.autocomplete='current-password';
-      login.innerHTML='Войти <span>→</span>';
-    },true);
+    const showRecovery=()=>{recoveryMode=true;const card=el('authCard'),reg=el('authRegisterOnly');card?.classList.remove('loggedIn');authFields.style.display='grid';if(reg)reg.hidden=true;if(signup)signup.style.display='none';email.closest('.authField')?.setAttribute('hidden','');forgot.style.display='none';password.value='';password.placeholder='Новый пароль, минимум 6 символов';password.autocomplete='new-password';login.innerHTML='Сохранить новый пароль <span>→</span>';if(typeof setAuthMessage==='function')setAuthMessage('Введите новый пароль минимум из 6 символов.');setTimeout(()=>password.focus(),40);};
+    forgot.addEventListener('click',async()=>{const address=email.value.trim();if(!address){if(typeof setAuthMessage==='function')setAuthMessage('Введите email, затем нажмите «Забыли пароль?».',true);email.focus();return;}forgot.disabled=true;forgot.textContent='Отправляем…';const {error}=await sb.auth.resetPasswordForEmail(address,{redirectTo:typeof SITE_URL!=='undefined'?SITE_URL:location.origin+location.pathname});forgot.disabled=false;forgot.textContent='Забыли пароль?';if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось отправить письмо: '+error.message,true);return;}if(typeof setAuthMessage==='function')setAuthMessage('Письмо для восстановления отправлено. Откройте ссылку из письма и задайте новый пароль.');});
+    login.addEventListener('click',async e=>{if(!recoveryMode)return;e.preventDefault();e.stopImmediatePropagation();const next=password.value;if(next.length<6){if(typeof setAuthMessage==='function')setAuthMessage('Новый пароль должен содержать минимум 6 символов.',true);return;}login.disabled=true;const {error}=await sb.auth.updateUser({password:next});login.disabled=false;if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось изменить пароль: '+error.message,true);return;}if(typeof setAuthMessage==='function')setAuthMessage('Пароль установлен. Теперь войдите с новым паролем.');await sb.auth.signOut();recoveryMode=false;email.closest('.authField')?.removeAttribute('hidden');forgot.style.display='';password.value='';password.placeholder='Минимум 6 символов';password.autocomplete='current-password';login.innerHTML='Войти <span>→</span>';setupPrivateRegistration();},true);
+    const linkType=new URLSearchParams((location.hash||'').replace(/^#/,'')).get('type');if(linkType==='invite'||linkType==='recovery')setTimeout(showRecovery,0);
     sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0);});
   }
 
-  function updateSiteVersion(){
-    const node=document.querySelector('.sideVersion');
-    if(!node)return;
-    const admin=typeof currentRole!=='undefined'&&currentRole==='admin';
-    node.textContent=admin?'Pallet Tools · v1.0.4 · обновление №270':'Pallet Tools · v1.0.4';
-  }
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.5 · обновление №271':'Pallet Tools · v1.0.5';}
   window.updateSiteVersion=updateSiteVersion;
-  const adminVersionTarget=el('adminSideNav');
-  if(adminVersionTarget&&window.MutationObserver){
-    new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});
-  }
+  const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
   window.renderDynamicPallet=render;
-  window.rerenderPallet3D=function(){
-    const sig=currentSignature();
-    if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}
-    render(num(el('pL')?.value),num(el('pW')?.value));
-  };
-  setupDeckCountControl();
-  setupAdminEmployeeDelete();
-  setupPasswordRecovery();
-  updateSiteVersion();
+  window.rerenderPallet3D=function(){const sig=currentSignature();if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}render(num(el('pL')?.value),num(el('pW')?.value));};
+  setupDeckCountControl();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();updateSiteVersion();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
 })();
