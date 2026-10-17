@@ -190,12 +190,11 @@
       const fullName=(prompt('Ф.И.О. нового сотрудника:')||'').trim();if(!fullName)return;
       const position=(prompt('Должность сотрудника:')||'').trim();if(!position)return;
       const email=(prompt('Email сотрудника:')||'').trim().toLowerCase();if(!email)return;
-      btn.disabled=true;btn.textContent='Создаём приглашение…';
+      btn.disabled=true;btn.textContent='Отправляем приглашение…';
       try{
         const {data,error}=await sb.functions.invoke('admin-invite-employee',{body:{email,full_name:fullName,position}});
-        if(error||!data?.ok||!data?.invite_link)throw new Error(data?.error||error?.message||'Не удалось создать приглашение');
-        try{await navigator.clipboard.writeText(data.invite_link);}catch(_){}
-        prompt('Сотрудник создан. Отправьте ему эту ссылку. По ссылке он задаст только свой пароль. Ссылка также скопирована в буфер обмена:',data.invite_link);
+        if(error||!data?.ok||!data?.email_sent)throw new Error(data?.error||error?.message||'Не удалось отправить приглашение');
+        alert(`Сотрудник создан. Письмо со ссылкой для создания пароля автоматически отправлено на ${email}.`);
         if(typeof loadAdminData==='function')await loadAdminData();
       }catch(err){alert('Не удалось добавить сотрудника: '+(err?.message||'неизвестная ошибка'));}
       btn.disabled=false;btn.textContent='+ Добавить сотрудника';
@@ -222,7 +221,7 @@
     sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0);});
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.5 · обновление №271':'Pallet Tools · v1.0.5';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.7 · обновление №273':'Pallet Tools · v1.0.7';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
