@@ -3,7 +3,7 @@
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const near=(a,b,t=2)=>Math.abs(Number(a)-Number(b,v))<=t;
+  const near=(a,b,t=2)=>Math.abs(Number(a)-Number(b))<=t;
   const num=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
   const el=id=>document.getElementById(id);
   const part=i=>typeof window.pallet3DPart==='function'?window.pallet3DPart(i):{n:0,t:22,w:98,l:0,name:'Деталь',index:i};
