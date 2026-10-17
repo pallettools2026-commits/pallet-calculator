@@ -1,0 +1,49 @@
+name: Active order font v1.0.19
+
+on:
+  push:
+    paths:
+      - '.github/workflows/active-order-font-v119.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Increase active order typography
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          css_path = Path('assets/theme-industrial-v130.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* Active order typography v1.0.19 */'
+          if marker not in css:
+              css += '''\n\n/* Active order typography v1.0.19 */\n.currentOrderPanel .dashPanelHead h3{font-size:16px!important}\n.currentOrderPanel .dashPanelHead p{font-size:11px!important}\n.currentOrderPanel .orderBadges span{font-size:10px!important}\n.currentOrderPanel .orderFocusMain h2{font-size:19px!important}\n.currentOrderPanel .orderFocusMain p{font-size:11px!important}\n.currentOrderPanel .orderProgressTop{font-size:10px!important}\n.currentOrderPanel .orderFocusAside small{font-size:9px!important}\n.currentOrderPanel .orderFocusAside b{font-size:12px!important}\n'''
+          css = css.replace('v1.0.18', 'v1.0.19').replace('обновление №299', 'обновление №301')
+          css_path.write_text(css, encoding='utf-8')
+
+          js_path = Path('assets/pallet3d-v10.js')
+          js = js_path.read_text(encoding='utf-8')
+          js = js.replace('v1.0.18', 'v1.0.19').replace('обновление №299', 'обновление №301')
+          js_path.write_text(js, encoding='utf-8')
+
+          index_path = Path('index.html')
+          index = index_path.read_text(encoding='utf-8')
+          index = index.replace('assets/theme-industrial-v130.css?v=138', 'assets/theme-industrial-v130.css?v=139')
+          index = index.replace('assets/pallet3d-v10.js?v=134', 'assets/pallet3d-v10.js?v=135')
+          index_path.write_text(index, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/theme-industrial-v130.css assets/pallet3d-v10.js index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Increase active order typography'
+            git push origin main
+          fi
