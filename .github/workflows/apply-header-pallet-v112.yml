@@ -1,0 +1,69 @@
+name: Apply header pallet v1.1.2
+
+on:
+  push:
+    branches:
+      - hero-pallet-v112
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply header pallet
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          index = Path('index.html')
+          s = index.read_text(encoding='utf-8')
+          old = '<div class="brandLockup">\n    <img src="assets/pallet-clean-3d-1.webp" alt="Чистый деревянный поддон">'
+          new = '<div class="brandLockup">\n    <img src="assets/pallet-hero-3d.webp" alt="3D деревянный поддон без фона">'
+          if old not in s:
+              raise SystemExit('brandLockup target not found')
+          s = s.replace(old, new, 1)
+          s = s.replace('Pallet Tools · v1.1.1', 'Pallet Tools · v1.1.2')
+
+          def bump(match):
+              return match.group(1) + str(int(match.group(2)) + 1)
+
+          s = re.sub(r'(assets/pallet3d-v10\.js\?v=)(\d+)', bump, s, count=1)
+          s = re.sub(r'(assets/theme-industrial-v130\.css\?v=)(\d+)', bump, s, count=1)
+          index.write_text(s, encoding='utf-8')
+
+          js = Path('assets/pallet3d-v10.js')
+          j = js.read_text(encoding='utf-8')
+          if 'v1.1.1' not in j or 'обновление №335' not in j:
+              raise SystemExit('JS version target not found')
+          j = j.replace('v1.1.1', 'v1.1.2')
+          j = j.replace('обновление №335', 'обновление №336')
+          js.write_text(j, encoding='utf-8')
+
+          css = Path('assets/theme-industrial-v130.css')
+          c = css.read_text(encoding='utf-8')
+          if 'v1.1.1' not in c or 'обновление №335' not in c:
+              raise SystemExit('CSS version target not found')
+          c = c.replace('v1.1.1', 'v1.1.2')
+          c = c.replace('обновление №335', 'обновление №336')
+          css.write_text(c, encoding='utf-8')
+          PY
+
+      - name: Validate JavaScript
+        run: node --check assets/pallet3d-v10.js
+
+      - name: Commit update
+        run: |
+          rm -f .github/workflows/apply-header-pallet-v112.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Use transparent 3D header pallet"
+          git push
