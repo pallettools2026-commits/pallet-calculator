@@ -1,0 +1,69 @@
+name: Fix search email autofill v1.0.22
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-search-email-v122.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply search autofill fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index_path = Path('index.html')
+          index = index_path.read_text()
+
+          old_input = '<div class="appSearch" role="search"><span>⌕</span><input id="appSearchInput" name="palletToolsGlobalSearch" type="search" role="searchbox" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Поиск по Pallet Tools" placeholder="Поиск по заказам, размерам, материалам…"></div>'
+          new_input = '<div class="appSearch" role="search"><span>⌕</span><input id="appSearchInput" name="ptSearchFieldV122" type="search" role="searchbox" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" readonly aria-label="Поиск по Pallet Tools" placeholder="Поиск по заказам, размерам, материалам…"></div>'
+          if old_input not in index:
+              raise SystemExit('Search input marker not found')
+          index = index.replace(old_input, new_input, 1)
+
+          index = index.replace("replace(/\\\\s+/g,' ')", "replace(/\\s+/g,' ')", 1)
+          index = index.replace("/^[^\\\\s@]+@[^\\\\s@]+\\\\.[^\\\\s@]+$/", "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/", 1)
+
+          old_guard = """   let statusTimer=0,userEditing=false;\n   const showStatus=(text,error=false)=>{clearTimeout(statusTimer);status.textContent=text;status.classList.toggle('error',error);status.hidden=false;statusTimer=setTimeout(()=>{status.hidden=true;},2600);};\n   const clearAutofill=()=>{if(!userEditing&&looksEmail(search.value)){search.value='';search.setAttribute('value','');}};\n   requestAnimationFrame(clearAutofill);setTimeout(clearAutofill,120);setTimeout(clearAutofill,700);window.addEventListener('pageshow',()=>setTimeout(clearAutofill,80),{once:true});\n   search.addEventListener('focus',()=>{if(looksEmail(search.value))search.value='';userEditing=true;});\n   search.addEventListener('input',()=>{userEditing=true;if(!search.value)status.hidden=true;});\n"""
+          new_guard = """   let statusTimer=0,userEditing=false;\n   const showStatus=(text,error=false)=>{clearTimeout(statusTimer);status.textContent=text;status.classList.toggle('error',error);status.hidden=false;statusTimer=setTimeout(()=>{status.hidden=true;},2600);};\n   const clearAutofill=()=>{if(looksEmail(search.value)||(!userEditing&&String(search.value||'').includes('@'))){search.value='';search.defaultValue='';search.removeAttribute('value');}};\n   const unlockSearch=()=>{clearAutofill();search.readOnly=false;};\n   search.readOnly=true;clearAutofill();\n   requestAnimationFrame(clearAutofill);[80,180,400,800,1400,2400,4000].forEach(ms=>setTimeout(clearAutofill,ms));\n   const autofillGuard=setInterval(()=>{if(userEditing){clearInterval(autofillGuard);return;}clearAutofill();},150);setTimeout(()=>clearInterval(autofillGuard),6000);\n   window.addEventListener('pageshow',()=>setTimeout(clearAutofill,60));\n   document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(clearAutofill,60);});\n   ['pointerdown','touchstart','keydown'].forEach(type=>search.addEventListener(type,unlockSearch,{once:false,capture:true}));\n   search.addEventListener('focus',()=>{clearAutofill();search.readOnly=false;});\n   search.addEventListener('input',()=>{if(looksEmail(search.value)){search.value='';search.defaultValue='';showStatus('Строка поиска очищена',false);return;}userEditing=true;if(!search.value)status.hidden=true;});\n"""
+          if old_guard not in index:
+              raise SystemExit('Old autofill guard not found')
+          index = index.replace(old_guard, new_guard, 1)
+
+          if 'assets/theme-industrial-v130.css?v=141' not in index or 'assets/pallet3d-v10.js?v=137' not in index:
+              raise SystemExit('Expected cache versions not found')
+          index = index.replace('assets/theme-industrial-v130.css?v=141', 'assets/theme-industrial-v130.css?v=142', 1)
+          index = index.replace('assets/pallet3d-v10.js?v=137', 'assets/pallet3d-v10.js?v=138', 1)
+          index_path.write_text(index)
+
+          css_path = Path('assets/theme-industrial-v130.css')
+          css = css_path.read_text()
+          if 'content:"Pallet Tools · v1.0.21"' not in css or 'content:"Pallet Tools · v1.0.21 · обновление №309"' not in css:
+              raise SystemExit('CSS version strings not found')
+          css = css.replace('content:"Pallet Tools · v1.0.21"', 'content:"Pallet Tools · v1.0.22"', 1)
+          css = css.replace('content:"Pallet Tools · v1.0.21 · обновление №309"', 'content:"Pallet Tools · v1.0.22 · обновление №311"', 1)
+          css_path.write_text(css)
+
+          js_path = Path('assets/pallet3d-v10.js')
+          js = js_path.read_text()
+          old_js = "node.textContent=admin?'Pallet Tools · v1.0.21 · обновление №309':'Pallet Tools · v1.0.21';"
+          new_js = "node.textContent=admin?'Pallet Tools · v1.0.22 · обновление №311':'Pallet Tools · v1.0.22';"
+          if old_js not in js:
+              raise SystemExit('JS version string not found')
+          js_path.write_text(js.replace(old_js, new_js, 1))
+          PY
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/fix-search-email-v122.yml
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js .github/workflows/fix-search-email-v122.yml
+          git commit -m 'Block email autofill in global search'
+          git push
