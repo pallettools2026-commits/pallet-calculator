@@ -1,0 +1,94 @@
+name: Improve dashboard flow v1.0.24
+
+on:
+  push:
+    paths:
+      - '.github/workflows/improve-dashboard-flow-v124.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Improve sawing queue and shift cards
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          index_path = Path('index.html')
+          index = index_path.read_text()
+
+          old_cards = '''        <article class="dashPanel compact"><div class="dashPanelHead"><div><span class="dashPanelIcon">⌁</span><div><h3>Очередь пиления</h3><p>Текущий план раскроя</p></div></div><button type="button" data-jump="workshop">Распил →</button></div><div class="miniMetric"><strong id="dashSawBoards">—</strong><span>досок сырья</span></div><div class="miniBar"><i id="dashSawYieldBar" style="width:0%"></i></div><div class="miniFoot"><span>Выход материала</span><b id="dashSawYield">—</b></div></article>
+        <article class="dashPanel compact"><div class="dashPanelHead"><div><span class="dashPanelIcon">◫</span><div><h3>Смена</h3><p>Производственный поток</p></div></div><button type="button" data-jump="production">Подробнее →</button></div><div class="shiftMini"><div><small>Напилено</small><b id="dashCut">0</b></div><div><small>Собрано</small><b id="dashAssembled">0</b></div><div><small>ОТК</small><b id="dashQc">0</b></div></div></article>'''
+          new_cards = '''        <article class="dashPanel compact sawQueuePanel"><div class="dashPanelHead"><div><span class="dashPanelIcon">⌁</span><div><h3>Очередь пиления</h3><p>Текущий план раскроя</p></div></div><button type="button" data-jump="workshop">Распил →</button></div><div class="miniMetric"><strong id="dashSawBoards">—</strong><span>досок сырья</span></div><div class="miniBar"><i id="dashSawYieldBar" style="width:0%"></i></div><div class="miniFoot"><span>Выход материала</span><b id="dashSawYield">—</b></div><div class="miniStatusRow" id="dashSawState"><span class="miniStatusBadge">Нужен расчёт</span><b id="dashSawNext">Рассчитать раскрой</b></div></article>
+        <article class="dashPanel compact shiftFlowPanel"><div class="dashPanelHead"><div><span class="dashPanelIcon">◫</span><div><h3>Смена</h3><p>Производственный поток</p></div></div><button type="button" data-jump="production">Подробнее →</button></div><div class="shiftMini"><div><small>Напилено</small><b id="dashCut">0</b><span class="shiftStageBar"><i id="dashCutBar"></i></span></div><div><small>Собрано</small><b id="dashAssembled">0</b><span class="shiftStageBar"><i id="dashAssembledBar"></i></span></div><div><small>ОТК</small><b id="dashQc">0</b><span class="shiftStageBar"><i id="dashQcBar"></i></span></div></div><div class="shiftFocus" id="dashShiftFocus"><span class="shiftFocusDot"></span><div><small>Следующий этап</small><b id="dashShiftNext">Начните с пиления</b></div><strong id="dashShiftPct">0%</strong></div></article>'''
+          if old_cards not in index:
+              raise SystemExit('Dashboard mini cards marker not found')
+          index = index.replace(old_cards, new_cards, 1)
+
+          old_logic = '''   const y=parseFloat(String(yieldText).replace(',','.'))||0;if($('dashSawYieldBar'))$('dashSawYieldBar').style.width=Math.max(0,Math.min(100,y))+'%';
+   if($('dashCut'))$('dashCut').textContent=fmt(cut);if($('dashAssembled'))$('dashAssembled').textContent=fmt(assembled);if($('dashQc'))$('dashQc').textContent=fmt(qc);
+   if($('dashPreviewSize'))$('dashPreviewSize').textContent=(L&&W)?`${L} × ${W} мм`:'Размер не задан';'''
+          new_logic = '''   const y=parseFloat(String(yieldText).replace(',','.'))||0;if($('dashSawYieldBar'))$('dashSawYieldBar').style.width=Math.max(0,Math.min(100,y))+'%';
+   const sawState=$('dashSawState'),sawBadge=sawState?.querySelector('.miniStatusBadge'),sawNext=$('dashSawNext'),sawReady=sawBoards!=='—'&&parseFloat(String(sawBoards).replace(',','.'))>0;
+   let sawMode='waiting',sawLabel='Нужен расчёт',sawHint='Рассчитать раскрой';
+   if(sawReady&&y>=85){sawMode='good';sawLabel='Отличный раскрой';sawHint='Можно запускать пиление';}
+   else if(sawReady&&y>=70){sawMode='ready';sawLabel='Готово к работе';sawHint='Проверьте остатки и запускайте';}
+   else if(sawReady){sawMode='warn';sawLabel='Есть потери';sawHint='Попробуйте оптимизировать раскрой';}
+   if(sawState){sawState.dataset.state=sawMode;}if(sawBadge)sawBadge.textContent=sawLabel;if(sawNext)sawNext.textContent=sawHint;
+   if($('dashCut'))$('dashCut').textContent=fmt(cut);if($('dashAssembled'))$('dashAssembled').textContent=fmt(assembled);if($('dashQc'))$('dashQc').textContent=fmt(qc);
+   const stagePct=v=>Q?Math.max(0,Math.min(100,Math.round(v/Q*100))):0,cutPct=stagePct(cut),assembledPct=stagePct(assembled),qcPct=stagePct(qc);
+   if($('dashCutBar'))$('dashCutBar').style.width=cutPct+'%';if($('dashAssembledBar'))$('dashAssembledBar').style.width=assembledPct+'%';if($('dashQcBar'))$('dashQcBar').style.width=qcPct+'%';if($('dashShiftPct'))$('dashShiftPct').textContent=qcPct+'%';
+   const shiftFocus=$('dashShiftFocus'),shiftNext=$('dashShiftNext');let shiftMode='work',shiftText='Начните с пиления';
+   if(!Q){shiftMode='idle';shiftText='Задайте количество поддонов';}
+   else if(cut<Q){shiftText=`Пиление · осталось ${fmt(Math.max(0,Q-cut))} шт.`;}
+   else if(assembled<Math.min(cut,Q)){shiftText=`Сборка · ожидает ${fmt(Math.max(0,Math.min(cut,Q)-assembled))} шт.`;}
+   else if(qc<Math.min(assembled,Q)){shiftText=`ОТК · ожидает ${fmt(Math.max(0,Math.min(assembled,Q)-qc))} шт.`;}
+   else{shiftMode='done';shiftText='Заказ выполнен';}
+   if(shiftFocus)shiftFocus.dataset.state=shiftMode;if(shiftNext)shiftNext.textContent=shiftText;
+   if($('dashPreviewSize'))$('dashPreviewSize').textContent=(L&&W)?`${L} × ${W} мм`:'Размер не задан';'''
+          if old_logic not in index:
+              raise SystemExit('Dashboard logic marker not found')
+          index = index.replace(old_logic, new_logic, 1)
+
+          if 'assets/theme-industrial-v130.css?v=144' not in index or 'assets/pallet3d-v10.js?v=140' not in index:
+              raise SystemExit('Expected cache versions not found')
+          index = index.replace('assets/theme-industrial-v130.css?v=144', 'assets/theme-industrial-v130.css?v=145', 1)
+          index = index.replace('assets/pallet3d-v10.js?v=140', 'assets/pallet3d-v10.js?v=141', 1)
+          index_path.write_text(index)
+
+          css_path = Path('assets/theme-industrial-v130.css')
+          css = css_path.read_text()
+          if 'content:"Pallet Tools · v1.0.23"' not in css or 'content:"Pallet Tools · v1.0.23 · обновление №318"' not in css:
+              raise SystemExit('CSS version strings not found')
+          css = css.replace('content:"Pallet Tools · v1.0.23"', 'content:"Pallet Tools · v1.0.24"', 1)
+          css = css.replace('content:"Pallet Tools · v1.0.23 · обновление №318"', 'content:"Pallet Tools · v1.0.24 · обновление №320"', 1)
+          css += '''
+
+/* Dashboard flow intelligence v1.0.24 */
+.miniStatusRow{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:11px;padding:9px 10px;border:1px solid #e5e0d8;border-radius:11px;background:#faf8f4}.miniStatusRow .miniStatusBadge{display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border-radius:999px;background:#f0eee9;color:#686d6e;font-size:9px;font-weight:900;white-space:nowrap}.miniStatusRow>b{min-width:0;color:#606668;font-size:10px;line-height:1.25;text-align:right}.miniStatusRow[data-state="good"]{border-color:#cfe1d7;background:#f3faf6}.miniStatusRow[data-state="good"] .miniStatusBadge{background:#dff1e7;color:#267552}.miniStatusRow[data-state="ready"]{border-color:#d8e1d5;background:#f7faf5}.miniStatusRow[data-state="ready"] .miniStatusBadge{background:#e9f2e5;color:#567143}.miniStatusRow[data-state="warn"]{border-color:#ecd8bc;background:#fff9ef}.miniStatusRow[data-state="warn"] .miniStatusBadge{background:#f7e8ce;color:#986126}
+.shiftMini>div{display:grid!important;grid-template-rows:auto auto 4px;gap:3px!important}.shiftStageBar{display:block;width:100%;height:4px;border-radius:999px;background:#ebe8e1;overflow:hidden}.shiftStageBar i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#b8793d,#d09b64);transition:width .25s ease}.shiftFocus{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;margin-top:11px;padding:10px 11px;border:1px solid #e5e0d8;border-radius:11px;background:#faf8f4}.shiftFocusDot{width:9px;height:9px;border-radius:50%;background:#c78a4e;box-shadow:0 0 0 4px rgba(199,138,78,.12)}.shiftFocus div{min-width:0}.shiftFocus small{display:block;color:#8a8f8d;font-size:8px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}.shiftFocus b{display:block;margin-top:2px;color:#454b4d;font-size:10px;line-height:1.25;overflow-wrap:anywhere}.shiftFocus>strong{color:#87582e;font-size:15px;font-weight:900}.shiftFocus[data-state="done"]{border-color:#cfe1d7;background:#f3faf6}.shiftFocus[data-state="done"] .shiftFocusDot{background:#2f8a62;box-shadow:0 0 0 4px rgba(47,138,98,.12)}.shiftFocus[data-state="done"]>strong{color:#277251}.shiftFocus[data-state="idle"]{opacity:.82}.shiftFocus[data-state="idle"] .shiftFocusDot{background:#9da3a0;box-shadow:0 0 0 4px rgba(120,128,124,.1)}
+@media(max-width:560px){.miniStatusRow{align-items:flex-start;flex-direction:column}.miniStatusRow>b{text-align:left}.shiftFocus{grid-template-columns:auto minmax(0,1fr)}.shiftFocus>strong{grid-column:2;justify-self:start}}
+'''
+          css_path.write_text(css)
+
+          js_path = Path('assets/pallet3d-v10.js')
+          js = js_path.read_text()
+          old_js = "node.textContent=admin?'Pallet Tools · v1.0.23 · обновление №318':'Pallet Tools · v1.0.23';"
+          new_js = "node.textContent=admin?'Pallet Tools · v1.0.24 · обновление №320':'Pallet Tools · v1.0.24';"
+          if old_js not in js:
+              raise SystemExit('JS version string not found')
+          js_path.write_text(js.replace(old_js, new_js, 1))
+          PY
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/improve-dashboard-flow-v124.yml
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js .github/workflows/improve-dashboard-flow-v124.yml
+          git commit -m 'Improve sawing queue and shift dashboard'
+          git push
