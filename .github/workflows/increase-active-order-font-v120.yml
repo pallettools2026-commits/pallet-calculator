@@ -15,55 +15,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Increase active order typography
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          css_path = Path('assets/theme-industrial-v130.css')
-          css = css_path.read_text()
-          old = '''/* Active order typography v1.0.19 */
-.currentOrderPanel .dashPanelHead h3{font-size:16px!important}
-.currentOrderPanel .dashPanelHead p{font-size:11px!important}
-.currentOrderPanel .orderBadges span{font-size:10px!important}
-.currentOrderPanel .orderFocusMain h2{font-size:19px!important}
-.currentOrderPanel .orderFocusMain p{font-size:11px!important}
-.currentOrderPanel .orderProgressTop{font-size:10px!important}
-.currentOrderPanel .orderFocusAside small{font-size:9px!important}
-.currentOrderPanel .orderFocusAside b{font-size:12px!important}
-'''
-          new = '''/* Active order typography v1.0.20 */
-.currentOrderPanel .dashPanelHead h3{font-size:18px!important;line-height:1.2!important}
-.currentOrderPanel .dashPanelHead p{font-size:13px!important;line-height:1.4!important}
-.currentOrderPanel .dashPanelHead button{font-size:12px!important}
-.currentOrderPanel .orderBadges span{font-size:12px!important;padding:5px 9px!important}
-.currentOrderPanel .orderFocusMain h2{font-size:23px!important;line-height:1.15!important;margin-top:9px!important}
-.currentOrderPanel .orderFocusMain p{font-size:13px!important;line-height:1.4!important}
-.currentOrderPanel .orderProgressTop{font-size:12px!important}
-.currentOrderPanel .orderFocusAside small{font-size:11px!important}
-.currentOrderPanel .orderFocusAside b{font-size:14px!important;line-height:1.3!important}
-'''
-          if old not in css:
-              raise SystemExit('Active order typography block not found')
-          css = css.replace(old, new, 1)
-          css = css.replace('content:"Pallet Tools · v1.0.19"', 'content:"Pallet Tools · v1.0.20"')
-          css = css.replace('content:"Pallet Tools · v1.0.19 · обновление №301"', 'content:"Pallet Tools · v1.0.20 · обновление №303"')
-          css_path.write_text(css)
-
-          js_path = Path('assets/pallet3d-v10.js')
-          js = js_path.read_text()
-          old_js = "node.textContent=admin?'Pallet Tools · v1.0.19 · обновление №301':'Pallet Tools · v1.0.19';"
-          new_js = "node.textContent=admin?'Pallet Tools · v1.0.20 · обновление №303':'Pallet Tools · v1.0.20';"
-          if old_js not in js:
-              raise SystemExit('Version string not found in JS')
-          js_path.write_text(js.replace(old_js, new_js, 1))
-
-          index_path = Path('index.html')
-          index = index_path.read_text()
-          if 'assets/theme-industrial-v130.css?v=139' not in index or 'assets/pallet3d-v10.js?v=135' not in index:
-              raise SystemExit('Expected cache versions not found')
-          index = index.replace('assets/theme-industrial-v130.css?v=139', 'assets/theme-industrial-v130.css?v=140', 1)
-          index = index.replace('assets/pallet3d-v10.js?v=135', 'assets/pallet3d-v10.js?v=136', 1)
-          index_path.write_text(index)
-          PY
+          sed -i 's@/\* Active order typography v1.0.19 \*/@/* Active order typography v1.0.20 */@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.dashPanelHead h3{font-size:16px!important}@.currentOrderPanel .dashPanelHead h3{font-size:18px!important;line-height:1.2!important}@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.dashPanelHead p{font-size:11px!important}@.currentOrderPanel .dashPanelHead p{font-size:13px!important;line-height:1.4!important}@' assets/theme-industrial-v130.css
+          sed -i '/\.currentOrderPanel \.dashPanelHead p{/a .currentOrderPanel .dashPanelHead button{font-size:12px!important}' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.orderBadges span{font-size:10px!important}@.currentOrderPanel .orderBadges span{font-size:12px!important;padding:5px 9px!important}@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.orderFocusMain h2{font-size:19px!important}@.currentOrderPanel .orderFocusMain h2{font-size:23px!important;line-height:1.15!important;margin-top:9px!important}@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.orderFocusMain p{font-size:11px!important}@.currentOrderPanel .orderFocusMain p{font-size:13px!important;line-height:1.4!important}@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.orderProgressTop{font-size:10px!important}@.currentOrderPanel .orderProgressTop{font-size:12px!important}@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.orderFocusAside small{font-size:9px!important}@.currentOrderPanel .orderFocusAside small{font-size:11px!important}@' assets/theme-industrial-v130.css
+          sed -i 's@\.currentOrderPanel \.orderFocusAside b{font-size:12px!important}@.currentOrderPanel .orderFocusAside b{font-size:14px!important;line-height:1.3!important}@' assets/theme-industrial-v130.css
+          sed -i 's/v1\.0\.19/v1.0.20/g; s/обновление №301/обновление №304/g' assets/theme-industrial-v130.css assets/pallet3d-v10.js
+          sed -i 's/theme-industrial-v130.css?v=139/theme-industrial-v130.css?v=140/; s/pallet3d-v10.js?v=135/pallet3d-v10.js?v=136/' index.html
       - name: Remove one-shot workflow
         run: rm .github/workflows/increase-active-order-font-v120.yml
       - name: Commit changes
