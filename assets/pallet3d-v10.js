@@ -228,7 +228,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.0 · обновление №333':'Pallet Tools · v1.1.0';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.1 · обновление №335':'Pallet Tools · v1.1.1';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
