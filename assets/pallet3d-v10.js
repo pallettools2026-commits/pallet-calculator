@@ -118,8 +118,13 @@
     const colors={deck:[0xf3dab2,0xefd1a4,0xf6e0bf],cross:[0xeccda0,0xe6c18f,0xf0d5ad],runner:[0xe4c08d,0xddb47f,0xe9ca9a],block:[0xd8aa72,0xdfb783,0xd2a069]};
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
     function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
-    const nailGeo=new THREE.CylinderGeometry(.026,.026,.016,12),nailMat=new THREE.MeshStandardMaterial({color:0x5d5a56,roughness:.38,metalness:.45});
-    function nail(x,y,z){const n=new THREE.Mesh(nailGeo,nailMat);n.position.set(x,y,z);n.castShadow=true;groups.deck.add(n);}
+    const nailHeadGeo=new THREE.CylinderGeometry(.042,.042,.028,16),nailShankGeo=new THREE.CylinderGeometry(.016,.019,1.42,10),nailMat=new THREE.MeshStandardMaterial({color:0x555450,roughness:.34,metalness:.48});
+    function nail(x,y,z){
+      const head=new THREE.Mesh(nailHeadGeo,nailMat);head.position.set(x,y,z);head.castShadow=true;groups.deck.add(head);
+      if(mode==='explode'){
+        const shank=new THREE.Mesh(nailShankGeo,nailMat);shank.position.set(x,y-.71,z);shank.castShadow=true;groups.deck.add(shank);
+      }
+    }
 
     const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
     const blockH=.75,blockXSize1=.95,blockZSize1=.95,blockXSize2=.95,blockZSize2=.95;
