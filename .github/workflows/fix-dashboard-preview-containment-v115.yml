@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Replace dashboard pallet preview with contained render
+      - name: Fix dashboard preview geometry
         shell: bash
         run: |
           python - <<'PY'
@@ -24,74 +24,48 @@ jobs:
 
           js_path = Path('assets/pallet3d-v10.js')
           js = js_path.read_text(encoding='utf-8')
-          start = js.find('  function setupDashboardPalletPreview(){')
-          end = js.find('  function updateSiteVersion()', start)
-          if start < 0 or end < 0:
-              raise SystemExit('dashboard preview function markers not found')
-
-          replacement = r'''  function setupDashboardPalletPreview(){
-    const orderImg=document.querySelector('.orderFocus>img'),viewImg=document.querySelector('.dashPalletImage img');
-    if(!orderImg&&!viewImg)return;
-    let lastSignature='';
-    const pts=a=>a.map(v=>`${v[0].toFixed(1)},${v[1].toFixed(1)}`).join(' ');
-    const makeSvg=(length,width,deckCount)=>{
-      length=Math.max(300,num(length,1200));width=Math.max(300,num(width,800));deckCount=clamp(Math.round(num(deckCount,7)),3,12);
-      const fitX=.70*width+.46*length,fitY=.25*width+.28*length;
-      const scale=Math.min(322/fitX,104/fitY),W=width*scale,L=length*scale,cx=270,baseY=186;
-      const p=(x,z,y=0)=>[cx+x*.70-z*.46,baseY+x*.25+z*.28-y];
-      const prism=(x0,z0,x1,z1,y,h,top,front,side)=>{const A=p(x0,z0,y+h),B=p(x1,z0,y+h),C=p(x1,z1,y+h),D=p(x0,z1,y+h),B0=p(x1,z0,y),C0=p(x1,z1,y),D0=p(x0,z1,y);return `<polygon points="${pts([D,C,C0,D0])}" fill="${front}"/><polygon points="${pts([B,C,C0,B0])}" fill="${side}"/><polygon points="${pts([A,B,C,D])}" fill="${top}" stroke="#93683f" stroke-opacity=".30" stroke-width=".75"/>`;};
-      let shape='';
-      const runnerCenters=[-W*.34,0,W*.34],runnerW=Math.max(10,W*.12),runnerH=10;
-      runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.45,x+runnerW/2,L*.45,0,runnerH,'#d5a368','#ad713d','#8f582f'));
-      const blockW=Math.max(14,W*.15),blockL=Math.max(14,L*.105),blockH=26;
-      runnerCenters.forEach(x=>[-L*.33,0,L*.33].forEach(z=>shape+=prism(x-blockW/2,z-blockL/2,x+blockW/2,z+blockL/2,runnerH,blockH,'#dfb178','#bd7d48','#985e34')));
-      const crossH=8,crossDepth=Math.max(9,L*.05);
-      [-L*.33,0,L*.33].forEach(z=>shape+=prism(-W*.46,z-crossDepth/2,W*.46,z+crossDepth/2,runnerH+blockH,crossH,'#ecc38f','#cf9862','#ab7240'));
-      const deckH=8,deckW=Math.max(8,Math.min(W*.13,W*.80/deckCount));
-      for(let i=0;i<deckCount;i++){const x=-W*.46+deckW/2+i*(W*.92-deckW)/(deckCount-1);shape+=prism(x-deckW/2,-L*.46,x+deckW/2,L*.46,runnerH+blockH+crossH,deckH,'#efca96','#d9a86f','#b77f49');}
-      const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 300" role="img" aria-label="Поддон ${Math.round(length)} на ${Math.round(width)} миллиметров"><defs><clipPath id="previewClip"><rect x="42" y="24" width="456" height="218" rx="20"/></clipPath><filter id="soft" x="-20%" y="-30%" width="140%" height="180%"><feGaussianBlur stdDeviation="5"/></filter></defs><rect x="42" y="24" width="456" height="218" rx="20" fill="#fbfaf7"/><g clip-path="url(#previewClip)"><ellipse cx="270" cy="218" rx="142" ry="16" fill="#6b5742" opacity=".10" filter="url(#soft)"/>${shape}</g><text x="270" y="276" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#75695d">${Math.round(length)} × ${Math.round(width)} мм · настил ${deckCount} шт.</text></svg>`;
-      return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
-    };
-    const refresh=()=>{const length=num(el('pL')?.value,1200),width=num(el('pW')?.value,800),deckCount=num(el('n0')?.value,7),signature=`${length}|${width}|${deckCount}`;if(signature===lastSignature)return;lastSignature=signature;const src=makeSvg(length,width,deckCount);[orderImg,viewImg].forEach(img=>{if(!img)return;img.src=src;img.alt=`Поддон ${Math.round(length)} × ${Math.round(width)} мм`;img.classList.add('dashDynamicPallet');});};
-    ['pL','pW','n0'].forEach(id=>{const input=el(id);if(!input||input.dataset.dashboardPreviewReady==='1')return;input.dataset.dashboardPreviewReady='1';input.addEventListener('input',refresh);input.addEventListener('change',refresh);});
-    refresh();setInterval(refresh,1500);
-  }
-
-'''
-          js = js[:start] + replacement + js[end:]
-          js = js.replace("Pallet Tools · v1.0.14 · обновление №289", "Pallet Tools · v1.0.15 · обновление №291")
-          js = js.replace("Pallet Tools · v1.0.14'", "Pallet Tools · v1.0.15'")
-          js_path.write_text(js, encoding='utf-8')
+          replacements = [
+              ("const fitX=.72*width+.48*length,fitY=.26*width+.30*length,scale=Math.min(380/fitX,132/fitY),W=width*scale,L=length*scale,cx=270,baseY=202;", "const fitX=.72*width+.48*length,fitY=.26*width+.30*length,scale=Math.min(300/fitX,96/fitY),W=width*scale,L=length*scale,cx=270,baseY=183;"),
+              ("const runnerCenters=[-W*.36,0,W*.36],runnerW=Math.max(11,W*.13),runnerH=11;", "const runnerCenters=[-W*.32,0,W*.32],runnerW=Math.max(11,W*.12),runnerH=11;"),
+              ("runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L/2,x+runnerW/2,L/2,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));", "runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.42,x+runnerW/2,L*.42,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));"),
+              ("runnerCenters.forEach(x=>[-L*.36,0,L*.36].forEach(z=>shape+=prism(x-blockW/2,z-blockL/2,x+blockW/2,z+blockL/2,runnerH,blockH,'url(#blockTop)','#c4874d','#9d6337')));", "runnerCenters.forEach(x=>[-L*.31,0,L*.31].forEach(z=>shape+=prism(x-blockW/2,z-blockL/2,x+blockW/2,z+blockL/2,runnerH,blockH,'url(#blockTop)','#c4874d','#9d6337')));"),
+              ("[-L*.36,0,L*.36].forEach(z=>shape+=prism(-W/2,z-crossDepth/2,W/2,z+crossDepth/2,runnerH+blockH,crossH,'url(#crossTop)','#d7a46d','#af7744'));", "[-L*.31,0,L*.31].forEach(z=>shape+=prism(-W*.44,z-crossDepth/2,W*.44,z+crossDepth/2,runnerH+blockH,crossH,'url(#crossTop)','#d7a46d','#af7744'));"),
+              ("for(let i=0;i<deckCount;i++){const x=-W/2+deckW/2+i*(W-deckW)/(deckCount-1);shape+=prism(x-deckW/2,-L/2,x+deckW/2,L/2,runnerH+blockH+crossH,deckH,'url(#deckTop)','#e1b77f','#bd8952');}", "for(let i=0;i<deckCount;i++){const x=-W*.44+deckW/2+i*(W*.88-deckW)/(deckCount-1);shape+=prism(x-deckW/2,-L*.44,x+deckW/2,L*.44,runnerH+blockH+crossH,deckH,'url(#deckTop)','#e1b77f','#bd8952');}"),
+              ("const shadowRx=Math.min(190,(W*.72+L*.48)*.46);", "const shadowRx=Math.min(130,(W*.72+L*.48)*.40);"),
+              ("<rect width=\"540\" height=\"300\" rx=\"24\" fill=\"url(#bg)\"/>", "<rect width=\"540\" height=\"300\" rx=\"24\" fill=\"#fbfaf7\"/>"),
+              ("Pallet Tools · v1.0.14 · обновление №289", "Pallet Tools · v1.0.15 · обновление №292"),
+              ("Pallet Tools · v1.0.14'", "Pallet Tools · v1.0.15'")
+          ]
+          for old,new in replacements:
+              if old not in js:
+                  raise SystemExit('missing JS marker: '+old[:80])
+              js = js.replace(old,new,1)
+          js_path.write_text(js,encoding='utf-8')
 
           css_path = Path('assets/theme-industrial-v130.css')
           css = css_path.read_text(encoding='utf-8')
-          css = css.replace('Pallet Tools · v1.0.14 · обновление №289','Pallet Tools · v1.0.15 · обновление №291')
+          css = css.replace('Pallet Tools · v1.0.14 · обновление №289','Pallet Tools · v1.0.15 · обновление №292')
           css = css.replace('Pallet Tools · v1.0.14','Pallet Tools · v1.0.15')
           css = css.replace('Dashboard live pallet preview v1.0.14','Dashboard live pallet preview v1.0.15')
-          css = css.replace('background:radial-gradient(circle at 50% 34%,#fff 0%,#f8f5ef 56%,#efe9df 100%)!important','background:#fbfaf7!important')
-          css = css.replace('width:min(88%,400px)!important;height:198px!important;object-fit:contain!important;padding:8px!important','width:min(82%,372px)!important;height:190px!important;object-fit:contain!important;padding:10px!important')
-          css = css.replace('height:176px!important','height:170px!important').replace('height:154px!important','height:148px!important')
-          css_path.write_text(css, encoding='utf-8')
+          css = css.replace('width:min(88%,400px)!important;height:198px!important;object-fit:contain!important;padding:8px!important','width:min(80%,350px)!important;height:180px!important;object-fit:contain!important;padding:12px!important')
+          css = css.replace('height:176px!important','height:162px!important').replace('height:154px!important','height:142px!important')
+          css_path.write_text(css,encoding='utf-8')
 
           index_path = Path('index.html')
           index = index_path.read_text(encoding='utf-8')
-          if 'assets/theme-industrial-v130.css?v=134' not in index:
-              raise SystemExit('theme cache marker not found')
-          if 'assets/pallet3d-v10.js?v=130' not in index:
-              raise SystemExit('js cache marker not found')
+          if 'assets/theme-industrial-v130.css?v=134' not in index or 'assets/pallet3d-v10.js?v=130' not in index:
+              raise SystemExit('cache markers not found')
           index = index.replace('assets/theme-industrial-v130.css?v=134','assets/theme-industrial-v130.css?v=135',1)
           index = index.replace('assets/pallet3d-v10.js?v=130','assets/pallet3d-v10.js?v=131',1)
-          index_path.write_text(index, encoding='utf-8')
+          index_path.write_text(index,encoding='utf-8')
 
-          workflow = Path('.github/workflows/fix-dashboard-preview-containment-v115.yml')
-          if workflow.exists():
-              workflow.unlink()
+          Path('.github/workflows/fix-dashboard-preview-containment-v115.yml').unlink(missing_ok=True)
           PY
 
       - name: Validate JavaScript
         run: node --check assets/pallet3d-v10.js
 
-      - name: Commit contained preview
+      - name: Commit fix
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
