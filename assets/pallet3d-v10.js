@@ -238,11 +238,46 @@
     cell.append(label,input);syncLimit();
   }
 
+  function setupAdminEmployeeDelete(){
+    const usersBox=el('adminUsersList');
+    if(!usersBox||usersBox.dataset.employeeDeleteReady==='1')return;
+    usersBox.dataset.employeeDeleteReady='1';
+    const decorate=()=>{
+      if(typeof currentRole==='undefined'||currentRole!=='admin')return;
+      usersBox.querySelectorAll('.adminUser').forEach(row=>{
+        const roleSelect=row.querySelector('.adminRole');
+        if(!roleSelect||roleSelect.disabled||roleSelect.value!=='employee'||row.querySelector('.adminDeleteEmployee'))return;
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='adminDeleteEmployee';
+        btn.textContent='Удалить';
+        btn.style.cssText='min-height:36px;border:1px solid #e2b8b4;border-radius:9px;padding:7px 10px;background:#fff6f5;color:#8a2f28;font-weight:800;cursor:pointer;';
+        btn.addEventListener('click',async()=>{
+          const label=row.querySelector('.adminEmail')?.textContent?.trim()||'этого сотрудника';
+          if(!confirm(`Удалить сотрудника ${label}? Доступ к аккаунту будет закрыт. Его прошлые расчёты останутся в истории.`))return;
+          btn.disabled=true;btn.textContent='Удаление…';
+          try{
+            const {data,error}=await sb.functions.invoke('admin-delete-employee',{body:{user_id:roleSelect.dataset.user}});
+            if(error||!data?.ok)throw new Error(data?.error||error?.message||'Не удалось удалить сотрудника');
+            alert('Сотрудник удалён. Прошлые расчёты сохранены в истории.');
+            if(typeof loadAdminData==='function')await loadAdminData();
+          }catch(err){
+            alert('Не удалось удалить сотрудника: '+(err?.message||'неизвестная ошибка'));
+            btn.disabled=false;btn.textContent='Удалить';
+          }
+        });
+        row.appendChild(btn);
+      });
+    };
+    if(window.MutationObserver)new MutationObserver(()=>queueMicrotask(decorate)).observe(usersBox,{childList:true,subtree:true});
+    decorate();
+  }
+
   function updateSiteVersion(){
     const node=document.querySelector('.sideVersion');
     if(!node)return;
     const admin=typeof currentRole!=='undefined'&&currentRole==='admin';
-    node.textContent=admin?'Pallet Tools · v1.0.2 · обновление №268':'Pallet Tools · v1.0.2';
+    node.textContent=admin?'Pallet Tools · v1.0.3 · обновление №269':'Pallet Tools · v1.0.3';
   }
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');
@@ -257,6 +292,7 @@
     render(num(el('pL')?.value),num(el('pW')?.value));
   };
   setupDeckCountControl();
+  setupAdminEmployeeDelete();
   updateSiteVersion();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
