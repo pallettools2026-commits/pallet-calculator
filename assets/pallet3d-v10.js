@@ -24,7 +24,6 @@
   function syncProfileInputs(profile){
     const deck=el('n0');
     if(deck)deck.max=String(profile.deckMax);
-    // 3D reference must never rewrite production calculator values.
   }
 
   function currentSignature(){
@@ -79,20 +78,10 @@
     const previewStage=el('previewStage');
     const previewActions=previewCard?.querySelector('.previewActions');
     if(profile.key==='unsupported'){
-      state.mode='3d';state.selected='all';
-      root.innerHTML='';
-      if(previewCard)previewCard.style.display='';
-      if(previewStage)previewStage.style.display='none';
-      if(previewActions)previewActions.style.display='none';
-      return;
+      state.mode='3d';state.selected='all';root.innerHTML='';
+      if(previewCard)previewCard.style.display='';if(previewStage)previewStage.style.display='none';if(previewActions)previewActions.style.display='none';return;
     }
-    if(previewCard)previewCard.style.display='';
-    if(previewStage)previewStage.style.display='flex';
-    if(previewActions)previewActions.style.display='flex';
-    root.style.display='block';
-    root.style.width='100%';
-    root.style.padding='0';
-    root.style.minHeight='0';
+    if(previewCard)previewCard.style.display='';if(previewStage)previewStage.style.display='flex';if(previewActions)previewActions.style.display='flex';root.style.display='block';root.style.width='100%';root.style.padding='0';root.style.minHeight='0';
     syncProfileInputs(profile);
     const P=[0,1,2,3,4,5,6].map(part),deck=P[0],bindParts=[P[1],P[2]],runnerParts=[P[3],P[4]],block1=P[5],block2=P[6];
     const isReference=false;
@@ -100,10 +89,8 @@
     const rawBlocks=Math.max(0,Math.round(num(block1.n)))+Math.max(0,Math.round(num(block2.n))),blockCount=isReference?9:Math.min(9,rawBlocks||9);
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
-    const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
     const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
     root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div></div>`;
-
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
     const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(33,cw/ch,.1,120),world=new THREE.Group();scene.add(world);
@@ -112,48 +99,36 @@
     const key=new THREE.DirectionalLight(0xfff0d2,4.5);key.position.set(-12,18,12);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.camera.near=.5;key.shadow.camera.far=65;key.shadow.camera.left=-18;key.shadow.camera.right=18;key.shadow.camera.top=18;key.shadow.camera.bottom=-18;scene.add(key);
     const fill=new THREE.DirectionalLight(0xe4efff,1.15);fill.position.set(12,8,-10);scene.add(fill);
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,36),new THREE.ShadowMaterial({color:0x64584e,opacity:.13}));floor.rotation.x=-Math.PI/2;floor.position.y=-.025;floor.receiveShadow=true;scene.add(floor);
-
     const S=.01,PW=profile.width*S,PL=profile.length*S,selected=state.selected||'all';
-    const textures={deck:woodTexture(17,'#f3dfbd','#9a724b'),cross:woodTexture(31,'#ecd2a8','#906642'),runner:woodTexture(47,'#e8ca9a','#875d39'),block:woodTexture(61,'#dfbb86','#805433')};
-    Object.values(textures).forEach((t,i)=>t.repeat.set(i===3?1.4:3.2,1));
+    const textures={deck:woodTexture(17,'#f3dfbd','#9a724b'),cross:woodTexture(31,'#ecd2a8','#906642'),runner:woodTexture(47,'#e8ca9a','#875d39'),block:woodTexture(61,'#dfbb86','#805433')};Object.values(textures).forEach((t,i)=>t.repeat.set(i===3?1.4:3.2,1));
     const colors={deck:[0xf3dab2,0xefd1a4,0xf6e0bf],cross:[0xeccda0,0xe6c18f,0xf0d5ad],runner:[0xe4c08d,0xddb47f,0xe9ca9a],block:[0xd8aa72,0xdfb783,0xd2a069]};
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
     function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
     const nail40Length=.40,nail80Length=.80;
     const nail40HeadGeo=new THREE.CylinderGeometry(.044,.044,.026,16),nail80HeadGeo=new THREE.CylinderGeometry(.052,.052,.030,18);
     const nail40ShankGeo=new THREE.CylinderGeometry(.018,.020,nail40Length,12),nail80ShankGeo=new THREE.CylinderGeometry(.022,.025,nail80Length,12);
-    const nail40Mat=new THREE.MeshStandardMaterial({color:0x596166,roughness:.34,metalness:.58});
-    const nail80Mat=new THREE.MeshStandardMaterial({color:0x3f4549,roughness:.30,metalness:.66});
+    const nail40Mat=new THREE.MeshStandardMaterial({color:0x596166,roughness:.34,metalness:.58}),nail80Mat=new THREE.MeshStandardMaterial({color:0x3f4549,roughness:.30,metalness:.66});
     function addNail(group,headGeo,shankGeo,mat,x,y,z,direction=-1){const head=new THREE.Mesh(headGeo,mat);head.position.set(x,y,z);head.castShadow=true;group.add(head);if(mode==='explode'){const shank=new THREE.Mesh(shankGeo,mat),len=shankGeo.parameters.height||.4;shank.position.set(x,y+direction*len/2,z);shank.castShadow=true;group.add(shank);}}
-    const nail40=(group,x,y,z,direction=-1)=>addNail(group,nail40HeadGeo,nail40ShankGeo,nail40Mat,x,y,z,direction);
-    const nail80=(group,x,y,z,direction=-1)=>addNail(group,nail80HeadGeo,nail80ShankGeo,nail80Mat,x,y,z,direction);
+    const nail40=(group,x,y,z,direction=-1)=>addNail(group,nail40HeadGeo,nail40ShankGeo,nail40Mat,x,y,z,direction),nail80=(group,x,y,z,direction=-1)=>addNail(group,nail80HeadGeo,nail80ShankGeo,nail80Mat,x,y,z,direction);
     const pairNails=(fn,group,x,y,z,dx,direction=-1)=>{fn(group,x-dx,y,z,direction);fn(group,x+dx,y,z,direction);};
     const cornerTriple=(x,y,z,dx)=>{const inward=z<0?1:-1;nail80(groups.deck,x-dx,y,z-.03*inward,-1);nail80(groups.deck,x+dx,y,z-.03*inward,-1);nail80(groups.deck,x,y,z+.05*inward,-1);};
-
     const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
     const blockH=.75,blockXSize1=.95,blockZSize1=.95,blockXSize2=.95,blockZSize2=.95;
     const bindT=isReference?.22:Math.max(.15,num(bindParts[0].t,22)*S),bindDepth=isReference?.98:Math.max(.58,num(bindParts[0].w,98)*S);
     const deckT=isReference?.22:Math.max(.15,num(deck.t,22)*S),deckW=isReference?.98:Math.max(.58,num(deck.w,98)*S);
-
     const runnerLengths=profile.runnerLengths||Array.from({length:runnerCount},(_,i)=>Math.min(profile.length,num((i<Math.max(0,num(runnerParts[0].n)))?runnerParts[0].l:runnerParts[1].l,profile.length)));
-    const runnerActualW=Math.min(runnerW,PW/Math.max(3,runnerLengths.length)*.56);
-    const edgeRunnerX=Math.max(0,PW/2-runnerActualW/2-.03);
+    const runnerActualW=Math.min(runnerW,PW/Math.max(3,runnerLengths.length)*.56),edgeRunnerX=Math.max(0,PW/2-runnerActualW/2-.03);
     let runnerXs;if(runnerLengths.length===5)runnerXs=[-edgeRunnerX,-edgeRunnerX*.5,0,edgeRunnerX*.5,edgeRunnerX];else if(runnerLengths.length===3)runnerXs=[-edgeRunnerX,0,edgeRunnerX];else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
     runnerLengths.forEach((mm,i)=>{const rz=clamp(mm*S,Math.min(PL*.55,10.5),PL);piece('runner',runnerActualW,runnerT,rz,runnerXs[i],runnerT/2,0,i,groups.runner);});
-
     const blockY=runnerT+blockH/2,blockRows=[],blockPoints=[];
-    for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){const idx=zi*3+xi;if(idx>=blockCount)continue;const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03);const bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);blockRows[zi]=bzPos;blockPoints.push({x:bxPos,z:bzPos,bx,bz});piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);}
+    for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){const idx=zi*3+xi;if(idx>=blockCount)continue;const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03),bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);blockRows[zi]=bzPos;blockPoints.push({x:bxPos,z:bzPos,bx,bz});piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);}
     if(selected==='all'||selected==='runner'){runnerXs.forEach((x,xi)=>blockRows.forEach((z,zi)=>{if(z==null||zi*3+Math.min(xi,2)>=blockCount)return;pairNails(nail80,groups.runner,x,runnerT+.014,z,Math.min(.072,runnerActualW*.22),1);}));}
-
-    const bindY=runnerT+blockH+bindT/2,bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];
-    bindZ.forEach((z,i)=>piece('cross',PW,bindT,bindDepth,0,bindY,z,i,groups.cross));
+    const bindY=runnerT+blockH+bindT/2,bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];bindZ.forEach((z,i)=>piece('cross',PW,bindT,bindDepth,0,bindY,z,i,groups.cross));
     const topY=runnerT+blockH+bindT+deckT/2,actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW,topXs=deckCount?spread(deckCount,PW,actualDeckW):[],nailY=topY+deckT/2+.014;
     const pairNailsDepth=(fn,group,x,y,z,dz,direction=-1)=>{fn(group,x,y,z-dz,direction);fn(group,x,y,z+dz,direction);};
     if(selected==='all'||selected==='cross'){blockPoints.forEach(p=>pairNailsDepth(nail80,groups.cross,p.x,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1));}
     topXs.forEach((x,i)=>{piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
-
-    const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};
-    let yaw=num(state.angle,-34)*Math.PI/180,pitch=.43,distance=clamp(Math.max(PW,PL)*1.68,15,28);
+    const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};let yaw=num(state.angle,-34)*Math.PI/180,pitch=.43,distance=clamp(Math.max(PW,PL)*1.68,15,28);
     function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.0,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);}
     active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
     if(exploded){const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/420,0,1),e=1-Math.pow(1-q,3);groups.block.position.y=offsets.block*e;groups.cross.position.y=offsets.cross*e;groups.deck.position.y=offsets.deck*e;draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else draw();
@@ -185,91 +160,39 @@
   function setupAdminEmployeeInvite(){
     const usersBox=el('adminUsersList');if(!usersBox||el('adminInviteEmployee'))return;const box=usersBox.closest('.adminBox');if(!box)return;
     const btn=document.createElement('button');btn.type='button';btn.id='adminInviteEmployee';btn.textContent='+ Добавить сотрудника';btn.style.cssText='width:100%;margin:0 0 10px;min-height:40px;border:0;border-radius:10px;background:#176b4c;color:#fff;font-weight:850;cursor:pointer;';
-    btn.addEventListener('click',async()=>{
-      if(typeof currentRole==='undefined'||currentRole!=='admin')return;
-      const fullName=(prompt('Ф.И.О. нового сотрудника:')||'').trim();if(!fullName)return;
-      const position=(prompt('Должность сотрудника:')||'').trim();if(!position)return;
-      const email=(prompt('Email сотрудника:')||'').trim().toLowerCase();if(!email)return;
-      btn.disabled=true;btn.textContent='Отправляем приглашение…';
-      try{
-        const {data,error}=await sb.functions.invoke('admin-invite-employee',{body:{email,full_name:fullName,position}});
-        if(error||!data?.ok||!data?.email_sent)throw new Error(data?.error||error?.message||'Не удалось отправить приглашение');
-        alert(`Сотрудник создан. Письмо со ссылкой для создания пароля автоматически отправлено на ${email}.`);
-        if(typeof loadAdminData==='function')await loadAdminData();
-      }catch(err){alert('Не удалось добавить сотрудника: '+(err?.message||'неизвестная ошибка'));}
-      btn.disabled=false;btn.textContent='+ Добавить сотрудника';
-    });
+    btn.addEventListener('click',async()=>{if(typeof currentRole==='undefined'||currentRole!=='admin')return;const fullName=(prompt('Ф.И.О. нового сотрудника:')||'').trim();if(!fullName)return;const position=(prompt('Должность сотрудника:')||'').trim();if(!position)return;const email=(prompt('Email сотрудника:')||'').trim().toLowerCase();if(!email)return;btn.disabled=true;btn.textContent='Отправляем приглашение…';try{const {data,error}=await sb.functions.invoke('admin-invite-employee',{body:{email,full_name:fullName,position}});if(error||!data?.ok||!data?.email_sent)throw new Error(data?.error||error?.message||'Не удалось отправить приглашение');alert(`Сотрудник создан. Письмо со ссылкой для создания пароля автоматически отправлено на ${email}.`);if(typeof loadAdminData==='function')await loadAdminData();}catch(err){alert('Не удалось добавить сотрудника: '+(err?.message||'неизвестная ошибка'));}btn.disabled=false;btn.textContent='+ Добавить сотрудника';});
     box.insertBefore(btn,usersBox);
   }
 
   function setupPrivateRegistration(){
-    const signup=el('signupBtn'),reg=el('authRegisterOnly'),divider=document.querySelector('.authDivider');
-    if(signup){signup.hidden=true;signup.style.display='none';}
-    if(reg)reg.hidden=true;
-    if(divider){divider.hidden=true;divider.style.display='none';}
-    const welcome=document.querySelector('.authWelcome p');if(welcome)welcome.innerHTML='Вход только для сотрудников,<br>добавленных администратором';
+    const signup=el('signupBtn'),reg=el('authRegisterOnly'),divider=document.querySelector('.authDivider');if(signup){signup.hidden=true;signup.style.display='none';}if(reg)reg.hidden=true;if(divider){divider.hidden=true;divider.style.display='none';}const welcome=document.querySelector('.authWelcome p');if(welcome)welcome.innerHTML='Вход только для сотрудников,<br>добавленных администратором';
   }
 
   function setupPasswordRecovery(){
-    const email=el('authEmail'),password=el('authPassword'),login=el('loginBtn'),signup=el('signupBtn'),authFields=el('authFields');if(!email||!password||!login||!authFields||el('forgotPasswordBtn')||!window.sb)return;
+    const email=el('authEmail'),password=el('authPassword'),login=el('loginBtn'),signup=el('signupBtn'),authFields=el('authFields');if(!email||!password||!login||!authFields||el('forgotPasswordBtn')||typeof sb==='undefined')return;
     const forgot=document.createElement('button');forgot.type='button';forgot.id='forgotPasswordBtn';forgot.textContent='Забыли пароль?';forgot.style.cssText='border:0;background:transparent;color:#4d6f96;font-size:11px;font-weight:800;cursor:pointer;margin:-6px 0 0 auto;padding:2px 0;';password.closest('.authField')?.appendChild(forgot);
     let recoveryMode=false;
     const showRecovery=()=>{recoveryMode=true;const card=el('authCard'),reg=el('authRegisterOnly');card?.classList.remove('loggedIn');authFields.style.display='grid';if(reg)reg.hidden=true;if(signup)signup.style.display='none';email.closest('.authField')?.setAttribute('hidden','');forgot.style.display='none';password.value='';password.placeholder='Новый пароль, минимум 6 символов';password.autocomplete='new-password';login.innerHTML='Сохранить новый пароль <span>→</span>';if(typeof setAuthMessage==='function')setAuthMessage('Введите новый пароль минимум из 6 символов.');setTimeout(()=>password.focus(),40);};
     forgot.addEventListener('click',async()=>{const address=email.value.trim();if(!address){if(typeof setAuthMessage==='function')setAuthMessage('Введите email, затем нажмите «Забыли пароль?».',true);email.focus();return;}forgot.disabled=true;forgot.textContent='Отправляем…';const {error}=await sb.auth.resetPasswordForEmail(address,{redirectTo:typeof SITE_URL!=='undefined'?SITE_URL:location.origin+location.pathname});forgot.disabled=false;forgot.textContent='Забыли пароль?';if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось отправить письмо: '+error.message,true);return;}if(typeof setAuthMessage==='function')setAuthMessage('Письмо для восстановления отправлено. Откройте ссылку из письма и задайте новый пароль.');});
     login.addEventListener('click',async e=>{if(!recoveryMode)return;e.preventDefault();e.stopImmediatePropagation();const next=password.value;if(next.length<6){if(typeof setAuthMessage==='function')setAuthMessage('Новый пароль должен содержать минимум 6 символов.',true);return;}login.disabled=true;const {error}=await sb.auth.updateUser({password:next});login.disabled=false;if(error){if(typeof setAuthMessage==='function')setAuthMessage('Не удалось изменить пароль: '+error.message,true);return;}if(typeof setAuthMessage==='function')setAuthMessage('Пароль установлен. Теперь войдите с новым паролем.');await sb.auth.signOut();recoveryMode=false;email.closest('.authField')?.removeAttribute('hidden');forgot.style.display='';password.value='';password.placeholder='Минимум 6 символов';password.autocomplete='current-password';login.innerHTML='Войти <span>→</span>';setupPrivateRegistration();},true);
-    const linkType=new URLSearchParams((location.hash||'').replace(/^#/,'' )).get('type');if(linkType==='invite'||linkType==='recovery')setTimeout(showRecovery,0);
-    sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0);});
+    const linkType=new URLSearchParams((location.hash||'').replace(/^#/,'' )).get('type');if(linkType==='invite'||linkType==='recovery')setTimeout(showRecovery,0);sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0);});
   }
 
   function setupUserPresence(){
-    if(!window.sb||window.__palletPresenceReady)return;window.__palletPresenceReady=true;
+    if(typeof sb==='undefined'||window.__palletPresenceReady)return;window.__palletPresenceReady=true;
     let lastActive=Date.now(),lastSent=0,sending=false;
-    const send=async(force=false)=>{
-      if(sending||(!force&&document.hidden))return;
-      const now=Date.now();if(!force&&now-lastSent<10000)return;
-      const {data}=await sb.auth.getSession();const user=data?.session?.user;if(!user)return;
-      sending=true;lastSent=now;
-      const stamp=new Date(now).toISOString();
-      try{await sb.from('user_presence').upsert({user_id:user.id,last_seen:stamp,last_active:new Date(lastActive).toISOString(),updated_at:stamp},{onConflict:'user_id'});}catch(_){}
-      sending=false;
-    };
-    const touch=()=>{lastActive=Date.now();send(false);};
-    ['pointerdown','keydown','input','click','touchstart'].forEach(name=>document.addEventListener(name,touch,{passive:true,capture:true}));
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastActive=Date.now();send(true);}});
-    setInterval(()=>send(false),30000);
-    sb.auth.onAuthStateChange((_event,session)=>{if(session){lastActive=Date.now();setTimeout(()=>send(true),300);}});
-    setTimeout(()=>send(true),900);
+    const send=async(force=false)=>{if(sending||(!force&&document.hidden))return;const now=Date.now();if(!force&&now-lastSent<10000)return;const {data}=await sb.auth.getSession();const user=data?.session?.user;if(!user)return;sending=true;lastSent=now;const stamp=new Date(now).toISOString();try{const {error}=await sb.from('user_presence').upsert({user_id:user.id,last_seen:stamp,last_active:new Date(lastActive).toISOString(),updated_at:stamp},{onConflict:'user_id'});if(error)console.warn('Presence update failed',error.message);}catch(err){console.warn('Presence update failed',err);}sending=false;};
+    const touch=()=>{lastActive=Date.now();send(false);};['pointerdown','keydown','input','click','touchstart'].forEach(name=>document.addEventListener(name,touch,{passive:true,capture:true}));document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastActive=Date.now();send(true);}});setInterval(()=>send(false),30000);sb.auth.onAuthStateChange((_event,session)=>{if(session){lastActive=Date.now();setTimeout(()=>send(true),300);}});setTimeout(()=>send(true),900);
   }
 
   function setupAdminPresenceStatus(){
-    const usersBox=el('adminUsersList');if(!usersBox||usersBox.dataset.presenceReady==='1'||!window.sb)return;usersBox.dataset.presenceReady='1';
-    const box=usersBox.closest('.adminBox');
-    let busy=false,timer=0;
+    const usersBox=el('adminUsersList');if(!usersBox||usersBox.dataset.presenceReady==='1'||typeof sb==='undefined')return;usersBox.dataset.presenceReady='1';const box=usersBox.closest('.adminBox');let busy=false,timer=0;
     const ago=ms=>{const min=Math.max(1,Math.round(ms/60000));if(min<60)return `${min} мин назад`;const h=Math.round(min/60);return h<24?`${h} ч назад`:`${Math.round(h/24)} дн назад`;};
-    const refresh=async()=>{
-      if(busy||typeof currentRole==='undefined'||currentRole!=='admin')return;busy=true;
-      try{
-        const {data,error}=await sb.from('user_presence').select('user_id,last_seen,last_active');if(error)throw error;
-        const map=new Map((data||[]).map(p=>[p.user_id,p])),now=Date.now();let onlineCount=0,activeCount=0;
-        usersBox.querySelectorAll('.adminUser').forEach(row=>{
-          const role=row.querySelector('.adminRole'),id=role?.dataset?.user;if(!id)return;
-          const p=map.get(id),seen=p?now-new Date(p.last_seen).getTime():Infinity,act=p?now-new Date(p.last_active).getTime():Infinity;
-          const online=seen<=75000,activeNow=online&&act<=120000;if(online)onlineCount++;if(activeNow)activeCount++;
-          let badge=row.querySelector('.adminPresence');if(!badge){badge=document.createElement('div');badge.className='adminPresence';badge.style.cssText='font-size:11px;font-weight:850;margin-top:4px;white-space:nowrap;';const meta=row.querySelector('.adminMeta')||row.querySelector('.adminEmail')?.parentElement;if(meta?.parentElement)meta.parentElement.appendChild(badge);else row.appendChild(badge);}
-          if(activeNow){badge.textContent='● Онлайн · активно работает';badge.style.color='#16804f';}
-          else if(online){badge.textContent='● Онлайн · без действий';badge.style.color='#5f7b70';}
-          else if(p){badge.textContent='○ Не в сети · '+ago(seen);badge.style.color='#87938d';}
-          else{badge.textContent='○ Ещё не заходил';badge.style.color='#9aa39f';}
-        });
-        if(box){let summary=el('adminPresenceSummary');if(!summary){summary=document.createElement('div');summary.id='adminPresenceSummary';summary.style.cssText='margin:0 0 10px;padding:9px 11px;border:1px solid #dbe8e1;border-radius:10px;background:#f6fbf8;color:#31584c;font-size:12px;font-weight:800;';box.insertBefore(summary,usersBox);}summary.textContent=`Сейчас онлайн: ${onlineCount} · Активно работают: ${activeCount}`;}
-      }catch(_){}finally{busy=false;}
-    };
-    const schedule=()=>{clearTimeout(timer);timer=setTimeout(refresh,350);};
-    if(window.MutationObserver)new MutationObserver(schedule).observe(usersBox,{childList:true,subtree:true});
-    setInterval(refresh,20000);setTimeout(refresh,1800);
+    const refresh=async()=>{if(busy||typeof currentRole==='undefined'||currentRole!=='admin')return;busy=true;try{const {data,error}=await sb.from('user_presence').select('user_id,last_seen,last_active');if(error)throw error;const map=new Map((data||[]).map(p=>[p.user_id,p])),now=Date.now();let onlineCount=0,activeCount=0;usersBox.querySelectorAll('.adminUser').forEach(row=>{const role=row.querySelector('.adminRole'),id=role?.dataset?.user;if(!id)return;const p=map.get(id),seen=p?now-new Date(p.last_seen).getTime():Infinity,act=p?now-new Date(p.last_active).getTime():Infinity;const online=seen<=75000,activeNow=online&&act<=120000;if(online)onlineCount++;if(activeNow)activeCount++;let badge=row.querySelector('.adminPresence');if(!badge){badge=document.createElement('div');badge.className='adminPresence';badge.style.cssText='font-size:11px;font-weight:850;margin-top:4px;white-space:nowrap;';row.appendChild(badge);}if(activeNow){badge.textContent='● Онлайн · активно работает';badge.style.color='#16804f';}else if(online){badge.textContent='● Онлайн · без действий';badge.style.color='#5f7b70';}else if(p){badge.textContent='○ Не в сети · '+ago(seen);badge.style.color='#87938d';}else{badge.textContent='○ Ещё не заходил';badge.style.color='#9aa39f';}});if(box){let summary=el('adminPresenceSummary');if(!summary){summary=document.createElement('div');summary.id='adminPresenceSummary';summary.style.cssText='margin:0 0 10px;padding:9px 11px;border:1px solid #dbe8e1;border-radius:10px;background:#f6fbf8;color:#31584c;font-size:12px;font-weight:800;';box.insertBefore(summary,usersBox);}summary.textContent=`Сейчас онлайн: ${onlineCount} · Активно работают: ${activeCount}`;}}catch(err){console.warn('Presence read failed',err);}finally{busy=false;}};
+    const schedule=()=>{clearTimeout(timer);timer=setTimeout(refresh,350);};if(window.MutationObserver)new MutationObserver(schedule).observe(usersBox,{childList:true,subtree:true});setInterval(refresh,20000);setTimeout(refresh,1800);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.8 · обновление №274':'Pallet Tools · v1.0.8';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.9 · обновление №275':'Pallet Tools · v1.0.9';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
