@@ -411,7 +411,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 .autoDateTimeField small{display:block;margin-top:5px;color:var(--muted);font-size:11px}
 
 </style>
-<link rel="stylesheet" href="assets/theme-industrial-v130.css?v=142">
+<link rel="stylesheet" href="assets/theme-industrial-v130.css?v=143">
 <link rel="stylesheet" href="assets/pallet3d-v9.css?v=92">
 </head>
 <body>
@@ -584,6 +584,11 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
           <img src="assets/pallet-clean-3d-1.webp" alt="Актуальный вид деревянного поддона">
           <div class="orderFocusMain"><div class="orderBadges"><span class="statusLive">● В работе</span><span id="dashOrderBadge">Новый заказ</span></div><h2 id="dashOrderTitle">Поддон 1200 × 800</h2><p id="dashOrderMeta">Заполните номер заказа и данные смены.</p><div class="orderProgress"><div class="orderProgressTop"><span>Выполнение</span><b id="dashProgressLabel">0 / 100</b></div><div class="dashBar"><i id="dashProgressBar" style="width:0%"></i></div></div></div>
           <div class="orderFocusAside"><small>Ответственный</small><b id="dashWorker">Не указан</b><small>Дата</small><b id="dashWorkDate">—</b></div>
+        </div>
+        <div class="orderReadiness" id="dashOrderReadiness" aria-live="polite">
+          <div class="orderReadinessIcon" id="dashReadinessIcon">!</div>
+          <div class="orderReadinessMain"><strong id="dashReadinessTitle">Проверка данных заказа</strong><span id="dashReadinessText">Заполните основные данные перед запуском производства.</span><div class="orderReadinessChips" id="dashReadinessChips"></div></div>
+          <button class="orderReadinessAction" id="dashReadinessAction" type="button" data-jump="calculator">Заполнить →</button>
         </div>
       </article>
 
@@ -1380,6 +1385,15 @@ loadSaved();
    if($('dashCut'))$('dashCut').textContent=fmt(cut);if($('dashAssembled'))$('dashAssembled').textContent=fmt(assembled);if($('dashQc'))$('dashQc').textContent=fmt(qc);
    if($('dashPreviewSize'))$('dashPreviewSize').textContent=(L&&W)?`${L} × ${W} мм`:'Размер не задан';
    const shift=text('worker');if($('dashboardShift'))$('dashboardShift').textContent=shift||'Смена';
+   const checks=[['Номер заказа',!!order],['Размер',L>0&&W>0],['Количество',Q>0],['Ответственный',!!worker],['Дата',date&&date!=='—']];
+   const done=checks.filter(([,ok])=>ok).length,allReady=done===checks.length,missing=checks.filter(([,ok])=>!ok).map(([label])=>label.toLowerCase());
+   const readiness=$('dashOrderReadiness'),readinessTitle=$('dashReadinessTitle'),readinessText=$('dashReadinessText'),readinessIcon=$('dashReadinessIcon'),readinessChips=$('dashReadinessChips'),readinessAction=$('dashReadinessAction');
+   if(readiness){readiness.classList.toggle('ready',allReady);readiness.classList.toggle('needsAttention',!allReady);}
+   if(readinessIcon)readinessIcon.textContent=allReady?'✓':'!';
+   if(readinessTitle)readinessTitle.textContent=allReady?'Данные заказа готовы':`Подготовка заказа: ${done} / ${checks.length}`;
+   if(readinessText)readinessText.textContent=allReady?'Можно переходить к производству и отмечать выполнение.':`Нужно заполнить: ${missing.join(', ')}.`;
+   if(readinessChips)readinessChips.innerHTML=checks.map(([label,ok])=>`<span class="orderCheck${ok?' done':''}">${ok?'✓':'○'} ${label}</span>`).join('');
+   if(readinessAction){readinessAction.textContent=allReady?'К производству →':'Заполнить →';readinessAction.dataset.jump=allReady?'production':'calculator';}
  }
  function dateLabel(){const d=new Date();const s=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short'}).replace('.','');if($('dashboardToday'))$('dashboardToday').textContent=s;}
  document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>window.switchAppScreen?.(b.dataset.jump)));
@@ -1594,7 +1608,7 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
 
-<script src="assets/pallet3d-v10.js?v=138"></script>
+<script src="assets/pallet3d-v10.js?v=139"></script>
 
 </body>
 </html>
