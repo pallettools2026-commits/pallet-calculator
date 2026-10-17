@@ -411,7 +411,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 .autoDateTimeField small{display:block;margin-top:5px;color:var(--muted);font-size:11px}
 
 </style>
-<link rel="stylesheet" href="assets/theme-industrial-v130.css?v=140">
+<link rel="stylesheet" href="assets/theme-industrial-v130.css?v=141">
 <link rel="stylesheet" href="assets/pallet3d-v9.css?v=92">
 </head>
 <body>
@@ -433,7 +433,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
     <button class="navLink adminNav" id="adminNav" type="button" data-scroll="adminPanel"><span class="navIcon">⚙</span>Админ-панель</button>
   </nav>
   <div class="appTopTools">
-    <div class="appSearch"><span>⌕</span><input id="appSearchInput" type="search" placeholder="Поиск по заказам, размерам, материалам…"></div>
+    <div class="appSearch" role="search"><span>⌕</span><input id="appSearchInput" name="palletToolsGlobalSearch" type="search" role="searchbox" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Поиск по Pallet Tools" placeholder="Поиск по заказам, размерам, материалам…"></div>
     <div class="appTopChip"><span>▣</span><div><small>Сегодня</small><b id="dashboardToday">—</b></div></div>
     <div class="appTopChip shift"><span class="liveDot"></span><div><small>Текущая смена</small><b id="dashboardShift">Смена</b></div></div>
   </div>
@@ -1385,7 +1385,24 @@ loadSaved();
  document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>window.switchAppScreen?.(b.dataset.jump)));
  ['pL','pW','qty','orderNo','worker','jobDate','flowCut','flowAssembled','flowQc'].forEach(id=>$(id)?.addEventListener('input',updateDash));
  ['optimizeSaw','shopRefresh','refreshProduction'].forEach(id=>$(id)?.addEventListener('click',()=>setTimeout(updateDash,80)));
- const search=$('appSearchInput');if(search)search.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=search.value.trim().toLowerCase();const target=q.includes('расп')?'workshop':q.includes('производ')?'production':q.includes('сохран')||q.includes('расчёт')?'savedBox':'calculator';window.switchAppScreen?.(target);});
+ const search=$('appSearchInput');
+ if(search){
+   const normalize=v=>String(v||'').toLowerCase().replace(/ё/g,'е').replace(/[×xх*]/g,' x ').replace(/[^a-zа-я0-9@._-]+/gi,' ').replace(/\s+/g,' ').trim();
+   const looksEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
+   const labels={overview:'Обзор',calculator:'Калькулятор',workshop:'Распил',production:'Производство',saved:'Мои расчёты',admin:'Админ-панель'};
+   const aliases={overview:'обзор главная панель активный заказ смена готовность',calculator:'калькулятор расчет рассчет поддон размеры материал доска настил поперечина лыжа шашка количество',workshop:'распил пиление пила заготовка пиломатериал раскрой',production:'производство себестоимость склад остаток поток сборка отк',saved:'сохраненные сохранённые мои расчеты мои расчёты история заказ',admin:'админ администратор пользователь сотрудник'};
+   const status=document.createElement('div');status.className='appSearchStatus';status.setAttribute('role','status');status.hidden=true;search.parentElement?.appendChild(status);
+   let statusTimer=0,userEditing=false;
+   const showStatus=(text,error=false)=>{clearTimeout(statusTimer);status.textContent=text;status.classList.toggle('error',error);status.hidden=false;statusTimer=setTimeout(()=>{status.hidden=true;},2600);};
+   const clearAutofill=()=>{if(!userEditing&&looksEmail(search.value)){search.value='';search.setAttribute('value','');}};
+   requestAnimationFrame(clearAutofill);setTimeout(clearAutofill,120);setTimeout(clearAutofill,700);window.addEventListener('pageshow',()=>setTimeout(clearAutofill,80),{once:true});
+   search.addEventListener('focus',()=>{if(looksEmail(search.value))search.value='';userEditing=true;});
+   search.addEventListener('input',()=>{userEditing=true;if(!search.value)status.hidden=true;});
+   const screenText=screen=>{let text=aliases[screen]||'';document.querySelectorAll(`[data-app-screen="${screen}"]`).forEach(node=>{text+=' '+(node.textContent||'');node.querySelectorAll('input,select,textarea').forEach(field=>{text+=' '+(field.value||'')+' '+(field.placeholder||'');});});return normalize(text);};
+   const runGlobalSearch=()=>{const q=normalize(search.value);if(!q){showStatus('Введите номер заказа, размер или название раздела',true);return;}const tokens=q.split(' ').filter(Boolean),screens=['saved','overview','calculator','workshop','production'];if(typeof currentRole!=='undefined'&&currentRole==='admin')screens.push('admin');let best=null,bestScore=0;screens.forEach((screen,idx)=>{const hay=screenText(screen);let score=0;if(hay.includes(q))score=100-idx;else if(tokens.length&&tokens.every(t=>hay.includes(t)))score=70-idx;else{const hits=tokens.filter(t=>t.length>1&&hay.includes(t)).length;if(hits)score=hits/tokens.length*40-idx;}if(score>bestScore){bestScore=score;best=screen;}});if(!best||bestScore<18){showStatus('Ничего не найдено',true);return;}window.switchAppScreen?.(best);showStatus(`Открыто: ${labels[best]||best}`);setTimeout(()=>{const active=[...document.querySelectorAll(`[data-app-screen="${best}"]`)].find(node=>!node.hidden);if(active)active.scrollIntoView({behavior:'smooth',block:'start'});},80);};
+   search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch();}else if(e.key==='Escape'){search.value='';status.hidden=true;search.blur();}});
+   search.addEventListener('search',()=>{if(search.value)runGlobalSearch();else status.hidden=true;});
+ }
  dateLabel();setTimeout(updateDash,0);window.updateProductionDashboard=updateDash;
  const observer=new MutationObserver(updateDash);['kpiM3','sawBoards','sawYield','flowDone'].forEach(id=>{const el=$(id);if(el)observer.observe(el,{childList:true,subtree:true,characterData:true});});
 })();
@@ -1571,7 +1588,7 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
 
-<script src="assets/pallet3d-v10.js?v=136"></script>
+<script src="assets/pallet3d-v10.js?v=137"></script>
 
 </body>
 </html>
