@@ -1,84 +1,24 @@
-name: Fix global search v1.0.21
+name: Apply global search fix
 
-on:
-  push:
-    paths:
-      - '.github/workflows/fix-global-search-v121.yml'
+on: [push]
 
 permissions:
   contents: write
 
 jobs:
   apply:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Fix global search and autofill
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          index_path = Path('index.html')
-          index = index_path.read_text()
-          old_input = '<div class="appSearch"><span>⌕</span><input id="appSearchInput" type="search" placeholder="Поиск по заказам, размерам, материалам…"></div>'
-          new_input = '<div class="appSearch" role="search"><span>⌕</span><input id="appSearchInput" name="palletToolsGlobalSearch" type="search" role="searchbox" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Поиск по Pallet Tools" placeholder="Поиск по заказам, размерам, материалам…"></div>'
-          if old_input not in index:
-              raise SystemExit('Search input marker not found')
-          index = index.replace(old_input, new_input, 1)
-
-          old_search = "const search=$('appSearchInput');if(search)search.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const q=search.value.trim().toLowerCase();const target=q.includes('расп')?'workshop':q.includes('производ')?'production':q.includes('сохран')||q.includes('расчёт')?'savedBox':'calculator';window.switchAppScreen?.(target);});"
-          new_search = r'''const search=$('appSearchInput');
- if(search){
-   const normalize=v=>String(v||'').toLowerCase().replace(/ё/g,'е').replace(/[×xх*]/g,' x ').replace(/[^a-zа-я0-9@._-]+/gi,' ').replace(/\s+/g,' ').trim();
-   const looksEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||'').trim());
-   const labels={overview:'Обзор',calculator:'Калькулятор',workshop:'Распил',production:'Производство',saved:'Мои расчёты',admin:'Админ-панель'};
-   const aliases={overview:'обзор главная панель активный заказ смена готовность',calculator:'калькулятор расчет рассчет поддон размеры материал доска настил поперечина лыжа шашка количество',workshop:'распил пиление пила заготовка пиломатериал раскрой',production:'производство себестоимость склад остаток поток сборка отк',saved:'сохраненные сохранённые мои расчеты мои расчёты история заказ',admin:'админ администратор пользователь сотрудник'};
-   const status=document.createElement('div');status.className='appSearchStatus';status.setAttribute('role','status');status.hidden=true;search.parentElement?.appendChild(status);
-   let statusTimer=0,userEditing=false;
-   const showStatus=(text,error=false)=>{clearTimeout(statusTimer);status.textContent=text;status.classList.toggle('error',error);status.hidden=false;statusTimer=setTimeout(()=>{status.hidden=true;},2600);};
-   const clearAutofill=()=>{if(!userEditing&&looksEmail(search.value)){search.value='';search.setAttribute('value','');}};
-   requestAnimationFrame(clearAutofill);setTimeout(clearAutofill,120);setTimeout(clearAutofill,700);window.addEventListener('pageshow',()=>setTimeout(clearAutofill,80),{once:true});
-   search.addEventListener('focus',()=>{if(looksEmail(search.value))search.value='';userEditing=true;});
-   search.addEventListener('input',()=>{userEditing=true;if(!search.value)status.hidden=true;});
-   const screenText=screen=>{let text=aliases[screen]||'';document.querySelectorAll(`[data-app-screen="${screen}"]`).forEach(node=>{text+=' '+(node.textContent||'');node.querySelectorAll('input,select,textarea').forEach(field=>{text+=' '+(field.value||'')+' '+(field.placeholder||'');});});return normalize(text);};
-   const runGlobalSearch=()=>{const q=normalize(search.value);if(!q){showStatus('Введите номер заказа, размер или название раздела',true);return;}const tokens=q.split(' ').filter(Boolean),screens=['saved','overview','calculator','workshop','production'];if(typeof currentRole!=='undefined'&&currentRole==='admin')screens.push('admin');let best=null,bestScore=0;screens.forEach((screen,idx)=>{const hay=screenText(screen);let score=0;if(hay.includes(q))score=100-idx;else if(tokens.length&&tokens.every(t=>hay.includes(t)))score=70-idx;else{const hits=tokens.filter(t=>t.length>1&&hay.includes(t)).length;if(hits)score=hits/tokens.length*40-idx;}if(score>bestScore){bestScore=score;best=screen;}});if(!best||bestScore<18){showStatus('Ничего не найдено',true);return;}window.switchAppScreen?.(best);showStatus(`Открыто: ${labels[best]||best}`);setTimeout(()=>{const active=[...document.querySelectorAll(`[data-app-screen="${best}"]`)].find(node=>!node.hidden);if(active)active.scrollIntoView({behavior:'smooth',block:'start'});},80);};
-   search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runGlobalSearch();}else if(e.key==='Escape'){search.value='';status.hidden=true;search.blur();}});
-   search.addEventListener('search',()=>{if(search.value)runGlobalSearch();else status.hidden=true;});
- }'''
-          if old_search not in index:
-              raise SystemExit('Old search handler not found')
-          index = index.replace(old_search, new_search, 1)
-          if 'assets/theme-industrial-v130.css?v=140' not in index or 'assets/pallet3d-v10.js?v=136' not in index:
-              raise SystemExit('Expected cache versions not found')
-          index = index.replace('assets/theme-industrial-v130.css?v=140', 'assets/theme-industrial-v130.css?v=141', 1)
-          index = index.replace('assets/pallet3d-v10.js?v=136', 'assets/pallet3d-v10.js?v=137', 1)
-          index_path.write_text(index)
-
-          css_path = Path('assets/theme-industrial-v130.css')
-          css = css_path.read_text()
-          if 'content:"Pallet Tools · v1.0.20"' not in css or 'content:"Pallet Tools · v1.0.20 · обновление №304"' not in css:
-              raise SystemExit('CSS version strings not found')
-          css = css.replace('content:"Pallet Tools · v1.0.20"', 'content:"Pallet Tools · v1.0.21"', 1)
-          css = css.replace('content:"Pallet Tools · v1.0.20 · обновление №304"', 'content:"Pallet Tools · v1.0.21 · обновление №307"', 1)
-          css += '''\n\n/* Global search v1.0.21 */\n.appSearch{position:relative!important}\n.appSearch input[type="search"]{font-size:13px!important}\n.appSearchStatus{position:absolute;left:0;right:0;top:calc(100% + 7px);z-index:80;padding:9px 11px;border:1px solid #d7e4dd;border-radius:10px;background:#fff;color:#31584c;font-size:11px;font-weight:800;box-shadow:0 9px 24px rgba(35,40,43,.12);white-space:normal}\n.appSearchStatus.error{border-color:#ead8d4;color:#93483f;background:#fffafa}\n.appSearchStatus[hidden]{display:none!important}\n'''
-          css_path.write_text(css)
-
-          js_path = Path('assets/pallet3d-v10.js')
-          js = js_path.read_text()
-          old_js = "node.textContent=admin?'Pallet Tools · v1.0.20 · обновление №304':'Pallet Tools · v1.0.20';"
-          new_js = "node.textContent=admin?'Pallet Tools · v1.0.21 · обновление №307':'Pallet Tools · v1.0.21';"
-          if old_js not in js:
-              raise SystemExit('JS version string not found')
-          js_path.write_text(js.replace(old_js, new_js, 1))
-          PY
-      - name: Remove one-shot workflow
-        run: rm .github/workflows/fix-global-search-v121.yml
+      - name: Apply search fix
+        run: python3 .github/fix-global-search-v121.py
+      - name: Remove temporary files
+        run: rm .github/workflows/fix-global-search-v121.yml .github/fix-global-search-v121.py
       - name: Commit changes
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js .github/workflows/fix-global-search-v121.yml
+          git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js .github/workflows/fix-global-search-v121.yml .github/fix-global-search-v121.py
           git commit -m 'Fix global search and email autofill'
           git push
-
-# trigger existing workflow
