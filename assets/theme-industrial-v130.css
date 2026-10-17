@@ -128,8 +128,19 @@ button,a{-webkit-tap-highlight-color:rgba(184,121,61,.12);cursor:pointer}
 .adminCalcItems b{color:#7e512b!important;font-weight:850!important;white-space:nowrap!important}
 .adminEmpty{padding:10px!important;border-radius:10px!important;color:#8b918f!important}
 .sideVersion{font-size:0!important}
-.sideVersion:after{content:"Pallet Tools · v1.0.11";font-size:11px!important}
-.appSidebar:has(#adminSideNav:not([hidden])) .sideVersion:after{content:"Pallet Tools · v1.0.11 · обновление №281"}
+.sideVersion:after{content:"Pallet Tools · v1.0.12";font-size:11px!important}
+.appSidebar:has(#adminSideNav:not([hidden])) .sideVersion:after{content:"Pallet Tools · v1.0.12 · обновление №285"}
 @media(max-width:980px){.adminGrid{grid-template-columns:1fr!important}.adminPanel{padding:18px!important}}
 @media(max-width:640px){.adminHead{align-items:flex-start!important}.adminStats{grid-template-columns:repeat(3,1fr)!important}.adminStat{padding:12px!important}.adminStat b{font-size:23px!important}.adminUser{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"info info" "status status" "role action"!important;padding:13px!important}.adminRole{min-width:0!important;width:100%!important}.adminDeleteEmployee{min-width:0!important}.adminCalcItems{grid-template-columns:1fr!important}}
 @media(max-width:430px){.adminStats{grid-template-columns:1fr!important}.adminPanel{padding:14px!important;border-radius:18px!important}.adminBox{padding:13px!important}.adminUser{grid-template-columns:1fr!important;grid-template-areas:"info" "status" "role" "action"!important}.adminDeleteEmployee{width:100%!important}.adminPresence{justify-self:stretch!important}}
+
+
+/* Dashboard live pallet preview v1.0.12 */
+.orderFocus>img.dashDynamicPallet{width:154px!important;max-width:30%!important;height:116px!important;object-fit:contain!important;padding:3px!important;border:1px solid #e6ded3!important;border-radius:16px!important;background:linear-gradient(145deg,#fff,#f4efe7)!important;box-shadow:0 10px 24px rgba(73,56,39,.11)!important;filter:none!important;transform:none!important}
+.dashPalletImage{position:relative!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;min-height:232px!important;border:1px solid #e7e0d6!important;border-radius:18px!important;background:radial-gradient(circle at 50% 34%,#fff 0%,#f8f5ef 56%,#efe9df 100%)!important}
+.dashPalletImage:before{content:"";position:absolute!important;inset:0!important;pointer-events:none!important;background:linear-gradient(90deg,rgba(137,115,91,.035) 1px,transparent 1px),linear-gradient(rgba(137,115,91,.035) 1px,transparent 1px)!important;background-size:22px 22px!important;mask-image:linear-gradient(to bottom,rgba(0,0,0,.6),transparent 88%)!important}
+.dashPalletImage img.dashDynamicPallet{position:relative!important;z-index:1!important;width:min(96%,440px)!important;height:218px!important;object-fit:contain!important;filter:drop-shadow(0 14px 15px rgba(72,55,38,.14))!important;transform:none!important}
+.palletViewPanel .dashPanelHead{margin-bottom:12px!important}
+.palletViewPanel .dashPanelHead p{font-weight:750!important;color:#8d6540!important}
+@media(max-width:760px){.orderFocus>img.dashDynamicPallet{width:132px!important;max-width:38%!important;height:102px!important}.dashPalletImage{min-height:205px!important}.dashPalletImage img.dashDynamicPallet{height:192px!important}}
+@media(max-width:520px){.orderFocus>img.dashDynamicPallet{width:112px!important;max-width:42%!important;height:88px!important}.dashPalletImage{min-height:180px!important}.dashPalletImage img.dashDynamicPallet{height:168px!important}}
