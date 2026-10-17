@@ -1,0 +1,68 @@
+name: Fix dashboard runner v1.0.17
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-dashboard-runner-v117.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Keep runner inside pallet outline
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('assets/pallet3d-v10.js')
+          js = js_path.read_text(encoding='utf-8')
+          old = "runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.47,x+runnerW/2,L*.47,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));"
+          new = "runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.43,x+runnerW/2,L*.43,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));"
+          if js.count(old) != 1:
+              raise SystemExit(f'runner marker count = {js.count(old)}')
+          js = js.replace(old, new, 1)
+          js = js.replace("Pallet Tools · v1.0.16 · обновление №295", "Pallet Tools · v1.0.17 · обновление №297")
+          js = js.replace("Pallet Tools · v1.0.16'", "Pallet Tools · v1.0.17'")
+          js_path.write_text(js, encoding='utf-8')
+
+          css_path = Path('assets/theme-industrial-v130.css')
+          css = css_path.read_text(encoding='utf-8')
+          css = css.replace('Pallet Tools · v1.0.16 · обновление №295','Pallet Tools · v1.0.17 · обновление №297')
+          css = css.replace('Pallet Tools · v1.0.16','Pallet Tools · v1.0.17')
+          css = css.replace('Dashboard live pallet preview v1.0.16','Dashboard live pallet preview v1.0.17')
+          css_path.write_text(css, encoding='utf-8')
+
+          index_path = Path('index.html')
+          index = index_path.read_text(encoding='utf-8')
+          if 'assets/theme-industrial-v130.css?v=136' not in index:
+              raise SystemExit('theme cache marker not found')
+          if 'assets/pallet3d-v10.js?v=132' not in index:
+              raise SystemExit('js cache marker not found')
+          index = index.replace('assets/theme-industrial-v130.css?v=136','assets/theme-industrial-v130.css?v=137',1)
+          index = index.replace('assets/pallet3d-v10.js?v=132','assets/pallet3d-v10.js?v=133',1)
+          index_path.write_text(index, encoding='utf-8')
+
+          workflow = Path('.github/workflows/fix-dashboard-runner-v117.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+
+      - name: Validate JavaScript
+        run: node --check assets/pallet3d-v10.js
+
+      - name: Commit runner fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Keep dashboard runner inside pallet outline"
+          git push
