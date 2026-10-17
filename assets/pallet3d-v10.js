@@ -162,7 +162,7 @@
       const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;
       const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;
       const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03);
-      const bzPos=sz===0?0:sx*Math.max(0,PL/2-bz/2-.03);
+      const bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);
       blockRows[zi]=bzPos;
       blockPoints.push({x:bxPos,z:bzPos,bx,bz});
       piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);
