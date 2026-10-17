@@ -242,7 +242,7 @@
     const node=document.querySelector('.sideVersion');
     if(!node)return;
     const admin=typeof currentRole!=='undefined'&&currentRole==='admin';
-    node.textContent=admin?'Pallet Tools · обновление №267':'Pallet Tools · v1.0.1';
+    node.textContent=admin?'Pallet Tools · v1.0.2 · обновление №268':'Pallet Tools · v1.0.2';
   }
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');
