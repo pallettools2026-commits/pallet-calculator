@@ -219,12 +219,26 @@
     }
   }
 
+  function setupDeckCountControl(){
+    const qty=el('qty'),deck=el('n0');
+    if(!qty||!deck||el('deckQty'))return;
+    const cell=qty.parentElement;if(!cell)return;
+    const label=document.createElement('label');label.htmlFor='deckQty';label.textContent='Количество настила';label.style.marginTop='10px';
+    const input=document.createElement('input');input.id='deckQty';input.type='number';input.min='0';input.step='1';input.value=deck.value||'0';
+    const syncLimit=()=>{const profile=resolveProfile(num(el('pL')?.value,1200),num(el('pW')?.value,800));if(profile.deckMax>0)input.max=String(profile.deckMax);};
+    input.addEventListener('input',()=>{syncLimit();const max=num(input.max,99),value=clamp(Math.round(num(input.value,0)),0,max);input.value=String(value);deck.value=String(value);deck.dispatchEvent(new Event('input',{bubbles:true}));});
+    deck.addEventListener('input',()=>{input.value=deck.value||'0';syncLimit();});
+    el('pL')?.addEventListener('input',syncLimit);el('pW')?.addEventListener('input',syncLimit);
+    cell.append(label,input);syncLimit();
+  }
+
   window.renderDynamicPallet=render;
   window.rerenderPallet3D=function(){
     const sig=currentSignature();
     if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}
     render(num(el('pL')?.value),num(el('pW')?.value));
   };
+  setupDeckCountControl();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
 })();
