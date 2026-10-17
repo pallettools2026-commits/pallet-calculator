@@ -13,7 +13,7 @@
     const a=Math.max(300,num(inputL,1200)),b=Math.max(300,num(inputW,800));
     const match=(x,y)=>(near(a,x)&&near(b,y))||(near(a,y)&&near(b,x));
     const width=b,length=a;
-    if(match(1200,800))return {key:'epal1',width,length,deckMax:7,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 1 · ${Math.round(length)} × ${Math.round(width)} мм`};
+    if(match(1200,800))return {key:'epal1',width,length,deckMax:8,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 1 · ${Math.round(length)} × ${Math.round(width)} мм`};
     if(match(1200,1000))return {key:'epal2',width,length,deckMax:9,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 2 · ${Math.round(length)} × ${Math.round(width)} мм`};
     if(match(1000,1200))return {key:'epal3',width,length,deckMax:9,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 3 · ${Math.round(length)} × ${Math.round(width)} мм`};
     if(match(800,600))return {key:'epal6',width,length,deckMax:7,bindingCount:3,runnerLengths:[length,length,length],spec:`EUR / EPAL 6 · ${Math.round(length)} × ${Math.round(width)} мм`};
@@ -182,16 +182,12 @@
     const actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW;
     const topXs=deckCount?spread(deckCount,PW,actualDeckW):[];
     const nailY=topY+deckT/2+.014;
-    const gapXs=topXs.length>1?topXs.slice(0,-1).map((x,index)=>(x+topXs[index+1])/2):[];
-    const nearestGapX=(targetX)=>{
-      if(!gapXs.length)return targetX;
-      return gapXs.reduce((best,x)=>Math.abs(x-targetX)<Math.abs(best-targetX)?x:best,gapXs[0]);
-    };
     const pairNailsDepth=(fn,group,x,y,z,dz,direction=-1)=>{fn(group,x,y,z-dz,direction);fn(group,x,y,z+dz,direction);};
     if(selected==='all'||selected==='cross'){
+      // Гвозди поперечина → шашка остаются строго над реальной шашкой.
+      // Если сверху проходит доска настила, в собранном виде она естественно скрывает этот крепёж.
       blockPoints.forEach(p=>{
-        const gapX=nearestGapX(p.x);
-        pairNailsDepth(nail80,groups.cross,gapX,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1);
+        pairNailsDepth(nail80,groups.cross,p.x,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1);
       });
     }
     topXs.forEach((x,i)=>{
@@ -244,7 +240,7 @@
 
   function updateSiteVersion(){
     const node=document.querySelector('.sideVersion');
-    if(node)node.textContent='Pallet Tools · v1.0 · обновление №264';
+    if(node)node.textContent='Pallet Tools · v1.0 · обновление №266';
   }
 
   window.renderDynamicPallet=render;
