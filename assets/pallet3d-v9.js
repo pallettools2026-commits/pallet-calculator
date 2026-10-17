@@ -122,8 +122,13 @@
       const mesh=new THREE.Mesh(g,mats);mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);
       const edge=new THREE.LineSegments(new THREE.EdgesGeometry(g),new THREE.LineBasicMaterial({color:0x7b5a3d,transparent:true,opacity:(selected==='all'||selected===kind)?.11:.025}));edge.position.copy(mesh.position);group.add(edge);return mesh;
     }
-    const nailGeo=new THREE.CylinderGeometry(.028,.028,.018,14),nailMat=new THREE.MeshStandardMaterial({color:0x555450,roughness:.34,metalness:.42});
-    function nail(group,x,y,z){const n=new THREE.Mesh(nailGeo,nailMat);n.position.set(x,y,z);n.castShadow=true;group.add(n);}
+    const nailHeadGeo=new THREE.CylinderGeometry(.042,.042,.028,16),nailShankGeo=new THREE.CylinderGeometry(.016,.019,1.34,10),nailMat=new THREE.MeshStandardMaterial({color:0x555450,roughness:.34,metalness:.42});
+    function nail(group,x,y,z){
+      const head=new THREE.Mesh(nailHeadGeo,nailMat);head.position.set(x,y,z);head.castShadow=true;group.add(head);
+      if(mode==='explode'){
+        const shank=new THREE.Mesh(nailShankGeo,nailMat);shank.position.set(x,y-.67,z);shank.castShadow=true;group.add(shank);
+      }
+    }
 
     let runnerH=.22,blockH=.78,crossH=.22,deckH=.22,deckY=0,crossX=[];
 
