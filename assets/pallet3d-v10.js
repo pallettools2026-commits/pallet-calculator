@@ -183,13 +183,30 @@
     const topXs=deckCount?spread(deckCount,PW,actualDeckW):[];
     const nailY=topY+deckT/2+.014;
     const overBlock=(x,z)=>blockPoints.some(p=>Math.abs(x-p.x)<=Math.max(actualDeckW*.55,p.bx*.55)&&Math.abs(z-p.z)<=Math.max(bindDepth*.55,p.bz*.55));
+    const supportedBoardKeys=new Set();
+    if(topXs.length){
+      blockPoints.forEach(p=>{
+        let nearestIndex=0,nearestDistance=Infinity;
+        topXs.forEach((boardX,index)=>{
+          const dist=Math.abs(boardX-p.x);
+          if(dist<nearestDistance){nearestDistance=dist;nearestIndex=index;}
+        });
+        let crossIndex=0,crossDistance=Infinity;
+        bindZ.forEach((crossZ,index)=>{
+          const dist=Math.abs(crossZ-p.z);
+          if(dist<crossDistance){crossDistance=dist;crossIndex=index;}
+        });
+        supportedBoardKeys.add(`${nearestIndex}:${crossIndex}`);
+      });
+    }
     topXs.forEach((x,i)=>{
       piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);
       if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{
         const edgeBoard=i===0||i===topXs.length-1;
         const edgeCross=zi===0||zi===bindZ.length-1;
+        const supportedByBlock=overBlock(x,z)||supportedBoardKeys.has(`${i}:${zi}`);
         if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));
-        else if(overBlock(x,z))pairNails(nail80,groups.deck,x,nailY,z,Math.min(.072,actualDeckW*.23),-1);
+        else if(supportedByBlock)pairNails(nail80,groups.deck,x,nailY,z,Math.min(.072,actualDeckW*.23),-1);
         else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);
       });
     });
