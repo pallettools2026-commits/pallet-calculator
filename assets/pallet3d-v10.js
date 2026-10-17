@@ -207,20 +207,20 @@
     const pts=a=>a.map(v=>`${v[0].toFixed(1)},${v[1].toFixed(1)}`).join(' ');
     const makeSvg=(length,width,deckCount)=>{
       length=Math.max(300,num(length,1200));width=Math.max(300,num(width,800));deckCount=clamp(Math.round(num(deckCount,7)),3,12);
-      const fitX=.72*width+.48*length,fitY=.26*width+.30*length,scale=Math.min(380/fitX,132/fitY),W=width*scale,L=length*scale,cx=270,baseY=202;
+      const fitX=.72*width+.48*length,fitY=.26*width+.30*length,scale=Math.min(300/fitX,96/fitY),W=width*scale,L=length*scale,cx=270,baseY=183;
       const p=(x,z,y=0)=>[cx+x*.72-z*.48,baseY+x*.26+z*.30-y];
       const prism=(x0,z0,x1,z1,y,h,top,front,side)=>{const A=p(x0,z0,y+h),B=p(x1,z0,y+h),C=p(x1,z1,y+h),D=p(x0,z1,y+h),B0=p(x1,z0,y),C0=p(x1,z1,y),D0=p(x0,z1,y);return `<polygon points="${pts([D,C,C0,D0])}" fill="${front}"/><polygon points="${pts([B,C,C0,B0])}" fill="${side}"/><polygon points="${pts([A,B,C,D])}" fill="${top}" stroke="#8d623b" stroke-opacity=".24" stroke-width=".8"/>`;};
       let shape='';
-      const runnerCenters=[-W*.36,0,W*.36],runnerW=Math.max(11,W*.13),runnerH=11;
-      runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L/2,x+runnerW/2,L/2,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));
+      const runnerCenters=[-W*.32,0,W*.32],runnerW=Math.max(11,W*.12),runnerH=11;
+      runnerCenters.forEach(x=>shape+=prism(x-runnerW/2,-L*.42,x+runnerW/2,L*.42,0,runnerH,'url(#runnerTop)','#b6783f','#925b31'));
       const blockW=Math.max(15,W*.16),blockL=Math.max(15,L*.11),blockH=28;
-      runnerCenters.forEach(x=>[-L*.36,0,L*.36].forEach(z=>shape+=prism(x-blockW/2,z-blockL/2,x+blockW/2,z+blockL/2,runnerH,blockH,'url(#blockTop)','#c4874d','#9d6337')));
+      runnerCenters.forEach(x=>[-L*.31,0,L*.31].forEach(z=>shape+=prism(x-blockW/2,z-blockL/2,x+blockW/2,z+blockL/2,runnerH,blockH,'url(#blockTop)','#c4874d','#9d6337')));
       const crossH=9,crossDepth=Math.max(9,L*.055);
-      [-L*.36,0,L*.36].forEach(z=>shape+=prism(-W/2,z-crossDepth/2,W/2,z+crossDepth/2,runnerH+blockH,crossH,'url(#crossTop)','#d7a46d','#af7744'));
+      [-L*.31,0,L*.31].forEach(z=>shape+=prism(-W*.44,z-crossDepth/2,W*.44,z+crossDepth/2,runnerH+blockH,crossH,'url(#crossTop)','#d7a46d','#af7744'));
       const deckH=9,deckW=Math.max(8,Math.min(W*.13,W*.82/deckCount));
-      for(let i=0;i<deckCount;i++){const x=-W/2+deckW/2+i*(W-deckW)/(deckCount-1);shape+=prism(x-deckW/2,-L/2,x+deckW/2,L/2,runnerH+blockH+crossH,deckH,'url(#deckTop)','#e1b77f','#bd8952');}
-      const shadowRx=Math.min(190,(W*.72+L*.48)*.46);
-      const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 300" role="img" aria-label="Поддон ${Math.round(length)} на ${Math.round(width)} миллиметров"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#f3eee6"/></linearGradient><linearGradient id="deckTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6d7aa"/><stop offset=".52" stop-color="#e8bd83"/><stop offset="1" stop-color="#d9a86d"/></linearGradient><linearGradient id="crossTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#efc994"/><stop offset="1" stop-color="#dca66b"/></linearGradient><linearGradient id="blockTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4b57b"/><stop offset="1" stop-color="#c98d52"/></linearGradient><linearGradient id="runnerTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dca86d"/><stop offset="1" stop-color="#bd7d43"/></linearGradient><filter id="soft"><feGaussianBlur stdDeviation="8"/></filter></defs><rect width="540" height="300" rx="24" fill="url(#bg)"/><ellipse cx="270" cy="235" rx="${shadowRx.toFixed(1)}" ry="24" fill="#66513b" opacity=".15" filter="url(#soft)"/>${shape}<text x="270" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#75695d">${Math.round(length)} × ${Math.round(width)} мм · настил ${deckCount} шт.</text></svg>`;
+      for(let i=0;i<deckCount;i++){const x=-W*.44+deckW/2+i*(W*.88-deckW)/(deckCount-1);shape+=prism(x-deckW/2,-L*.44,x+deckW/2,L*.44,runnerH+blockH+crossH,deckH,'url(#deckTop)','#e1b77f','#bd8952');}
+      const shadowRx=Math.min(130,(W*.72+L*.48)*.40);
+      const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 300" role="img" aria-label="Поддон ${Math.round(length)} на ${Math.round(width)} миллиметров"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#f3eee6"/></linearGradient><linearGradient id="deckTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6d7aa"/><stop offset=".52" stop-color="#e8bd83"/><stop offset="1" stop-color="#d9a86d"/></linearGradient><linearGradient id="crossTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#efc994"/><stop offset="1" stop-color="#dca66b"/></linearGradient><linearGradient id="blockTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4b57b"/><stop offset="1" stop-color="#c98d52"/></linearGradient><linearGradient id="runnerTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dca86d"/><stop offset="1" stop-color="#bd7d43"/></linearGradient><filter id="soft"><feGaussianBlur stdDeviation="8"/></filter></defs><rect width="540" height="300" rx="24" fill="#fbfaf7"/><ellipse cx="270" cy="235" rx="${shadowRx.toFixed(1)}" ry="24" fill="#66513b" opacity=".15" filter="url(#soft)"/>${shape}<text x="270" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#75695d">${Math.round(length)} × ${Math.round(width)} мм · настил ${deckCount} шт.</text></svg>`;
       return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
     };
     const refresh=()=>{const length=num(el('pL')?.value,1200),width=num(el('pW')?.value,800),deckCount=num(el('n0')?.value,7),signature=`${length}|${width}|${deckCount}`;if(signature===lastSignature)return;lastSignature=signature;const src=makeSvg(length,width,deckCount);[orderImg,viewImg].forEach(img=>{if(!img)return;img.src=src;img.alt=`Поддон ${Math.round(length)} × ${Math.round(width)} мм`;img.classList.add('dashDynamicPallet');});};
@@ -228,7 +228,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.14 · обновление №289':'Pallet Tools · v1.0.14';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.0.15 · обновление №292':'Pallet Tools · v1.0.15';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
