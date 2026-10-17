@@ -101,7 +101,7 @@
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
     const chip=(k,label,c)=>`<button type="button" class="palletPartChip ${state.selected===k?'active':''}" data-p3d-part="${k}">${label}<b>${c}</b></button>`;
-    const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — узлы над шашками и лыжи</span><span>● 2,5×40 мм — настил вне шашек</span></div>':'';
+    const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
     root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div></div>`;
 
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
@@ -182,21 +182,16 @@
     const actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW;
     const topXs=deckCount?spread(deckCount,PW,actualDeckW):[];
     const nailY=topY+deckT/2+.014;
-    const overBlock=(x,z)=>blockPoints.some(p=>Math.abs(x-p.x)<=Math.max(actualDeckW*.55,p.bx*.55)&&Math.abs(z-p.z)<=Math.max(bindDepth*.55,p.bz*.55));
-    const supportedBoardKeys=new Set();
-    if(topXs.length){
+    const gapXs=topXs.length>1?topXs.slice(0,-1).map((x,index)=>(x+topXs[index+1])/2):[];
+    const nearestGapX=(targetX)=>{
+      if(!gapXs.length)return targetX;
+      return gapXs.reduce((best,x)=>Math.abs(x-targetX)<Math.abs(best-targetX)?x:best,gapXs[0]);
+    };
+    const pairNailsDepth=(fn,group,x,y,z,dz,direction=-1)=>{fn(group,x,y,z-dz,direction);fn(group,x,y,z+dz,direction);};
+    if(selected==='all'||selected==='cross'){
       blockPoints.forEach(p=>{
-        let nearestIndex=0,nearestDistance=Infinity;
-        topXs.forEach((boardX,index)=>{
-          const dist=Math.abs(boardX-p.x);
-          if(dist<nearestDistance){nearestDistance=dist;nearestIndex=index;}
-        });
-        let crossIndex=0,crossDistance=Infinity;
-        bindZ.forEach((crossZ,index)=>{
-          const dist=Math.abs(crossZ-p.z);
-          if(dist<crossDistance){crossDistance=dist;crossIndex=index;}
-        });
-        supportedBoardKeys.add(`${nearestIndex}:${crossIndex}`);
+        const gapX=nearestGapX(p.x);
+        pairNailsDepth(nail80,groups.cross,gapX,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1);
       });
     }
     topXs.forEach((x,i)=>{
@@ -204,9 +199,7 @@
       if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{
         const edgeBoard=i===0||i===topXs.length-1;
         const edgeCross=zi===0||zi===bindZ.length-1;
-        const supportedByBlock=overBlock(x,z)||supportedBoardKeys.has(`${i}:${zi}`);
         if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));
-        else if(supportedByBlock)pairNails(nail80,groups.deck,x,nailY,z,Math.min(.072,actualDeckW*.23),-1);
         else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);
       });
     });
