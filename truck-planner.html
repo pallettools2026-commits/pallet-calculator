@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#15734f">
+<title>Pallet Tools — загрузка фуры</title>
+<link rel="stylesheet" href="assets/truck-planner-v1.css?v=1">
+</head>
+<body>
+<main class="tp-shell">
+  <header class="tp-topbar">
+    <a class="tp-brand" href="index.html" aria-label="Pallet Tools">
+      <img src="assets/pallet-clean-3d-2.webp" alt="">
+      <div><strong><span>Pallet</span> Tools</strong><small>логистика и загрузка транспорта</small></div>
+    </a>
+    <a class="tp-back" href="index.html">← В Pallet Tools</a>
+  </header>
+
+  <section class="tp-hero">
+    <div>
+      <div class="tp-kicker">TRUCK LOAD PLANNER · 3D</div>
+      <h1>Планировщик загрузки фуры</h1>
+      <p>Выберите кузов и размер поддона. Pallet Tools рассчитает паллетоместа, ограничения по высоте и массе и сразу покажет загрузку в интерактивной 3D-модели.</p>
+    </div>
+    <div class="tp-hero-badge"><span>🚛</span><b>3D LOAD VIEW</b></div>
+  </section>
+
+  <div class="tp-grid">
+    <aside class="tp-panel tp-controls">
+      <section class="tp-section">
+        <div class="tp-section-title"><h2>1. Машина</h2><span>внутренние размеры</span></div>
+        <div class="tp-field">
+          <label for="vehiclePreset">Тип кузова</label>
+          <select id="vehiclePreset">
+            <option value="semi136">Еврофура / полуприцеп 13,6 м</option>
+            <option value="rigid72">Грузовик 7,2 м</option>
+            <option value="rigid62">Грузовик 6,2 м</option>
+            <option value="van42">Фургон L4 / 4,2 м</option>
+            <option value="custom">Свои размеры</option>
+          </select>
+        </div>
+        <div class="tp-custom" id="customVehicle">
+          <div class="tp-inline three">
+            <div class="tp-field"><label for="trailerL">Длина <small>мм</small></label><input id="trailerL" type="number" min="100" step="10"></div>
+            <div class="tp-field"><label for="trailerW">Ширина <small>мм</small></label><input id="trailerW" type="number" min="100" step="10"></div>
+            <div class="tp-field"><label for="trailerH">Высота <small>мм</small></label><input id="trailerH" type="number" min="100" step="10"></div>
+          </div>
+          <div class="tp-field"><label for="payload">Грузоподъёмность <small>кг</small></label><input id="payload" type="number" min="1" step="100"></div>
+        </div>
+      </section>
+
+      <section class="tp-section">
+        <div class="tp-section-title"><h2>2. Поддон и груз</h2><span>габариты единицы</span></div>
+        <div class="tp-field">
+          <label for="palletPreset">Поддон</label>
+          <select id="palletPreset">
+            <option value="eur">EUR / EPAL — 1200 × 800</option>
+            <option value="fin">FIN — 1200 × 1000</option>
+            <option value="square">1200 × 1200</option>
+            <option value="custom">Свои размеры</option>
+          </select>
+        </div>
+        <div class="tp-custom" id="customPallet">
+          <div class="tp-inline">
+            <div class="tp-field"><label for="palletL">Длина <small>мм</small></label><input id="palletL" type="number" min="100" step="10"></div>
+            <div class="tp-field"><label for="palletW">Ширина <small>мм</small></label><input id="palletW" type="number" min="100" step="10"></div>
+          </div>
+        </div>
+        <div class="tp-inline">
+          <div class="tp-field"><label for="loadH">Высота с грузом <small>мм</small></label><input id="loadH" type="number" min="100" step="10" value="1200"></div>
+          <div class="tp-field"><label for="palletWeight">Масса 1 паллеты <small>кг</small></label><input id="palletWeight" type="number" min="0" step="10" value="700"></div>
+        </div>
+        <div class="tp-field"><label for="desiredQty">Сколько загрузить в 3D <small>0 = максимум</small></label><input id="desiredQty" type="number" min="0" step="1" value="0"></div>
+        <label class="tp-check"><input id="stacking" type="checkbox"> Разрешить штабелирование по высоте</label>
+        <div class="tp-note">Расчёт использует прямоугольную укладку с поворотом паллет на 90°. Для реальной перевозки дополнительно учитывайте осевые нагрузки, крепление груза, зазоры и требования перевозчика.</div>
+      </section>
+    </aside>
+
+    <section class="tp-main">
+      <div class="tp-metrics">
+        <article class="tp-metric primary"><small>Максимум</small><strong id="capacityMetric">—</strong><span id="capacitySub">итоговая вместимость</span></article>
+        <article class="tp-metric"><small>Паллетоместа</small><strong id="floorMetric">—</strong><span id="floorSub">на полу кузова</span></article>
+        <article class="tp-metric"><small>Ярусы</small><strong id="layersMetric">—</strong><span id="layersSub">по высоте</span></article>
+        <article class="tp-metric"><small>Лимит по массе</small><strong id="weightMetric">—</strong><span id="weightSub">грузоподъёмность</span></article>
+      </div>
+
+      <article class="tp-panel tp-view">
+        <div class="tp-view-head">
+          <div><h2>3D-модель загрузки</h2><p>Мышь: вращение · колесо: масштаб · перетаскивание правой кнопкой: сдвиг</p></div>
+          <div class="tp-toolbar">
+            <button id="toggleWalls" class="active" type="button">Стенки</button>
+            <button id="toggleRoof" type="button">Крыша</button>
+            <button id="resetView" type="button">Сбросить вид</button>
+          </div>
+        </div>
+        <div id="truck3d" class="tp-canvas-host">
+          <div class="tp-scene-badge">PALLET TOOLS · WEBGL 3D</div>
+          <div class="tp-scene-hint">вращайте фуру мышью</div>
+        </div>
+        <div class="tp-summary">
+          <section class="tp-summary-card">
+            <h3>Транспорт</h3>
+            <div class="tp-data-row"><span>Модель</span><b id="vehicleName">—</b></div>
+            <div class="tp-data-row"><span>Кузов</span><b id="vehicleDims">—</b></div>
+            <div class="tp-data-row"><span>Схема укладки</span><b id="layoutName">—</b></div>
+          </section>
+          <section class="tp-summary-card">
+            <h3>Загрузка</h3>
+            <div class="tp-data-row"><span>Поддон</span><b id="palletName">—</b></div>
+            <div class="tp-data-row"><span>Габариты</span><b id="palletDims">—</b></div>
+            <div class="tp-data-row"><span>Заполнение</span><b id="usageText">—</b></div>
+            <div class="tp-data-row"><span>Масса / 3D</span><b id="renderedText">—</b></div>
+          </section>
+        </div>
+        <div class="tp-warn" id="plannerWarning" hidden></div>
+      </article>
+    </section>
+  </div>
+  <footer class="tp-footer">Pallet Tools · Truck Load Planner · 2026</footer>
+</main>
+<script type="module" src="assets/truck-planner-v1.js?v=1"></script>
+</body>
+</html>
