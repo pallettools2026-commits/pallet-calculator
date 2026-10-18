@@ -223,7 +223,7 @@
     const pickHint=root.querySelector('.palletPickHint');
     const pickerEnabled=mode==='top'||mode==='side'||mode==='explode';
     const pickOverlay=document.createElement('div');pickOverlay.className='palletBoardPickOverlay';pickOverlay.hidden=!pickerEnabled;stage?.appendChild(pickOverlay);
-    const pickButtons=inspectable.map((mesh,i)=>{const info=mesh.userData.palletInspect||{},btn=document.createElement('button');btn.type='button';btn.className='palletBoardPickZone';btn.dataset.pickIndex=String(i);btn.dataset.kind=info.kind||'';btn.setAttribute('aria-label',`Выбрать ${String(info.name||'деталь').toLowerCase()} №${Number(info.index||0)+1}`);btn.innerHTML=`<span>${info.short||''}${Number(info.index||0)+1}</span>`;pickOverlay.appendChild(btn);return btn;});
+    const pickButtons=inspectable.map((mesh,i)=>{const info=mesh.userData.palletInspect||{},btn=document.createElement('button');btn.type='button';btn.className='palletBoardPickZone';btn.dataset.pickIndex=String(i);btn.dataset.kind=info.kind||'';btn.setAttribute('aria-label',`Выбрать ${String(info.name||'деталь').toLowerCase()} №${Number(info.index||0)+1}`);const dimLabel=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;btn.title=dimLabel;btn.innerHTML=`<span>${dimLabel}</span>`;pickOverlay.appendChild(btn);return btn;});
     const raycaster=new THREE.Raycaster(),pickPoint=new THREE.Vector2();
     let inspectDown=null,lastInspectAt=0;
     const resetInspectHighlight=()=>inspectable.forEach(mesh=>{if(!mesh.material)return;mesh.material.emissive.setHex(mesh.userData.baseEmissiveHex||0);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||0;});
