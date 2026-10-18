@@ -1,0 +1,73 @@
+name: Remove truck planner navigation
+
+on:
+  push:
+    paths:
+      - '.github/workflows/remove-truck-planner-nav-v1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  remove-nav:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove truck planner from main navigation
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          # Keep the desktop sidebar explicitly limited to the main Pallet Tools sections.
+          nav = '''<nav class="sideNav">
+    <button class="navLink appSideLink active" type="button" data-screen="overview"><span>⌂</span>Обзор</button>
+    <button class="navLink appSideLink" type="button" data-screen="production"><span>▥</span>Производство</button>
+    <button class="navLink appSideLink" type="button" data-screen="calculator"><span>▦</span>Калькулятор</button>
+    <button class="navLink appSideLink" type="button" data-screen="workshop"><span>⌁</span>Распил досок</button>
+    <button class="navLink appSideLink" type="button" data-screen="saved"><span>▤</span>Мои расчёты</button>
+    <button class="navLink appSideLink" id="profileSideBtn" type="button"><span>👤</span>Мой профиль</button>
+    <button class="navLink appSideLink adminSideLink" id="adminSideNav" type="button" data-screen="admin" hidden><span>⚙</span>Админ-панель</button>
+  </nav>'''
+          s, n = re.subn(r'<nav class="sideNav">.*?</nav>', nav, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('sideNav block not found')
+
+          marker = '<!-- truckPlannerNavRemovedV1 -->'
+          cleanup = r'''<!-- truckPlannerNavRemovedV1 -->
+<script id="truckPlannerNavCleanupV1">
+(function(){
+  function removeTruckPlannerLinks(){
+    document.querySelectorAll('.appSidebar a,.appSidebar button,.mobileBottomNav a,.mobileBottomNav button,.mobileMoreSheet a,.mobileMoreSheet button').forEach(function(el){
+      var href=(el.getAttribute('href')||'').toLowerCase();
+      var screen=(el.getAttribute('data-screen')||'').toLowerCase();
+      var text=(el.textContent||'').toLowerCase().replace(/ё/g,'е');
+      if(href.indexOf('truck-planner')!==-1 || screen.indexOf('truck')!==-1 || text.indexOf('планировщик фур')!==-1 || text.indexOf('планировщик загрузки')!==-1 || text.indexOf('truck planner')!==-1){
+        el.remove();
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',removeTruckPlannerLinks,{once:true});
+  else removeTruckPlannerLinks();
+  setTimeout(removeTruckPlannerLinks,500);
+})();
+</script>'''
+          if marker not in s:
+              s = s.replace('</body>', cleanup + '\n</body>')
+
+          p.write_text(s, encoding='utf-8')
+
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes required"
+          else
+            git commit -m "Remove truck planner from main sidebar"
+            git push
+          fi
