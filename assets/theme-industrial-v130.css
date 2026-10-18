@@ -527,3 +527,11 @@ html[data-theme="dark"] .previewCard .palletBoardPickZone[data-kind] span{
     padding:2px 4px!important;
   }
 }
+
+
+
+/* palletDimensionsToggleV1125 */
+#palletPreview3D.palletDimsHidden .palletBoardPickZone span{display:none!important}
+#palletPreview3D.palletDimsHidden .palletOnModelMeasures{display:none!important}
+#palletPreview3D [data-p3d-dims]{min-width:78px}
+#palletPreview3D [data-p3d-dims][hidden]{display:none!important}
