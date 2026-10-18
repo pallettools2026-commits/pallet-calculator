@@ -1,0 +1,25 @@
+name: Refresh pallet picker CSS v120
+on:
+  push:
+    paths:
+      - '.github/workflows/cache-bust-picker-v120.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump picker stylesheet cache key
+        run: |
+          python - <<'PY'
+          import base64
+          exec(base64.b64decode('ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCnA9UGF0aCgnaW5kZXguaHRtbCcpCnM9cC5yZWFkX3RleHQoZW5jb2Rpbmc9J3V0Zi04JykKcz1zLnJlcGxhY2UoJ2Fzc2V0cy90aGVtZS1pbmR1c3RyaWFsLXYxMzAuY3NzP3Y9MTYyJywnYXNzZXRzL3RoZW1lLWluZHVzdHJpYWwtdjEzMC5jc3M/dj0xNjMnKQpwLndyaXRlX3RleHQocyxlbmNvZGluZz0ndXRmLTgnKQo=').decode('utf-8'))
+          PY
+      - name: Commit cache key update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Refresh pallet picker stylesheet cache" || exit 0
+          git push
