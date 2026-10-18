@@ -1,4 +1,4 @@
-name: Add day and night theme switch v1.1.11
+name: Add smart production tools v1.1.12
 
 on:
   push:
@@ -17,27 +17,29 @@ jobs:
           fetch-depth: 0
       - name: Prepare main
         run: |
-          cp .github/scripts/day_night_theme_v111.py /tmp/day_night_theme_v111.py
+          cp .github/scripts/smart_tools_v1112.py /tmp/smart_tools_v1112.py
           git fetch origin main
           git checkout -B main origin/main
-          test "$(git rev-parse HEAD)" = "08381b36fac8c0bc4aeaedaffd81f6b9a5247b51"
-      - name: Apply theme switch
-        run: python3 /tmp/day_night_theme_v111.py
+          test "$(git rev-parse HEAD)" = "4df2b52e8e404db1a383baa270d780e43d97d63b"
+      - name: Apply smart tools
+        run: python3 /tmp/smart_tools_v1112.py
       - name: Validate
         run: |
           node --check assets/pallet3d-v10.js
-          grep -q 'themeBootstrapV111' index.html
-          grep -q 'themeRuntimeV111' index.html
-          grep -q 'data-theme-toggle' index.html
-          grep -q 'dayNightThemeV111' assets/theme-industrial-v130.css
-          grep -q 'html\[data-theme="dark"\]' assets/theme-industrial-v130.css
-          grep -q 'Pallet Tools · v1.1.11' assets/theme-industrial-v130.css
-          grep -q 'обновление №345' assets/theme-industrial-v130.css
-          grep -q 'Pallet Tools · v1.1.11' assets/pallet3d-v10.js
+          node --check assets/smart-tools-v1.js
+          grep -q 'smartToolsCssV1112' assets/theme-industrial-v130.css
+          grep -q 'palletPartInspector' assets/pallet3d-v10.js
+          grep -q 'pallet3d:partselect' assets/pallet3d-v10.js
+          grep -q 'smartOptimizeApply' assets/smart-tools-v1.js
+          grep -q 'smartDensity' assets/smart-tools-v1.js
+          grep -q 'assets/smart-tools-v1.js?v=1' index.html
+          grep -q 'Pallet Tools · v1.1.12' assets/theme-industrial-v130.css
+          grep -q 'обновление №346' assets/theme-industrial-v130.css
+          grep -q 'Pallet Tools · v1.1.12' assets/pallet3d-v10.js
       - name: Commit to main
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js
-          git commit -m 'Add day and night theme switch'
+          git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js assets/smart-tools-v1.js
+          git commit -m 'Add smart pallet optimization and inspection tools'
           git push origin HEAD:main
