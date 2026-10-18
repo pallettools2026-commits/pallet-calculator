@@ -1,0 +1,101 @@
+/* Pallet Tools — production workspace polish v149
+   Structural hierarchy only. Existing theme colors remain untouched. */
+
+.productionHub{max-width:1640px!important}
+.productionHub .productionHead{align-items:center!important;gap:18px!important;margin-bottom:14px!important}
+.productionHub .productionHead>div:first-child{max-width:820px!important}
+.productionHub .productionHead h2{font-size:29px!important;line-height:1.08!important;margin:2px 0 5px!important}
+.productionHub .productionHead p{font-size:12px!important;line-height:1.45!important}
+.productionHub .prodActions{align-items:center!important;gap:7px!important}
+.productionHub .prodActions button{min-height:40px!important;padding:8px 13px!important}
+
+/* Production route becomes the main visual rail */
+.productionHub .routeStrip{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important;margin:0 0 14px!important}
+.productionHub .routeStep{min-height:66px!important;padding:11px 14px!important;border-radius:11px!important;display:grid!important;align-content:center!important;justify-items:start!important;text-align:left!important}
+.productionHub .routeStep b{font-size:13px!important;line-height:1.15!important}
+.productionHub .routeStep small{font-size:9px!important;margin-top:4px!important}
+.productionHub .routeStep:after{right:-8px!important;font-size:12px!important}
+
+/* Main production workspace */
+.productionHub .prodGrid{grid-template-columns:minmax(0,1.14fr) minmax(340px,.86fr)!important;gap:12px!important;margin-top:0!important;align-items:start!important}
+.productionHub .prodCard{padding:17px!important;border-radius:14px!important;box-shadow:none!important}
+.productionHub .prodCard.wide{grid-column:1/-1!important;padding:18px!important}
+.productionHub .prodCardHead{align-items:center!important;gap:12px!important;margin-bottom:11px!important}
+.productionHub .prodCardHead>div:first-child{min-width:0!important}
+.productionHub .prodCardHead h3{font-size:17px!important;line-height:1.2!important}
+.productionHub .prodCardHead p{font-size:10px!important;line-height:1.4!important;max-width:620px!important}
+.productionHub .prodIcon{width:36px!important;height:36px!important;flex:0 0 36px!important;border-radius:9px!important;font-size:17px!important}
+
+/* Inputs are denser and easier to scan */
+.productionHub .prodInputs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.productionHub .prodInputs.three{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.productionHub .prodInputs label,.productionHub .inventoryForm label{font-size:10px!important;margin-bottom:5px!important;line-height:1.25!important}
+.productionHub .prodInputs input,.productionHub .inventoryForm input{min-height:40px!important;padding:8px 10px!important;font-size:14px!important;border-radius:9px!important}
+
+/* Cost block */
+.productionHub .costSummary{gap:7px!important;margin-top:10px!important}
+.productionHub .costStat{padding:9px 10px!important;border-radius:9px!important}
+.productionHub .costStat small{font-size:9px!important}
+.productionHub .costStat b{font-size:18px!important;line-height:1.1!important;margin-top:3px!important}
+.productionHub .costTotal{min-height:74px!important;margin-top:9px!important;padding:12px 14px!important;border-radius:11px!important;align-items:center!important}
+.productionHub .costTotal small{font-size:9px!important}
+.productionHub .costTotal strong{font-size:21px!important;line-height:1.1!important}
+.productionHub #marginResult{margin-top:9px!important}
+.productionHub .prodNote{font-size:10px!important;line-height:1.4!important;margin-top:7px!important}
+
+/* Flow card reads like a control panel */
+.productionHub .flowStats{gap:7px!important;margin:10px 0!important}
+.productionHub .flowStat{padding:9px 10px!important;border-radius:9px!important}
+.productionHub .flowStat small{font-size:9px!important}
+.productionHub .flowStat b{font-size:19px!important;line-height:1.1!important}
+.productionHub .flowRows{gap:8px!important;margin-top:2px!important}
+.productionHub .flowRow{grid-template-columns:92px minmax(0,1fr) 48px!important;gap:8px!important;font-size:11px!important}
+.productionHub .flowBar{height:9px!important}
+.productionHub .flowWarn{min-height:15px!important;margin-top:7px!important;font-size:10px!important}
+.productionHub .flowWarn:empty{display:none!important}
+.productionHub #saveFlow,.productionHub #resetFlow{min-height:38px!important}
+
+/* Inventory becomes a cleaner technical table */
+.productionHub .prodCard.wide .prodCardHead{margin-bottom:13px!important}
+.productionHub .inventoryForm{grid-template-columns:minmax(140px,1.2fr) minmax(120px,.9fr) minmax(96px,.65fr) auto!important;gap:8px!important}
+.productionHub .inventoryForm button{min-height:40px!important;padding:8px 14px!important}
+.productionHub .inventorySummary{gap:7px!important;margin-top:9px!important}
+.productionHub .inventoryPill{padding:6px 9px!important;font-size:10px!important}
+.productionHub .inventoryEstimate{margin-top:9px!important;padding:10px 11px!important;border-radius:9px!important;font-size:10px!important;line-height:1.4!important}
+.productionHub .inventoryList{gap:5px!important;margin-top:9px!important;max-height:360px!important}
+.productionHub .inventoryRow{grid-template-columns:100px minmax(0,1fr) minmax(82px,auto) auto!important;gap:8px!important;padding:8px 9px!important;border-radius:9px!important;font-size:11px!important}
+.productionHub .inventoryDelete{padding:5px 8px!important;border-radius:7px!important;font-size:10px!important}
+.productionHub .prodEmpty{padding:14px!important;font-size:11px!important}
+
+@media(max-width:1080px){
+  .productionHub .prodGrid{grid-template-columns:1fr!important}
+  .productionHub .prodCard.wide{grid-column:auto!important}
+  .productionHub .routeStrip{grid-template-columns:repeat(5,minmax(140px,1fr))!important;overflow-x:auto!important;padding-bottom:4px!important;scroll-snap-type:x proximity!important}
+  .productionHub .routeStep{scroll-snap-align:start!important}
+}
+
+@media(max-width:760px){
+  .productionHub{padding:14px!important}
+  .productionHub .productionHead{align-items:flex-start!important;flex-direction:column!important;gap:10px!important}
+  .productionHub .productionHead h2{font-size:25px!important}
+  .productionHub .prodActions{width:100%!important}
+  .productionHub .prodActions button{flex:1 1 0!important;min-width:0!important}
+  .productionHub .routeStrip{display:flex!important;gap:7px!important;margin-bottom:12px!important}
+  .productionHub .routeStep{flex:0 0 148px!important;min-height:58px!important;padding:9px 11px!important}
+  .productionHub .routeStep:after{content:"→"!important;right:-8px!important;left:auto!important;top:50%!important;bottom:auto!important;transform:translateY(-50%)!important}
+  .productionHub .prodInputs.three{grid-template-columns:1fr 1fr!important}
+  .productionHub .inventoryForm{grid-template-columns:1fr 1fr!important}
+  .productionHub .inventoryForm button{width:100%!important}
+  .productionHub .inventoryRow{grid-template-columns:90px minmax(0,1fr) auto!important}
+  .productionHub .inventoryRow small{grid-column:1/3!important}
+}
+
+@media(max-width:460px){
+  .productionHub .prodCard,.productionHub .prodCard.wide{padding:14px!important}
+  .productionHub .prodInputs,.productionHub .prodInputs.three,.productionHub .costSummary,.productionHub .flowStats,.productionHub .inventoryForm{grid-template-columns:1fr!important}
+  .productionHub .costTotal{align-items:flex-start!important;flex-direction:column!important;gap:8px!important}
+  .productionHub .costTotal>div:last-child{text-align:left!important}
+  .productionHub .flowRow{grid-template-columns:72px minmax(0,1fr) 42px!important}
+  .productionHub .inventoryRow{grid-template-columns:1fr auto!important}
+  .productionHub .inventoryRow small{grid-column:1/-1!important}
+}
