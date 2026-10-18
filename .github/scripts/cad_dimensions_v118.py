@@ -64,8 +64,6 @@ css = css.replace('обновление №341', 'обновление №342')
 css_path.write_text(css, encoding='utf-8')
 
 html = html_path.read_text(encoding='utf-8')
-if 'v1.1.7' not in html:
-    raise SystemExit('HTML version marker v1.1.7 not found')
 html = html.replace('v1.1.7', 'v1.1.8')
 html = html.replace('обновление №341', 'обновление №342')
 m = re.search(r'assets/pallet3d-v10\.js\?v=(\d+)', html)
