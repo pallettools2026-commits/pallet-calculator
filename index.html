@@ -1737,7 +1737,7 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
   document.addEventListener('click',e=>{const btn=e.target.closest('[data-theme-toggle]');if(!btn)return;const next=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem(KEY,next);}catch(_){}apply(next);});
 })();
 </script>
-<script src="assets/version-label-fix-v142.js?v=150"></script>
+<script src="assets/version-label-fix-v142.js?v=151"></script>
 <!-- truckPlannerNavRemovedV1 -->
 <script id="truckPlannerNavCleanupV1">
 (function(){function clean(){document.querySelectorAll('.appSidebar a,.appSidebar button,.mobileBottomNav a,.mobileBottomNav button,.mobileMoreSheet a,.mobileMoreSheet button').forEach(function(el){var h=(el.getAttribute('href')||'').toLowerCase(),d=(el.getAttribute('data-screen')||'').toLowerCase(),t=(el.textContent||'').toLowerCase().replace(/ё/g,'е');if(h.indexOf('truck-planner')!==-1||d.indexOf('truck')!==-1||t.indexOf('планировщик фур')!==-1||t.indexOf('планировщик загрузки')!==-1||t.indexOf('truck planner')!==-1)el.remove();});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean,{once:true});else clean();setTimeout(clean,500);})();
