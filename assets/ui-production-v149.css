@@ -88,6 +88,7 @@
   .productionHub .inventoryForm button{width:100%!important}
   .productionHub .inventoryRow{grid-template-columns:90px minmax(0,1fr) auto!important}
   .productionHub .inventoryRow small{grid-column:1/3!important}
+  .productionHub .inventoryDelete{min-width:40px!important;min-height:40px!important}
 }
 
 @media(max-width:460px){
