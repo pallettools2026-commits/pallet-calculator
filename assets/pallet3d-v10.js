@@ -323,7 +323,7 @@
     };
     let updatePickButtons=()=>{};
     function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.55,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);updateOnModelMeasures();updatePickButtons();}
-    active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
+    active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile,rotateByDegrees:(degrees=45)=>{yaw+=num(degrees,45)*Math.PI/180;state.angle=yaw*180/Math.PI;draw();}};
     if(assemblyActive&&assemblyCurrentKind&&groups[assemblyCurrentKind]){const currentGroup=groups[assemblyCurrentKind],startY=1.15;currentGroup.position.y=startY;const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/520,0,1),e=1-Math.pow(1-q,3);currentGroup.position.y=startY*(1-e);draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else if(exploded){const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/420,0,1),e=1-Math.pow(1-q,3);groups.block.position.y=offsets.block*e;groups.cross.position.y=offsets.cross*e;groups.deck.position.y=offsets.deck*e;draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else draw();
     const canvas=renderer.domElement;
     const partInspector=root.querySelector('.palletPartInspector');
@@ -448,6 +448,37 @@
     if(window.ResizeObserver){const observer=new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!active||!host.isConnected)return;const w=Math.max(280,host.clientWidth),h=window.innerWidth<620?390:510;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();draw();},100);});observer.observe(host);active.observer=observer;}
   }
 
+  function setupNativeViewControls(){
+    const rotate=el('rotatePallet');
+    if(rotate&&rotate.dataset.threeControlReady!=='1'){
+      rotate.dataset.threeControlReady='1';
+      rotate.textContent='↻ Повернуть на 45°';
+      rotate.addEventListener('click',e=>{
+        e.preventDefault();e.stopImmediatePropagation();
+        if(state.mode==='top'||state.mode==='side'){
+          state.assemblyStep=0;
+          state.mode='3d';
+          state.angle=(num(state.angle,-34)+45)%360;
+          render(num(el('pL')?.value),num(el('pW')?.value));
+          return;
+        }
+        if(active?.rotateByDegrees){active.rotateByDegrees(45);return;}
+        state.angle=(num(state.angle,-34)+45)%360;
+        render(num(el('pL')?.value),num(el('pW')?.value));
+      },true);
+    }
+    const reset=el('resetPalletView');
+    if(reset&&reset.dataset.threeControlReady!=='1'){
+      reset.dataset.threeControlReady='1';
+      reset.addEventListener('click',e=>{
+        e.preventDefault();e.stopImmediatePropagation();
+        state.angle=-34;state.mode='3d';state.selected='all';state.assemblyStep=0;
+        el('previewStage')?.classList.remove('zoomed');
+        render(num(el('pL')?.value),num(el('pW')?.value));
+      },true);
+    }
+  }
+
   function setupLivePalletDimensions(){
     const refresh=()=>{if(syncQueued)return;syncQueued=true;requestAnimationFrame(()=>{syncQueued=false;window.rerenderPallet3D?.();});};
     ['pL','pW','qty',...Array.from({length:7},(_,i)=>['n'+i,'t'+i,'w'+i,'l'+i]).flat()].forEach(id=>{const input=el(id);if(!input||input.dataset.palletMeasureReady==='1')return;input.dataset.palletMeasureReady='1';input.addEventListener('input',refresh);input.addEventListener('change',refresh);});if(!window.__palletCompositionDensityReady){window.__palletCompositionDensityReady=true;document.addEventListener('input',e=>{if(e.target?.id==='smartDensity')refresh();});document.addEventListener('change',e=>{if(e.target?.id==='smartDensity')refresh();});}
@@ -547,7 +578,7 @@
 
   window.renderDynamicPallet=render;
   window.rerenderPallet3D=function(){const sig=currentSignature();if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}render(num(el('pL')?.value),num(el('pW')?.value));};
-  setupDeckCountControl();setupLivePalletDimensions();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();setupUserPresence();setupAdminPresenceStatus();setupDashboardPalletPreview();updateSiteVersion();
+  setupNativeViewControls();setupDeckCountControl();setupLivePalletDimensions();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();setupUserPresence();setupAdminPresenceStatus();setupDashboardPalletPreview();updateSiteVersion();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
 })();

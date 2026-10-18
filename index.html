@@ -1274,7 +1274,7 @@ document.getElementById("clearBtn").addEventListener("click",async e=>{
 
 
 /* pallet3dInteractiveV4 */
-const pallet3DState=window.pallet3DState||(window.pallet3DState={angle:-28,mode:"3d",selected:"all",dragging:false,startX:0,startAngle:-28,pointerId:null});
+const pallet3DState={angle:-28,mode:"3d",selected:"all",dragging:false,startX:0,startAngle:-28,pointerId:null};
 function pallet3DPart(index){
  const el=id=>document.getElementById(id+index);
  return {n:Math.max(0,Math.round(Number(el("n")?.value||0))),t:Math.max(0,Number(el("t")?.value||0)),w:Math.max(0,Number(el("w")?.value||0)),l:Math.max(0,Number(el("l")?.value||0)),name:data[index]?.[0]||"Деталь",index};
@@ -1714,7 +1714,7 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
 
-<script src="assets/pallet3d-v10.js?v=144"></script>
+<script src="assets/pallet3d-v10.js?v=151"></script>
 <script src="assets/smart-tools-v1.js?v=129"></script>
 
 <script id="themeRuntimeV111">
