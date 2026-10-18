@@ -32,7 +32,7 @@
     if(document.getElementById('palletToolsPwaBootstrapV1'))return;
     const script=document.createElement('script');
     script.id='palletToolsPwaBootstrapV1';
-    script.src='assets/pwa-v1.js?v=1';
+    script.src='assets/pwa-v1.js?v=2';
     script.defer=true;
     document.head.appendChild(script);
   }
