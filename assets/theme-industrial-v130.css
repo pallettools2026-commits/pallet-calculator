@@ -686,3 +686,43 @@ html[data-theme="dark"] .palletPartLegend button:hover{background:#3a3028;border
 html[data-theme="dark"] .palletPartLegend button.off{background:#272421;color:#9e9690}
 html[data-theme="dark"] .palletPartLegendReset{background:#3e3126!important;color:#edc99f!important;border-color:#634b38!important}
 @media(max-width:620px){.palletPartLegend{gap:5px;padding:5px 6px;margin-top:6px}.palletPartLegendTitle{width:100%;text-align:center}.palletPartLegend button{min-height:34px;padding:6px 8px;font-size:9px}.legendDot{width:9px;height:9px;flex-basis:9px}}
+
+
+/* palletCompositionV1131 */
+.palletModelWorkspace{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start;width:100%}
+.palletModelWorkspace.hasComposition{grid-template-columns:minmax(0,1fr) 320px}
+.palletCompositionPanel{margin-top:8px;min-width:0;border:1px solid #e3dbd1;border-radius:14px;background:linear-gradient(180deg,#fffdf9,#faf6f0);box-shadow:0 10px 26px rgba(75,53,34,.08);overflow:hidden;color:#3d342d}
+.palletCompositionHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:13px 13px 11px;border-bottom:1px solid #ece3d8;background:rgba(249,241,231,.64)}
+.palletCompositionHead small{display:block;margin-bottom:3px;color:#a16d3e;font-size:8px;font-weight:900;letter-spacing:.13em}
+.palletCompositionHead strong{display:block;font-size:15px;line-height:1.15;color:#332b25}
+.palletCompositionHead>span{padding:4px 7px;border:1px solid #e1cfbc;border-radius:999px;background:#fff8ef;color:#815631;font-size:9px;font-weight:900;white-space:nowrap}
+.palletCompositionRows{display:grid;gap:0}
+.palletCompositionRow{padding:11px 12px;border-bottom:1px solid #eee7df}
+.palletCompositionRow:last-child{border-bottom:0}
+.palletCompositionName{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.palletCompositionName .legendDot{margin-top:3px;flex:0 0 auto}
+.palletCompositionName div{min-width:0}
+.palletCompositionName b{display:block;color:#3f3730;font-size:11px;line-height:1.2}
+.palletCompositionName span{display:block;margin-top:2px;color:#8a7b6d;font-size:9px;font-weight:750;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.palletCompositionMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+.palletCompositionMetrics>span{min-width:0;padding:6px 5px;border:1px solid #ece2d7;border-radius:8px;background:#fff}
+.palletCompositionMetrics small{display:block;color:#9b8b7e;font-size:7px;font-weight:850;line-height:1.1;text-transform:uppercase;letter-spacing:.035em}
+.palletCompositionMetrics b{display:block;margin-top:3px;color:#5a4432;font-size:9px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.palletCompositionTotal{display:grid;gap:7px;padding:11px 12px 12px;border-top:1px solid #e8ddd1;background:#f7eee3}
+.palletCompositionTotal>div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.palletCompositionTotal span{color:#806f60;font-size:9px;font-weight:800}
+.palletCompositionTotal b{color:#4a3829;font-size:10px;text-align:right}
+.palletCompositionTotal>small{padding-top:5px;border-top:1px solid rgba(139,102,66,.14);color:#94795f;font-size:8px;font-weight:800}
+.palletCompositionEmpty{padding:18px 13px;color:#8f8277;font-size:10px;line-height:1.4;text-align:center}
+html[data-theme="dark"] .palletCompositionPanel{border-color:#514236;background:linear-gradient(180deg,#2d2824,#27231f);color:#eee1d2}
+html[data-theme="dark"] .palletCompositionHead{border-color:#4b3d33;background:#332b25}
+html[data-theme="dark"] .palletCompositionHead strong,html[data-theme="dark"] .palletCompositionName b{color:#f4e9dc}
+html[data-theme="dark"] .palletCompositionHead>span{border-color:#5d4735;background:#3b3027;color:#e8c49e}
+html[data-theme="dark"] .palletCompositionRow{border-color:#443a32}
+html[data-theme="dark"] .palletCompositionName span{color:#b7a99c}
+html[data-theme="dark"] .palletCompositionMetrics>span{border-color:#493c32;background:#312a25}
+html[data-theme="dark"] .palletCompositionMetrics b{color:#ead0b3}
+html[data-theme="dark"] .palletCompositionTotal{border-color:#4a3d33;background:#332a23}
+html[data-theme="dark"] .palletCompositionTotal b{color:#f0d5b8}
+@media(max-width:1040px){.palletModelWorkspace.hasComposition{grid-template-columns:minmax(0,1fr)}.palletCompositionPanel{margin-top:0}.palletCompositionRows{grid-template-columns:repeat(2,minmax(0,1fr))}.palletCompositionRow:nth-child(odd){border-right:1px solid #eee7df}}
+@media(max-width:620px){.palletCompositionRows{grid-template-columns:1fr}.palletCompositionRow:nth-child(odd){border-right:0}.palletCompositionMetrics{gap:4px}.palletCompositionPanel{border-radius:12px}.palletCompositionHead{padding:11px}.palletCompositionRow{padding:10px}.palletCompositionTotal{padding:10px}}

@@ -2,6 +2,7 @@
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   if(typeof state.showDimensions!=='boolean')state.showDimensions=true;
+  if(typeof state.showComposition!=='boolean')state.showComposition=false;
   if(!Array.isArray(state.hiddenKinds))state.hiddenKinds=[];
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -30,7 +31,7 @@
 
   function currentSignature(){
     const ids=['pL','pW','n0','n1','n2','n3','n4','n5','n6','t0','t1','t2','t3','t4','t5','t6','w0','w1','w2','w3','w4','w5','w6','l0','l1','l2','l3','l4','l5','l6'];
-    return ids.map(id=>el(id)?.value??'').join('|')+'|'+(state.mode||'3d')+'|'+(state.selected||'all');
+    return ids.map(id=>el(id)?.value??'').join('|')+'|'+(state.mode||'3d')+'|'+(state.selected||'all')+'|'+(state.showComposition?'composition':'model')+'|'+(Array.isArray(state.hiddenKinds)?state.hiddenKinds.join(','):'');
   }
 
   function dispose(){
@@ -99,11 +100,28 @@
     const remainingMm=profile.width-deckCount*deckWidthMm,rawGapMm=deckCount>1?remainingMm/(deckCount-1):0,gapBad=deckCount>1&&rawGapMm<0;
     const fmtMm=v=>{const x=Math.round(num(v,0)*10)/10;return Number.isInteger(x)?String(x):x.toFixed(1).replace('.',',');};
     const gapText=deckCount>1?(gapBad?`−${fmtMm(Math.abs(rawGapMm))} мм`:`${fmtMm(rawGapMm)} мм`):'—';
+    const showComposition=mode!=='3d'&&state.showComposition===true;
+    const orderQty=Math.max(1,Math.round(num(el('qty')?.value,1)));
+    const density=clamp(num(el('smartDensity')?.value,500)||500,250,1000);
+    const fmtKg=v=>Number(v||0).toLocaleString('ru-RU',{minimumFractionDigits:v>0&&v<10?2:1,maximumFractionDigits:v>0&&v<10?2:1});
+    const partNames=['Настил','Поперечина 1','Поперечина 2','Лыжа 1','Лыжа 2','Шашка 1','Шашка 2'];
+    const partKinds=['deck','cross','cross','runner','runner','block','block'];
+    const compositionRows=P.map((p,i)=>{
+      const qty=Math.max(0,Math.round(num(p.n,0)));if(!qty)return null;
+      const t=Math.max(0,num(p.t,0)),w=Math.max(0,num(p.w,0)),l=Math.max(0,num(p.l,0));
+      const oneWeight=t*w*l/1e9*density,perWeight=oneWeight*qty,batchWeight=perWeight*orderQty;
+      return {name:partNames[i]||p.name||`Деталь ${i+1}`,kind:partKinds[i]||'deck',qty,t,w,l,oneWeight,perWeight,batchWeight};
+    }).filter(Boolean);
+    const compositionCount=compositionRows.reduce((a,r)=>a+r.qty,0);
+    const compositionOrderCount=compositionCount*orderQty;
+    const compositionPerWeight=compositionRows.reduce((a,r)=>a+r.perWeight,0);
+    const compositionBatchWeight=compositionPerWeight*orderQty;
+    const compositionPanel=showComposition?`<aside class="palletCompositionPanel" aria-label="Состав поддона"><div class="palletCompositionHead"><div><small>СПЕЦИФИКАЦИЯ</small><strong>Состав поддона</strong></div><span>${orderQty.toLocaleString('ru-RU')} подд.</span></div><div class="palletCompositionRows">${compositionRows.length?compositionRows.map(r=>`<div class="palletCompositionRow" data-kind="${r.kind}"><div class="palletCompositionName"><i class="legendDot ${r.kind}"></i><div><b>${r.name}</b><span>${fmtMm(r.t)} × ${fmtMm(r.w)} × ${fmtMm(r.l)} мм</span></div></div><div class="palletCompositionMetrics"><span><small>На поддон</small><b>${r.qty} шт.</b></span><span><small>Вес 1 шт.</small><b>${fmtKg(r.oneWeight)} кг</b></span><span><small>На заказ</small><b>${fmtKg(r.batchWeight)} кг</b></span></div></div>`).join(''):'<div class="palletCompositionEmpty">Добавьте детали в калькулятор, чтобы увидеть состав.</div>'}</div><div class="palletCompositionTotal"><div><span>Деталей</span><b>${compositionCount.toLocaleString('ru-RU')} шт. / поддон</b></div><div><span>Вес древесины</span><b>${fmtKg(compositionPerWeight)} кг / поддон</b></div><div><span>Весь заказ</span><b>${compositionOrderCount.toLocaleString('ru-RU')} шт. · ${fmtKg(compositionBatchWeight)} кг</b></div><small>Плотность: ${Math.round(density)} кг/м³</small></div></aside>`:'';
     const dimensionOverlay='<div class="palletOnModelMeasures" aria-label="Полная размерная схема поддона"></div>';
     const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
     const legendItems=[['deck','Настил'],['cross','Поперечины'],['runner','Лыжи'],['block','Шашки']];
     const partLegend=mode==='3d'?'':`<div class="palletPartLegend" aria-label="Группы деталей"><span class="palletPartLegendTitle">ДЕТАЛИ</span>${legendItems.map(([kind,label])=>`<button type="button" data-p3d-kind-toggle="${kind}" class="${kindVisible(kind)?'active':'off'}" aria-pressed="${kindVisible(kind)?'true':'false'}"><i class="legendDot ${kind}"></i><span>${label}</span></button>`).join('')}<button type="button" class="palletPartLegendReset" data-p3d-kind-reset ${hiddenKinds.size?'':'hidden'}>Показать все</button></div>`;
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button><button type="button" data-p3d-dims aria-pressed="${showDimensions?'true':'false'}" class="${showDimensions?'active':''}" ${mode==='3d'?'hidden':''}>Размеры</button></div>${partLegend}${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'?'hidden':''}>Выберите деталь: настил, поперечину, лыжу или шашку</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button><button type="button" data-p3d-dims aria-pressed="${showDimensions?'true':'false'}" class="${showDimensions?'active':''}" ${mode==='3d'?'hidden':''}>Размеры</button><button type="button" data-p3d-composition aria-pressed="${showComposition?'true':'false'}" class="${showComposition?'active':''}" ${mode==='3d'?'hidden':''}>Состав</button></div>${partLegend}${fastenerLegend}<div class="palletModelWorkspace ${showComposition?'hasComposition':''}"><div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'?'hidden':''}>Выберите деталь: настил, поперечину, лыжу или шашку</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>${compositionPanel}</div>`;
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const stage=root.querySelector('.palletReferenceStage');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
@@ -333,6 +351,7 @@
     canvas.addEventListener('wheel',e=>{if(mode==='top'||mode==='side')return;e.preventDefault();distance=clamp(distance*(e.deltaY>0?1.08:.92),10,38);draw();},{passive:false});
     root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{state.mode=btn.dataset.p3dMode;render(num(el('pL')?.value),num(el('pW')?.value));}));
     root.querySelector('[data-p3d-dims]')?.addEventListener('click',()=>{state.showDimensions=!state.showDimensions;render(num(el('pL')?.value),num(el('pW')?.value));});
+    root.querySelector('[data-p3d-composition]')?.addEventListener('click',()=>{state.showComposition=!state.showComposition;render(num(el('pL')?.value),num(el('pW')?.value));});
     root.querySelectorAll('[data-p3d-kind-toggle]').forEach(btn=>btn.addEventListener('click',()=>{const kind=btn.dataset.p3dKindToggle,next=new Set(Array.isArray(state.hiddenKinds)?state.hiddenKinds:[]);next.has(kind)?next.delete(kind):next.add(kind);state.hiddenKinds=[...next];render(num(el('pL')?.value),num(el('pW')?.value));}));
     root.querySelector('[data-p3d-kind-reset]')?.addEventListener('click',()=>{state.hiddenKinds=[];render(num(el('pL')?.value),num(el('pW')?.value));});
     root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const k=btn.dataset.p3dPart;state.selected=state.selected===k?'all':k;render(num(el('pL')?.value),num(el('pW')?.value));}));
@@ -341,7 +360,7 @@
 
   function setupLivePalletDimensions(){
     const refresh=()=>{if(syncQueued)return;syncQueued=true;requestAnimationFrame(()=>{syncQueued=false;window.rerenderPallet3D?.();});};
-    ['pL','pW','n0','t0','w0','l0'].forEach(id=>{const input=el(id);if(!input||input.dataset.palletMeasureReady==='1')return;input.dataset.palletMeasureReady='1';input.addEventListener('input',refresh);input.addEventListener('change',refresh);});
+    ['pL','pW','qty',...Array.from({length:7},(_,i)=>['n'+i,'t'+i,'w'+i,'l'+i]).flat()].forEach(id=>{const input=el(id);if(!input||input.dataset.palletMeasureReady==='1')return;input.dataset.palletMeasureReady='1';input.addEventListener('input',refresh);input.addEventListener('change',refresh);});if(!window.__palletCompositionDensityReady){window.__palletCompositionDensityReady=true;document.addEventListener('input',e=>{if(e.target?.id==='smartDensity')refresh();});document.addEventListener('change',e=>{if(e.target?.id==='smartDensity')refresh();});}
   }
 
   function setupDeckCountControl(){
