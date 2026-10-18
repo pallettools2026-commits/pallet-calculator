@@ -1,0 +1,34 @@
+name: Refresh update number cache v152
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refresh-update-number-cache-v152.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version label cache key
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = 'assets/version-label-fix-v142.js?v=148'
+          new = 'assets/version-label-fix-v142.js?v=149'
+          if old not in s:
+              raise SystemExit('Expected cache key not found')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit cache refresh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || (git commit -m "Refresh update number cache" && git push)
