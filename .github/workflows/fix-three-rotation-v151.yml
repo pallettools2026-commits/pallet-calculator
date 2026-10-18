@@ -1,0 +1,31 @@
+name: Fix Three.js rotation v151
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-three-rotation-v151.yml'
+      - '.github/scripts/fix_three_rotation_v151.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix native 45 degree rotation
+        run: python .github/scripts/fix_three_rotation_v151.py
+      - name: Validate pallet JavaScript
+        run: node --check assets/pallet3d-v10.js
+      - name: Commit rotation fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html assets/pallet3d-v10.js
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Fix native 45 degree Three.js rotation"
+            git push
+          fi
