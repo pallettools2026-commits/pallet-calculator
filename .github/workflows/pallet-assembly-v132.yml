@@ -1,0 +1,32 @@
+name: Pallet assembly v132
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pallet-assembly-v132.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply pallet assembly mode
+        run: python .github/scripts/add_assembly_mode_v132.py
+      - name: Commit pallet assembly mode
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Add step-by-step pallet assembly mode"
+          git push
