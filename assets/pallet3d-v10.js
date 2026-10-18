@@ -233,7 +233,7 @@
         paintMeasure('deck-length',[focusX,topSurface,-deckL/2],[focusX,topSurface,deckL/2],`${fmtMm(deckLengthMm)} мм`,{labelDx:22});
       }
 
-      if(!sideView){
+      if(!sideView&&kindVisible('deck')){
         const edgeZ=Math.min(deckL/2,PL/2);
         const boardFront=topView?edgeZ+.18:edgeZ-.10;
         const gapFront=topView?edgeZ+.50:edgeZ+.36;
