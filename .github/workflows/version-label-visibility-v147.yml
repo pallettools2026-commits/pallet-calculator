@@ -1,0 +1,31 @@
+name: Full version label v147
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/version-label-visibility-v147.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version label cache
+        run: python .github/scripts/bump_version_label_visibility_v147.py
+      - name: Validate reference
+        run: grep -F 'assets/version-label-fix-v142.js?v=147' index.html
+      - name: Commit cache bump
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'Refresh full version label cache'
+            git push
+          fi
