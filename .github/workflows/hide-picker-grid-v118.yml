@@ -1,0 +1,72 @@
+name: Hide pallet picker grid v118
+on:
+  push:
+    paths:
+      - '.github/workflows/hide-picker-grid-v118.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hide permanent picker grid
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('assets/theme-industrial-v130.css')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* pickerHoverOnlyV1118 */'
+          if marker not in s:
+              s += r'''
+
+/* pickerHoverOnlyV1118 */
+/* Keep every pallet part clickable in picker mode, but do not draw the whole hit-area grid. */
+.previewCard.partPickMode .palletBoardPickZone:not([hidden]){
+  display:block!important;
+  pointer-events:auto!important;
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.previewCard.partPickMode .palletBoardPickZone span{
+  display:none!important;
+}
+.previewCard.partPickMode .palletBoardPickZone:hover,
+.previewCard.partPickMode .palletBoardPickZone:focus-visible{
+  border-color:rgba(45,111,173,.72)!important;
+  background:rgba(62,132,196,.16)!important;
+  box-shadow:0 0 0 3px rgba(45,111,173,.14)!important;
+}
+.previewCard.partPickMode .palletBoardPickZone:hover span,
+.previewCard.partPickMode .palletBoardPickZone:focus-visible span{
+  display:grid!important;
+}
+html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:not([hidden]){
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:hover,
+html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:focus-visible{
+  border-color:rgba(107,169,224,.78)!important;
+  background:rgba(71,137,196,.20)!important;
+}
+@media (hover:none){
+  .previewCard.partPickMode .palletBoardPickZone:hover{
+    border-color:transparent!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  .previewCard.partPickMode .palletBoardPickZone:hover span{display:none!important}
+}
+'''
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit picker display fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/theme-industrial-v130.css
+          git commit -m "Hide permanent pallet picker grid" || exit 0
+          git push
