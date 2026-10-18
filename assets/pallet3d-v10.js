@@ -539,9 +539,11 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.16 · обновление №346':'Pallet Tools · v1.1.16';}
+  function updateSiteVersion(){
+    const node=document.querySelector('.sideVersion');
+    if(node)node.textContent='Pallet Tools · v1.1.16';
+  }
   window.updateSiteVersion=updateSiteVersion;
-  const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
   window.renderDynamicPallet=render;
   window.rerenderPallet3D=function(){const sig=currentSignature();if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}render(num(el('pL')?.value),num(el('pW')?.value));};
