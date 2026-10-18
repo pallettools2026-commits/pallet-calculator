@@ -148,12 +148,12 @@
       const deckOffset=groups.deck.position.y;
       const topSurface=topY+deckT/2+deckOffset+.08;
       const leftX=-PW/2,rightX=PW/2,totalTop=runnerT+blockH+bindT+deckT;
-      const leftOutsideX=-PW/2-(topView?.46:.72),rightOutsideX=PW/2+.72;
-      const frontOutsideZ=PL/2+(topView?.58:.70);
+      const leftOutsideX=-PW/2-(topView?.62:.72),rightOutsideX=PW/2+.72;
+      const frontOutsideZ=PL/2+(topView?.92:.70);
       const showDeckLength=Math.abs(deckLengthMm-profile.length)>1;
 
       paintMeasure('overall-length',[leftOutsideX,.08,-PL/2],[leftOutsideX,.08,PL/2],`${fmtMm(profile.length)} мм`,{major:true,labelDx:topView?-4:-8});
-      if(!sideView)paintMeasure('overall-width',[leftX,.08,frontOutsideZ],[rightX,.08,frontOutsideZ],`${fmtMm(profile.width)} мм`,{major:true,labelDy:topView?-12:14});
+      if(!sideView)paintMeasure('overall-width',[leftX,.08,frontOutsideZ],[rightX,.08,frontOutsideZ],`${fmtMm(profile.width)} мм`,{major:true,labelDy:topView?0:14});
       if(!topView)paintMeasure('overall-height',[rightOutsideX,0,PL*.36],[rightOutsideX,totalTop,PL*.36],`${fmtMm(totalTop/S)} мм`,{major:true,labelDx:28});
 
       if(showDeckLength&&!sideView){
@@ -162,15 +162,16 @@
       }
 
       if(!sideView){
-        const boardFront=Math.min(deckL/2,PL/2)-.10;
-        const gapFront=topView?Math.min(PL/2,deckL/2)+.14:Math.min(PL/2,deckL/2)+.36;
+        const edgeZ=Math.min(deckL/2,PL/2);
+        const boardFront=topView?edgeZ+.18:edgeZ-.10;
+        const gapFront=topView?edgeZ+.50:edgeZ+.36;
         topXs.forEach((x,i)=>{
-          paintMeasure(`board-width-${i}`,[x-actualDeckW/2,topSurface,boardFront],[x+actualDeckW/2,topSurface,boardFront],fmtMm(deckWidthMm),{compact:true,kind:'board',labelDy:topView?-17:(i%2?10:-10),minPx:7});
+          paintMeasure(`board-width-${i}`,[x-actualDeckW/2,topSurface,boardFront],[x+actualDeckW/2,topSurface,boardFront],fmtMm(deckWidthMm),{compact:true,kind:'board',labelDy:topView?0:(i%2?10:-10),minPx:7});
         });
         if(topXs.length>1){
           for(let i=0;i<topXs.length-1;i++){
             const a=topXs[i]+actualDeckW/2,b=topXs[i+1]-actualDeckW/2;
-            paintMeasure(`gap-${i}`,[a,topSurface,gapFront],[b,topSurface,gapFront],gapBad?`−${fmtMm(Math.abs(rawGapMm))}`:fmtMm(rawGapMm),{compact:true,kind:'gap',bad:gapBad,labelDy:topView?17:(i%2?-11:11),minPx:5});
+            paintMeasure(`gap-${i}`,[a,topSurface,gapFront],[b,topSurface,gapFront],gapBad?`−${fmtMm(Math.abs(rawGapMm))}`:fmtMm(rawGapMm),{compact:true,kind:'gap',bad:gapBad,labelDy:topView?0:(i%2?-11:11),minPx:5});
           }
         }
       }
@@ -185,7 +186,7 @@
         paintMeasure('layer-deck',[stackX,deckBottom,stackZ],[stackX,deckTop,stackZ],fmtMm(deckThicknessMm),{compact:true,kind:'layer',labelDx:-24,minPx:5});
       }
     };
-    function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.0,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);updateOnModelMeasures();}
+    function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.55,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);updateOnModelMeasures();}
     active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
     if(exploded){const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/420,0,1),e=1-Math.pow(1-q,3);groups.block.position.y=offsets.block*e;groups.cross.position.y=offsets.cross*e;groups.deck.position.y=offsets.deck*e;draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else draw();
     const canvas=renderer.domElement;let dragging=false,lastX=0,lastY=0;
