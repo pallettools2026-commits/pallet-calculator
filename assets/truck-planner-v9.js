@@ -13,7 +13,7 @@ const VEHICLES={
   van42:{name:'Фургон L4 / 4,2 м',L:4200,W:1780,H:1900,payload:1300},
   custom:{name:'Свои размеры',L:10000,W:2450,H:2500,payload:12000}
 };
-const PALLETS={eur:{name:'EUR / EPAL',L:1200,W:800},fin:{name:'FIN',L:1200,W:1000},square:{name:'Квадратный',L:1200,W:1200},custom:{name:'Свои размеры',L:1250,W:1180}};
+const PALLETS={eur:{name:'EUR / EPAL',L:1200,W:800,H:144},fin:{name:'FIN',L:1200,W:1000,H:144},square:{name:'Квадратный',L:1200,W:1200,H:144},custom:{name:'Свои размеры',L:1250,W:1180,H:144}};
 const E={
   v:$('vehiclePreset'),cv:$('customVehicle'),L:$('trailerL'),W:$('trailerW'),H:$('trailerH'),pay:$('payload'),
   p:$('palletPreset'),cp:$('customPallet'),pL:$('palletL'),pW:$('palletW'),loadH:$('loadH'),pw:$('palletWeight'),qty:$('desiredQty'),gap:$('clearance'),stack:$('stacking'),
@@ -53,11 +53,11 @@ function wheel(r=.48,w=.34){
 function addWheelPair(parent,z,width,r=.48,w=.34){const a=wheel(r,w),b=wheel(r,w);a.position.set(-width/2-.18,.50,z);b.position.set(width/2+.18,.50,z);parent.add(a,b);}
 
 function getVehicle(){const p=VEHICLES[E.v.value]||VEHICLES.semi136;if(E.v.value!=='custom')return{...p};return{name:p.name,L:val(E.L,p.L),W:val(E.W,p.W),H:val(E.H,p.H),payload:val(E.pay,p.payload)};}
-function getPallet(){const p=PALLETS[E.p.value]||PALLETS.eur;if(E.p.value!=='custom')return{...p};return{name:p.name,L:val(E.pL,p.L),W:val(E.pW,p.W)};}
+function getPallet(){const p=PALLETS[E.p.value]||PALLETS.eur;if(E.p.value!=='custom')return{...p};return{name:p.name,L:val(E.pL,p.L),W:val(E.pW,p.W),H:val(E.loadH,p.H||144)};};return{name:p.name,L:val(E.pL,p.L),W:val(E.pW,p.W)};}
 function bestPacking(L,W,pL,pW){let best={count:0,pos:[],text:''};for(let rot=0;rot<2;rot++){const along=rot?pW:pL,across=rot?pL:pW,cols=Math.floor(W/across),rows=Math.floor(L/along),count=cols*rows,pos=[];for(let c=0;c<cols;c++)for(let r=0;r<rows;r++)pos.push({x:-cols*across/2+across/2+c*across,z:-rows*along/2+along/2+r*along,r:rot?Math.PI/2:0});if(count>best.count)best={count,pos,text:`${cols} × ${rows} · ${rot?'поперёк':'вдоль'}`};}return best;}
 
 function calculate(){
-  const v=getVehicle(),p=getPallet(),h=val(E.loadH,1200),w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0),pk=bestPacking(v.L,v.W,p.L+gap,p.W+gap);
+  const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0),pk=bestPacking(v.L,v.W,p.L+gap,p.W+gap);
   const floor=pk.count,layers=E.stack.checked?Math.max(1,Math.floor(v.H/h)):1,geo=floor*layers,byWeight=w>0?Math.floor(v.payload/w):Infinity,cap=Math.max(0,Math.min(geo,byWeight)),desired=Math.max(0,Math.floor(Number(E.qty.value)||0)),show=Math.min(cap,desired||cap);
   S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show};E.cap.textContent=cap.toLocaleString('ru-RU');E.floor.textContent=floor.toLocaleString('ru-RU');E.layers.textContent=layers.toLocaleString('ru-RU');E.weight.textContent=Number.isFinite(byWeight)?byWeight.toLocaleString('ru-RU'):'∞';
   E.capSub.textContent=layers>1?'с учётом ярусности и массы':'итоговая вместимость';E.floorSub.textContent='мест на полу кузова';E.layersSub.textContent=E.stack.checked?`по высоте ${mm(v.H)}`:'штабелирование выключено';E.weightSub.textContent=w?`грузоподъёмность ${kg(v.payload)}`:'масса не задана';
@@ -129,7 +129,42 @@ function buildTractor(v){
   const g=new THREE.Group(),tf=-v.L/1000/2,model=tractorTemplate.clone(true);tintTractor(model);model.rotation.y=Math.PI;model.scale.set(.82,.98,.90);model.position.set(0,.02,tf-2.65);g.add(model);return g;
 }
 
-function makePallet(p,h,alt){const g=new THREE.Group(),L=p.L/1000,W=p.W/1000,H=Math.max(.28,h/1000);for(const x of [-W*.30,0,W*.30])g.add(box(.10,.09,L*.86,M.wood2,x,.04,0));for(let i=0;i<5;i++)g.add(box(.09,.022,L,M.wood,-W*.42+i*W*.21,.12,0));g.add(box(W*.92,H,L*.92,alt?M.load2:M.load,0,.14+H/2,0));return g;}
+function makePallet(p,h,alt){
+  const g=new THREE.Group(),L=p.L/1000,W=p.W/1000;
+  const deckH=.022,blockH=.078,crossH=.022;
+  const woodA=alt?M.wood2:M.wood,woodB=alt?M.wood:M.wood2;
+  const edgeX=Math.max(.05,W/2-.0725),edgeZ=Math.max(.05,L/2-.0725);
+
+  // Нижние доски — 22 мм
+  const runnerWidths=[.10,.145,.10],runnerX=[-edgeX,0,edgeX];
+  runnerX.forEach((x,i)=>g.add(box(Math.min(runnerWidths[i],W*.24),deckH,L*.96,woodB,x,deckH/2,0)));
+
+  // 9 шашек — 78 мм
+  const xs=[-edgeX,0,edgeX],zs=[-edgeZ,0,edgeZ];
+  for(let ix=0;ix<3;ix++)for(let iz=0;iz<3;iz++){
+    const bw=ix===1?Math.min(.145,W*.24):Math.min(.10,W*.22);
+    const bd=iz===1?Math.min(.145,L*.20):Math.min(.10,L*.18);
+    g.add(box(bw,blockH,bd,woodB,xs[ix],deckH+blockH/2,zs[iz]));
+  }
+
+  // Поперечные доски — 22 мм
+  const crossY=deckH+blockH+crossH/2;
+  zs.forEach(z=>g.add(box(W*.98,crossH,Math.min(.145,L*.20),woodA,0,crossY,z)));
+
+  // Верхний настил — 5 досок по 22 мм
+  const widths=[.145,.10,.145,.10,.145].map(v=>Math.min(v,W*.22));
+  const total=widths.reduce((a,b)=>a+b,0);
+  const gap=Math.max(.008,(W-total)/4);
+  let cursor=-W/2;
+  const topY=deckH+blockH+crossH+deckH/2;
+  widths.forEach((bw,i)=>{
+    const x=cursor+bw/2;
+    g.add(box(bw,deckH,L*.985,i%2?woodB:woodA,x,topY,0));
+    cursor+=bw+(i<widths.length-1?gap:0);
+  });
+  return g;
+}
+
 function renderSceneTruck(){
   if(truckRoot)scene.remove(truckRoot);if(cargoRoot)scene.remove(cargoRoot);truckRoot=new THREE.Group();const trailer=buildTrailer(S.v);truckRoot.add(trailer.group);truckRoot.add(buildTractor(S.v));scene.add(truckRoot);
   cargoRoot=new THREE.Group();let rem=S.show;for(let layer=0;layer<S.layers&&rem>0;layer++){const count=Math.min(S.floor,rem);for(let i=0;i<count;i++){const pos=S.pk.pos[i],p=makePallet(S.p,S.h,(i+layer)%2===1);p.position.set(pos.x/1000,trailer.floorY+.08+layer*S.h/1000,pos.z/1000);p.rotation.y=-pos.r;cargoRoot.add(p);}rem-=count;}scene.add(cargoRoot);
@@ -144,6 +179,6 @@ function init3D(){
 }
 function resetView(){if(!S||!camera||!controls)return;const L=S.v.L/1000;camera.position.set(7.6,5.0,Math.max(13,L*.72));controls.target.set(0,1.55,-1.0);controls.update();}
 function animate(){requestAnimationFrame(animate);const td=doorsOpen?Math.PI*.78:0;doorAnim+=(td-doorAnim)*.12;if(rearDoorLeft&&rearDoorRight){rearDoorLeft.rotation.y=-doorAnim;rearDoorRight.rotation.y=doorAnim;}const tx=away?34:0;driveAnim+=(tx-driveAnim)*.055;if(truckRoot&&cargoRoot){truckRoot.position.x=driveAnim;cargoRoot.position.x=driveAnim;}controls?.update();renderer?.render(scene,camera);}
-function syncPresets(){const v=VEHICLES[E.v.value]||VEHICLES.semi136;E.cv.classList.toggle('show',E.v.value==='custom');E.L.value=v.L;E.W.value=v.W;E.H.value=v.H;E.pay.value=v.payload;const p=PALLETS[E.p.value]||PALLETS.eur;E.cp.classList.toggle('show',E.p.value==='custom');E.pL.value=p.L;E.pW.value=p.W;}
+function syncPresets(){const v=VEHICLES[E.v.value]||VEHICLES.semi136;E.cv.classList.toggle('show',E.v.value==='custom');E.L.value=v.L;E.W.value=v.W;E.H.value=v.H;E.pay.value=v.payload;const p=PALLETS[E.p.value]||PALLETS.eur;E.cp.classList.toggle('show',E.p.value==='custom');E.pL.value=p.L;E.pW.value=p.W;E.loadH.readOnly=E.p.value!=='custom';if(E.p.value!=='custom')E.loadH.value=p.H||144;}
 function bind(){E.v.addEventListener('change',()=>{syncPresets();calculate();});E.p.addEventListener('change',()=>{syncPresets();calculate();});[E.L,E.W,E.H,E.pay,E.pL,E.pW,E.loadH,E.pw,E.qty,E.gap,E.stack].forEach(el=>el.addEventListener('input',calculate));E.curt.addEventListener('click',()=>{E.curt.classList.toggle('active');const vis=E.curt.classList.contains('active');if(curtainLeft&&curtainRight){curtainLeft.visible=vis;curtainRight.visible=vis;}});E.roof.addEventListener('click',()=>{E.roof.classList.toggle('active');if(roofGroup)roofGroup.visible=E.roof.classList.contains('active');});E.doors.addEventListener('click',()=>{doorsOpen=!doorsOpen;E.doors.classList.toggle('active',doorsOpen);E.doors.textContent=doorsOpen?'Закрыть двери':'Открыть двери';});E.drive.addEventListener('click',()=>{away=!away;E.drive.classList.toggle('active',away);E.drive.textContent=away?'Вернуть фуру':'Уехал';});E.reset.addEventListener('click',()=>{doorsOpen=false;away=false;E.doors.classList.remove('active');E.doors.textContent='Открыть двери';E.drive.classList.remove('active');E.drive.textContent='Уехал';resetView();});}
 init3D();syncPresets();bind();calculate();
