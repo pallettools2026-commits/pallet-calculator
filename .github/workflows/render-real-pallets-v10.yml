@@ -20,6 +20,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
+          import textwrap
 
           js_path = Path('assets/truck-planner-v9.js')
           html_path = Path('truck-planner.html')
@@ -48,41 +49,43 @@ jobs:
               1,
           )
 
-          new_make = r'''function makePallet(p,h,alt){
-  const g=new THREE.Group(),L=p.L/1000,W=p.W/1000;
-  const deckH=.022,blockH=.078,crossH=.022;
-  const woodA=alt?M.wood2:M.wood,woodB=alt?M.wood:M.wood2;
-  const edgeX=Math.max(.05,W/2-.0725),edgeZ=Math.max(.05,L/2-.0725);
+          new_make = textwrap.dedent("""\
+          function makePallet(p,h,alt){
+            const g=new THREE.Group(),L=p.L/1000,W=p.W/1000;
+            const deckH=.022,blockH=.078,crossH=.022;
+            const woodA=alt?M.wood2:M.wood,woodB=alt?M.wood:M.wood2;
+            const edgeX=Math.max(.05,W/2-.0725),edgeZ=Math.max(.05,L/2-.0725);
 
-  // Нижние доски — 22 мм
-  const runnerWidths=[.10,.145,.10],runnerX=[-edgeX,0,edgeX];
-  runnerX.forEach((x,i)=>g.add(box(Math.min(runnerWidths[i],W*.24),deckH,L*.96,woodB,x,deckH/2,0)));
+            // Нижние доски — 22 мм
+            const runnerWidths=[.10,.145,.10],runnerX=[-edgeX,0,edgeX];
+            runnerX.forEach((x,i)=>g.add(box(Math.min(runnerWidths[i],W*.24),deckH,L*.96,woodB,x,deckH/2,0)));
 
-  // 9 шашек — 78 мм
-  const xs=[-edgeX,0,edgeX],zs=[-edgeZ,0,edgeZ];
-  for(let ix=0;ix<3;ix++)for(let iz=0;iz<3;iz++){
-    const bw=ix===1?Math.min(.145,W*.24):Math.min(.10,W*.22);
-    const bd=iz===1?Math.min(.145,L*.20):Math.min(.10,L*.18);
-    g.add(box(bw,blockH,bd,woodB,xs[ix],deckH+blockH/2,zs[iz]));
-  }
+            // 9 шашек — 78 мм
+            const xs=[-edgeX,0,edgeX],zs=[-edgeZ,0,edgeZ];
+            for(let ix=0;ix<3;ix++)for(let iz=0;iz<3;iz++){
+              const bw=ix===1?Math.min(.145,W*.24):Math.min(.10,W*.22);
+              const bd=iz===1?Math.min(.145,L*.20):Math.min(.10,L*.18);
+              g.add(box(bw,blockH,bd,woodB,xs[ix],deckH+blockH/2,zs[iz]));
+            }
 
-  // Поперечные доски — 22 мм
-  const crossY=deckH+blockH+crossH/2;
-  zs.forEach(z=>g.add(box(W*.98,crossH,Math.min(.145,L*.20),woodA,0,crossY,z)));
+            // Поперечные доски — 22 мм
+            const crossY=deckH+blockH+crossH/2;
+            zs.forEach(z=>g.add(box(W*.98,crossH,Math.min(.145,L*.20),woodA,0,crossY,z)));
 
-  // Верхний настил — 5 досок по 22 мм
-  const widths=[.145,.10,.145,.10,.145].map(v=>Math.min(v,W*.22));
-  const total=widths.reduce((a,b)=>a+b,0);
-  const gap=Math.max(.008,(W-total)/4);
-  let cursor=-W/2;
-  const topY=deckH+blockH+crossH+deckH/2;
-  widths.forEach((bw,i)=>{
-    const x=cursor+bw/2;
-    g.add(box(bw,deckH,L*.985,i%2?woodB:woodA,x,topY,0));
-    cursor+=bw+(i<widths.length-1?gap:0);
-  });
-  return g;
-}'''
+            // Верхний настил — 5 досок по 22 мм
+            const widths=[.145,.10,.145,.10,.145].map(v=>Math.min(v,W*.22));
+            const total=widths.reduce((a,b)=>a+b,0);
+            const gap=Math.max(.008,(W-total)/4);
+            let cursor=-W/2;
+            const topY=deckH+blockH+crossH+deckH/2;
+            widths.forEach((bw,i)=>{
+              const x=cursor+bw/2;
+              g.add(box(bw,deckH,L*.985,i%2?woodB:woodA,x,topY,0));
+              cursor+=bw+(i<widths.length-1?gap:0);
+            });
+            return g;
+          }
+          """)
           js = re.sub(r"function makePallet\(p,h,alt\)\{.*?return g;\}", new_make, js, count=1, flags=re.S)
 
           old_sync = "const p=PALLETS[E.p.value]||PALLETS.eur;E.cp.classList.toggle('show',E.p.value==='custom');E.pL.value=p.L;E.pW.value=p.W;"
