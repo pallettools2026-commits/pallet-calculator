@@ -128,8 +128,8 @@ button,a{-webkit-tap-highlight-color:rgba(184,121,61,.12);cursor:pointer}
 .adminCalcItems b{color:#7e512b!important;font-weight:850!important;white-space:nowrap!important}
 .adminEmpty{padding:10px!important;border-radius:10px!important;color:#8b918f!important}
 .sideVersion{font-size:0!important}
-.sideVersion:after{content:"Pallet Tools · v1.1.15";font-size:11px!important}
-.appSidebar:has(#adminSideNav:not([hidden])) .sideVersion:after{content:"Pallet Tools · v1.1.15 · обновление №349"}
+.sideVersion:after{content:"Pallet Tools · v1.1.16";font-size:11px!important}
+.appSidebar:has(#adminSideNav:not([hidden])) .sideVersion:after{content:"Pallet Tools · v1.1.16 · обновление №350"}
 @media(max-width:980px){.adminGrid{grid-template-columns:1fr!important}.adminPanel{padding:18px!important}}
 @media(max-width:640px){.adminHead{align-items:flex-start!important}.adminStats{grid-template-columns:repeat(3,1fr)!important}.adminStat{padding:12px!important}.adminStat b{font-size:23px!important}.adminUser{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"info info" "status status" "role action"!important;padding:13px!important}.adminRole{min-width:0!important;width:100%!important}.adminDeleteEmployee{min-width:0!important}.adminCalcItems{grid-template-columns:1fr!important}}
 @media(max-width:430px){.adminStats{grid-template-columns:1fr!important}.adminPanel{padding:14px!important;border-radius:18px!important}.adminBox{padding:13px!important}.adminUser{grid-template-columns:1fr!important;grid-template-areas:"info" "status" "role" "action"!important}.adminDeleteEmployee{width:100%!important}.adminPresence{justify-self:stretch!important}}
@@ -279,7 +279,7 @@ html[data-theme="dark"] .productionHub,html[data-theme="dark"] .workshopHub{back
 html[data-theme="dark"] .mobileBottomNav,html[data-theme="dark"] .mobileMorePanel{background:#171c1e!important;border-color:#343c3e!important;color:#edf2ef!important}html[data-theme="dark"] .mobileNavBtn,html[data-theme="dark"] .mobileMoreAction{color:#bfc8c3!important;background:transparent!important;border-color:#333b3d!important}html[data-theme="dark"] .mobileNavBtn.active,html[data-theme="dark"] .mobileMoreAction:hover{color:#e6aa6d!important;background:#242a2c!important}
 html[data-theme="dark"] .authCard.authScreenV2{background:linear-gradient(135deg,#11161a 0%,#171b20 45%,#1c1714 100%)!important;color:#edf2ef!important}html[data-theme="dark"] .authGlowOne{background:#1c3855!important}html[data-theme="dark"] .authGlowTwo{background:#5a3425!important}html[data-theme="dark"] .authLoginPanel{background:rgba(24,29,33,.96)!important;border-color:#394146!important;box-shadow:0 25px 60px rgba(0,0,0,.42)!important}html[data-theme="dark"] .authWelcome h2,html[data-theme="dark"] .authBrandName strong{color:#f0f3f1!important}html[data-theme="dark"] .authWelcome p{color:#9ba5ad!important}html[data-theme="dark"] .authInputWrap input{background:#111619!important;color:#eef2f0!important;border-color:#3a4348!important}html[data-theme="dark"] .authRegisterBtn{background:#20262a!important;color:#e5e9e7!important;border-color:#3a4348!important}html[data-theme="dark"] .authNotice{background:#30241e!important;border-color:#634431!important;color:#e5a16e!important}html[data-theme="dark"] .authThemeToggle{background:rgba(28,34,38,.92)!important;border-color:#3b4449!important;color:#f0c18b!important;box-shadow:0 5px 16px rgba(0,0,0,.22)!important}html[data-theme="dark"] .profilePanel{background:#1b2022!important;border-color:#394143!important;color:#edf2ef!important}html[data-theme="dark"] .profileEmailRow>div{background:#202628!important;border-color:#394143!important;color:#dfe5e2!important}
 html[data-theme="dark"] .deleteSaved,html[data-theme="dark"] .inventoryDelete{background:#262c2e!important;border-color:#454d50!important;color:#e3b0aa!important}html[data-theme="dark"] .stockOffcut{background:repeating-linear-gradient(135deg,#3a4244 0 6px,#303739 6px 12px)!important;border-color:#4a5355!important}html[data-theme="dark"] .stockMeta,html[data-theme="dark"] .sawGroupTitle span,html[data-theme="dark"] .shopNote,html[data-theme="dark"] .prodNote{color:#98a29d!important}html[data-theme="dark"] .moreBoards{background:#252b2d!important;color:#aeb7b2!important}
-html[data-theme="dark"] .sideVersion:after{content:"Pallet Tools · v1.1.15"!important}html[data-theme="dark"] .appSidebar:has(#adminSideNav:not([hidden])) .sideVersion:after{content:"Pallet Tools · v1.1.15 · обновление №349"!important}
+html[data-theme="dark"] .sideVersion:after{content:"Pallet Tools · v1.1.16"!important}html[data-theme="dark"] .appSidebar:has(#adminSideNav:not([hidden])) .sideVersion:after{content:"Pallet Tools · v1.1.16 · обновление №350"!important}
 
 
 /* smartToolsCssV1112 */
@@ -322,3 +322,11 @@ html[data-theme="dark"] .smartToolCard.selected.hasSelection{border-color:#3f6b5
 .previewCard.partPickMode .palletBoardPickZone span{display:grid!important;place-items:center!important;position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;min-width:23px!important;height:23px!important;padding:0 5px!important;border-radius:999px!important;background:#234f78!important;color:#fff!important;font-size:10px!important;font-weight:900!important;line-height:1!important;box-shadow:0 2px 7px rgba(18,48,76,.28)!important}
 html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:not([hidden]){border-color:rgba(107,169,224,.78)!important;background:rgba(71,137,196,.22)!important}
 @media(max-width:620px){.previewCard.partPickMode .palletBoardPickZone:not([hidden]){background:rgba(62,132,196,.20)!important}.previewCard.partPickMode .palletBoardPickZone span{min-width:25px!important;height:25px!important;font-size:11px!important}}
+
+
+/* allPartPickerV1116 */
+.palletBoardPickZone[data-kind="deck"] span{background:#234f78!important}
+.palletBoardPickZone[data-kind="cross"] span{background:#6d4d2f!important}
+.palletBoardPickZone[data-kind="runner"] span{background:#2d6652!important}
+.palletBoardPickZone[data-kind="block"] span{background:#8a5b2f!important}
+.palletBoardPickOverlay[hidden],.palletPickHint[hidden]{display:none!important}

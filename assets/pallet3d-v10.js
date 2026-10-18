@@ -95,7 +95,7 @@
     const gapText=deckCount>1?(gapBad?`−${fmtMm(Math.abs(rawGapMm))} мм`:`${fmtMm(rawGapMm)} мм`):'—';
     const dimensionOverlay='<div class="palletOnModelMeasures" aria-label="Полная размерная схема поддона"></div>';
     const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint">Нажмите на верхнюю доску — покажу её размер и количество</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'?'hidden':''}>Выберите деталь: настил, поперечину, лыжу или шашку</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>`;
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const stage=root.querySelector('.palletReferenceStage');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
@@ -109,8 +109,10 @@
     const textures={deck:woodTexture(17,'#f3dfbd','#9a724b'),cross:woodTexture(31,'#ecd2a8','#906642'),runner:woodTexture(47,'#e8ca9a','#875d39'),block:woodTexture(61,'#dfbb86','#805433')};Object.values(textures).forEach((t,i)=>t.repeat.set(i===3?1.4:3.2,1));
     const colors={deck:[0xf3dab2,0xefd1a4,0xf6e0bf],cross:[0xeccda0,0xe6c18f,0xf0d5ad],runner:[0xe4c08d,0xddb47f,0xe9ca9a],block:[0xd8aa72,0xdfb783,0xd2a069]};
     const inspectable=[];
+    const inspectShort={deck:'Н',cross:'П',runner:'Л',block:'Ш'};
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
-    function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;if(kind==='deck'){m.userData.palletInspect={name:'Настил',index:i,t:deckThicknessMm,w:deckWidthMm,l:deckLengthMm,n:deckCount};m.userData.baseEmissiveHex=selected===kind?0x14382e:0;m.userData.baseEmissiveIntensity=selected===kind?.09:0;inspectable.push(m);}group.add(m);return m;}
+    function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
+    function registerInspectable(mesh,kind,index,name,t,w,l,n){if(!mesh)return mesh;mesh.userData.palletInspect={name,kind,index,short:inspectShort[kind]||'',t:num(t),w:num(w),l:num(l),n:Math.max(1,Math.round(num(n,1)))};mesh.userData.baseEmissiveHex=selected===kind?0x14382e:0;mesh.userData.baseEmissiveIntensity=selected===kind?.09:0;inspectable.push(mesh);return mesh;}
     const nail40Length=.40,nail80Length=.80;
     const nail40HeadGeo=new THREE.CylinderGeometry(.044,.044,.026,16),nail80HeadGeo=new THREE.CylinderGeometry(.052,.052,.030,18);
     const nail40ShankGeo=new THREE.CylinderGeometry(.018,.020,nail40Length,12),nail80ShankGeo=new THREE.CylinderGeometry(.022,.025,nail80Length,12);
@@ -126,15 +128,15 @@
     const runnerLengths=profile.runnerLengths||Array.from({length:runnerCount},(_,i)=>Math.min(profile.length,num((i<Math.max(0,num(runnerParts[0].n)))?runnerParts[0].l:runnerParts[1].l,profile.length)));
     const runnerActualW=Math.min(runnerW,PW/Math.max(3,runnerLengths.length)*.56),edgeRunnerX=Math.max(0,PW/2-runnerActualW/2-.03);
     let runnerXs;if(runnerLengths.length===5)runnerXs=[-edgeRunnerX,-edgeRunnerX*.5,0,edgeRunnerX*.5,edgeRunnerX];else if(runnerLengths.length===3)runnerXs=[-edgeRunnerX,0,edgeRunnerX];else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
-    runnerLengths.forEach((mm,i)=>{const rz=clamp(mm*S,Math.min(PL*.55,10.5),PL);piece('runner',runnerActualW,runnerT,rz,runnerXs[i],runnerT/2,0,i,groups.runner);});
+    runnerLengths.forEach((mm,i)=>{const rz=clamp(mm*S,Math.min(PL*.55,10.5),PL),mesh=piece('runner',runnerActualW,runnerT,rz,runnerXs[i],runnerT/2,0,i,groups.runner);registerInspectable(mesh,'runner',i,'Лыжа',runnerT/S,runnerActualW/S,rz/S,runnerLengths.length);});
     const blockY=runnerT+blockH/2,blockRows=[],blockPoints=[];
-    for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){const idx=zi*3+xi;if(idx>=blockCount)continue;const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03),bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);blockRows[zi]=bzPos;blockPoints.push({x:bxPos,z:bzPos,bx,bz});piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);}
+    for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){const idx=zi*3+xi;if(idx>=blockCount)continue;const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03),bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);blockRows[zi]=bzPos;blockPoints.push({x:bxPos,z:bzPos,bx,bz});const mesh=piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);registerInspectable(mesh,'block',idx,'Шашка',blockH/S,bx/S,bz/S,blockCount);}
     if(selected==='all'||selected==='runner'){runnerXs.forEach((x,xi)=>blockRows.forEach((z,zi)=>{if(z==null||zi*3+Math.min(xi,2)>=blockCount)return;pairNails(nail80,groups.runner,x,runnerT+.014,z,Math.min(.072,runnerActualW*.22),1);}));}
-    const bindY=runnerT+blockH+bindT/2,bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];bindZ.forEach((z,i)=>piece('cross',PW,bindT,bindDepth,0,bindY,z,i,groups.cross));
+    const bindY=runnerT+blockH+bindT/2,bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];bindZ.forEach((z,i)=>{const mesh=piece('cross',PW,bindT,bindDepth,0,bindY,z,i,groups.cross);registerInspectable(mesh,'cross',i,'Поперечина',bindT/S,bindDepth/S,PW/S,bindZ.length);});
     const topY=runnerT+blockH+bindT+deckT/2,actualDeckW=deckCount?Math.min(deckW,PW):deckW,topXs=deckCount?spread(deckCount,PW,actualDeckW):[],nailY=topY+deckT/2+.014;
     const pairNailsDepth=(fn,group,x,y,z,dz,direction=-1)=>{fn(group,x,y,z-dz,direction);fn(group,x,y,z+dz,direction);};
     if(selected==='all'||selected==='cross'){blockPoints.forEach(p=>pairNailsDepth(nail80,groups.cross,p.x,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1));}
-    topXs.forEach((x,i)=>{piece('deck',actualDeckW,deckT,deckL,x,topY,0,i,groups.deck);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
+    topXs.forEach((x,i)=>{const mesh=piece('deck',actualDeckW,deckT,deckL,x,topY,0,i,groups.deck);registerInspectable(mesh,'deck',i,'Настил',deckThicknessMm,deckWidthMm,deckLengthMm,deckCount);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
     const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};let yaw=num(state.angle,-34)*Math.PI/180,pitch=.43,distance=clamp(Math.max(PW,PL)*1.68,15,28);
     const projectMeasurePoint=(x,y,z)=>{if(!stage||!renderer.domElement)return null;const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;const cr=renderer.domElement.getBoundingClientRect(),sr=stage.getBoundingClientRect();return{x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height};};
     const overlay=root.querySelector('.palletOnModelMeasures');
@@ -219,13 +221,14 @@
     const canvas=renderer.domElement;
     const partInspector=root.querySelector('.palletPartInspector');
     const pickHint=root.querySelector('.palletPickHint');
-    const pickOverlay=document.createElement('div');pickOverlay.className='palletBoardPickOverlay';stage?.appendChild(pickOverlay);
-    const pickButtons=inspectable.map((mesh,i)=>{const btn=document.createElement('button');btn.type='button';btn.className='palletBoardPickZone';btn.setAttribute('aria-label',`Выбрать доску настила №${i+1}`);btn.dataset.board=String(i);btn.innerHTML=`<span>${i+1}</span>`;pickOverlay.appendChild(btn);return btn;});
+    const pickerEnabled=mode==='top'||mode==='side'||mode==='explode';
+    const pickOverlay=document.createElement('div');pickOverlay.className='palletBoardPickOverlay';pickOverlay.hidden=!pickerEnabled;stage?.appendChild(pickOverlay);
+    const pickButtons=inspectable.map((mesh,i)=>{const info=mesh.userData.palletInspect||{},btn=document.createElement('button');btn.type='button';btn.className='palletBoardPickZone';btn.dataset.pickIndex=String(i);btn.dataset.kind=info.kind||'';btn.setAttribute('aria-label',`Выбрать ${String(info.name||'деталь').toLowerCase()} №${Number(info.index||0)+1}`);btn.innerHTML=`<span>${info.short||''}${Number(info.index||0)+1}</span>`;pickOverlay.appendChild(btn);return btn;});
     const raycaster=new THREE.Raycaster(),pickPoint=new THREE.Vector2();
     let inspectDown=null,lastInspectAt=0;
     const resetInspectHighlight=()=>inspectable.forEach(mesh=>{if(!mesh.material)return;mesh.material.emissive.setHex(mesh.userData.baseEmissiveHex||0);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||0;});
     const setPickHint=(text,selected=false)=>{if(!pickHint)return;pickHint.textContent=text;pickHint.classList.toggle('selected',selected);};
-    const showInspect=(mesh)=>{const info=mesh?.userData?.palletInspect;if(!info)return false;resetInspectHighlight();mesh.material.emissive.setHex(0x8a5525);mesh.material.emissiveIntensity=.42;const boardNo=Number(info.index||0)+1,qty=Math.max(1,Math.round(num(el('qty')?.value,1))),total=info.n*qty;if(partInspector){partInspector.hidden=false;partInspector.querySelector('strong').textContent=`Настил №${boardNo}`;partInspector.querySelector('span').textContent=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;partInspector.querySelector('b').textContent=`${info.n} шт. / поддон · ${total.toLocaleString('ru-RU')} шт. / заказ`;}setPickHint(`Выбрана доска №${boardNo} · ${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`,true);window.dispatchEvent(new CustomEvent('pallet3d:partselect',{detail:{...info,boardNo,per:info.n,total}}));renderer.render(scene,camera);lastInspectAt=performance.now();return true;};
+    const showInspect=(mesh)=>{const info=mesh?.userData?.palletInspect;if(!info)return false;resetInspectHighlight();mesh.material.emissive.setHex(0x8a5525);mesh.material.emissiveIntensity=.42;const itemNo=Number(info.index||0)+1,qty=Math.max(1,Math.round(num(el('qty')?.value,1))),total=info.n*qty;if(partInspector){partInspector.hidden=false;partInspector.querySelector('strong').textContent=`${info.name} №${itemNo}`;partInspector.querySelector('span').textContent=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;partInspector.querySelector('b').textContent=`${info.n} шт. / поддон · ${total.toLocaleString('ru-RU')} шт. / заказ`;}setPickHint(`Выбрано: ${info.name} №${itemNo} · ${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`,true);window.dispatchEvent(new CustomEvent('pallet3d:partselect',{detail:{...info,itemNo,boardNo:itemNo,per:info.n,total}}));renderer.render(scene,camera);lastInspectAt=performance.now();return true;};
     const pickAt=(clientX,clientY)=>{const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;pickPoint.x=((clientX-rect.left)/rect.width)*2-1;pickPoint.y=-((clientY-rect.top)/rect.height)*2+1;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);raycaster.setFromCamera(pickPoint,camera);return raycaster.intersectObjects(inspectable,false).find(hit=>hit.object?.userData?.palletInspect)||null;};
     const pointInPolygon=(x,y,poly)=>{let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>y)!==(b.y>y))&&(x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x))inside=!inside;}return inside;};
     const projectToCanvas=(x,y,z,rect)=>{const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;return{x:(v.x*.5+.5)*rect.width,y:(-v.y*.5+.5)*rect.height};};
@@ -247,22 +250,34 @@
       if(candidates.length){candidates.sort((a,b)=>a.d-b.d);return candidates[0];}
       return null;
     };
-    const selectAt=(clientX,clientY)=>{const projected=pickDeckByProjection(clientX,clientY);if(projected)return showInspect(projected.object);const hit=pickAt(clientX,clientY);return hit?showInspect(hit.object):false;};
+    const selectAt=(clientX,clientY)=>{if(!pickerEnabled)return false;const projected=pickDeckByProjection(clientX,clientY);if(projected)return showInspect(projected.object);const hit=pickAt(clientX,clientY);return hit?showInspect(hit.object):false;};
     updatePickButtons=()=>{
       if(!stage||!pickButtons.length)return;
+      if(!pickerEnabled){pickOverlay.hidden=true;pickButtons.forEach(btn=>btn.hidden=true);return;}
+      pickOverlay.hidden=false;
       const sr=stage.getBoundingClientRect(),cr=canvas.getBoundingClientRect();
       if(!sr.width||!sr.height||!cr.width||!cr.height)return;
       scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
-      const deckLift=groups.deck.position.y||0,halfW=actualDeckW/2,halfL=deckL/2,y=topY+deckT/2+deckLift+.035;
-      const project=(x,z)=>{const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;return{x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height};};
-      pickButtons.forEach((btn,i)=>{const x=topXs[i]??inspectable[i]?.position.x??0,pts=[project(x-halfW,-halfL),project(x+halfW,-halfL),project(x+halfW,halfL),project(x-halfW,halfL)];if(pts.some(p=>!p)){btn.hidden=true;return;}let minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));const pad=7;minX-=pad;maxX+=pad;minY-=pad;maxY+=pad;btn.hidden=false;btn.style.left=`${minX}px`;btn.style.top=`${minY}px`;btn.style.width=`${Math.max(20,maxX-minX)}px`;btn.style.height=`${Math.max(30,maxY-minY)}px`;});
+      const visibleKinds=mode==='top'?new Set(['deck','cross']):new Set(['deck','cross','runner','block']);
+      const cornerBits=[[-1,-1,-1],[1,-1,-1],[-1,1,-1],[1,1,-1],[-1,-1,1],[1,-1,1],[-1,1,1],[1,1,1]];
+      pickButtons.forEach((btn,i)=>{
+        const mesh=inspectable[i],info=mesh?.userData?.palletInspect;if(!mesh||!info||!visibleKinds.has(info.kind)){btn.hidden=true;return;}
+        mesh.geometry.computeBoundingBox?.();const bb=mesh.geometry.boundingBox;if(!bb){btn.hidden=true;return;}
+        const cx=(bb.min.x+bb.max.x)/2,cy=(bb.min.y+bb.max.y)/2,cz=(bb.min.z+bb.max.z)/2,hx=(bb.max.x-bb.min.x)/2,hy=(bb.max.y-bb.min.y)/2,hz=(bb.max.z-bb.min.z)/2,pts=[];
+        for(const [sx,sy,sz] of cornerBits){const v=new THREE.Vector3(cx+sx*hx,cy+sy*hy,cz+sz*hz).applyMatrix4(mesh.matrixWorld).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)continue;pts.push({x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height});}
+        if(pts.length<4){btn.hidden=true;return;}
+        let minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));
+        if(maxX<0||maxY<0||minX>sr.width||minY>sr.height){btn.hidden=true;return;}
+        const pad=info.kind==='block'?8:6;minX=clamp(minX-pad,0,sr.width-18);maxX=clamp(maxX+pad,18,sr.width);minY=clamp(minY-pad,0,sr.height-24);maxY=clamp(maxY+pad,24,sr.height);
+        btn.hidden=false;btn.style.left=`${minX}px`;btn.style.top=`${minY}px`;btn.style.width=`${Math.max(20,maxX-minX)}px`;btn.style.height=`${Math.max(28,maxY-minY)}px`;btn.style.zIndex=String(info.kind==='deck'?4:info.kind==='cross'?3:info.kind==='block'?2:1);
+      });
     };
-    pickButtons.forEach((btn,i)=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const mesh=inspectable[i];if(mesh)showInspect(mesh);previewCard?.classList.remove('partPickMode');}));
+    pickButtons.forEach((btn,i)=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!pickerEnabled)return;const mesh=inspectable[i];if(mesh)showInspect(mesh);previewCard?.classList.remove('partPickMode');}));
     updatePickButtons();
     canvas.addEventListener('pointerdown',e=>{inspectDown={x:e.clientX,y:e.clientY};},true);
     canvas.addEventListener('pointerup',e=>{if(!inspectDown)return;const moved=Math.hypot(e.clientX-inspectDown.x,e.clientY-inspectDown.y);inspectDown=null;if(moved<=18)selectAt(e.clientX,e.clientY);},true);
     canvas.addEventListener('click',e=>{if(performance.now()-lastInspectAt>220)selectAt(e.clientX,e.clientY);});
-    canvas.addEventListener('pointermove',e=>{if(e.buttons!==0)return;const hit=pickAt(e.clientX,e.clientY);canvas.style.cursor=hit?'pointer':((mode==='top'||mode==='side')?'default':'grab');},true);
+    canvas.addEventListener('pointermove',e=>{if(e.buttons!==0)return;if(!pickerEnabled){canvas.style.cursor='grab';return;}const hit=pickAt(e.clientX,e.clientY);canvas.style.cursor=hit?'pointer':((mode==='top'||mode==='side')?'default':'grab');},true);
     let dragging=false,lastX=0,lastY=0;
     canvas.addEventListener('pointerdown',e=>{if(mode==='top'||mode==='side')return;dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture?.(e.pointerId);canvas.classList.add('dragging');});
     canvas.addEventListener('pointermove',e=>{if(!dragging||mode==='top'||mode==='side')return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;yaw-=dx*.009;pitch=clamp(pitch-dy*.006,.15,.95);state.angle=yaw*180/Math.PI;draw();});
@@ -364,7 +379,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.15 · обновление №346':'Pallet Tools · v1.1.15';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.16 · обновление №346':'Pallet Tools · v1.1.16';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 

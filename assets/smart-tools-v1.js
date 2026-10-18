@@ -1,4 +1,4 @@
-/* Pallet Tools smart production helpers v1.1.14 */
+/* Pallet Tools smart production helpers v1.1.16 */
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
@@ -77,7 +77,7 @@
       <div class="smartToolsGrid">
         <article class="smartToolCard optimizer"><div class="smartToolIcon">◎</div><div class="smartToolBody"><small>1 · ОПТИМИЗАТОР НАСТИЛА</small><h3 id="smartOptimizeMain">Расчёт…</h3><p id="smartOptimizeSub">Подбираем количество, ширину и равномерный зазор.</p><button id="smartOptimizeApply" type="button">Применить вариант</button></div></article>
         <article class="smartToolCard checker"><div class="smartToolIcon">✓</div><div class="smartToolBody"><small>2 · ПРОВЕРКА КОНСТРУКЦИИ</small><div class="smartCheckStatus" id="smartCheckStatus">Проверка…</div><div class="smartCheckList" id="smartCheckList"></div></div></article>
-        <article class="smartToolCard selected"><div class="smartToolIcon">◇</div><div class="smartToolBody"><small>3 · ДЕТАЛЬ ИЗ 3D</small><h3 id="smartSelectedTitle">Выберите доску</h3><p id="smartSelectedDims">Нажмите на верхнюю доску прямо на 3D-модели.</p><div class="smartSelectedQty" id="smartSelectedQty">Размеры и количество появятся здесь.</div><button class="smartSelect3D" id="smartSelect3D" type="button">Показать 3D и выбрать доску</button></div></article>
+        <article class="smartToolCard selected"><div class="smartToolIcon">◇</div><div class="smartToolBody"><small>3 · ДЕТАЛЬ ИЗ МОДЕЛИ</small><h3 id="smartSelectedTitle">Выберите деталь</h3><p id="smartSelectedDims">Можно выбрать настил, поперечину, лыжу или шашку.</p><div class="smartSelectedQty" id="smartSelectedQty">Размеры и количество появятся здесь.</div><button class="smartSelect3D" id="smartSelect3D" type="button">Показать модель и выбрать деталь</button></div></article>
         <article class="smartToolCard material"><div class="smartToolIcon">m³</div><div class="smartToolBody"><small>4 · ДРЕВЕСИНА И ВЕС</small><div class="smartDensity"><label for="smartDensity">Плотность древесины, кг/м³</label><input id="smartDensity" type="number" min="250" max="1000" step="10" value="500"></div><div class="smartMetrics"><div><span>На 1 поддон</span><b id="smartM3Per">0,000 м³</b></div><div><span>На заказ</span><b id="smartM3Batch">0,000 м³</b></div><div><span>Вес 1 поддона</span><b id="smartWeightPer">0 кг</b></div><div><span>Вес древесины заказа</span><b id="smartWeightBatch">0 кг</b></div></div></div></article>
       </div>`;
     calc.insertAdjacentElement('afterend',panel);
@@ -86,14 +86,14 @@
     $('smartDensity')?.addEventListener('input',()=>{try{localStorage.setItem('pallettools:woodDensity',$('smartDensity').value);}catch(_){}update();});
     $('smartSelect3D')?.addEventListener('click',()=>{
       const preview=$('palletPreview3D')?.closest('.previewCard');
-      const mode3d=$('palletPreview3D')?.querySelector('[data-p3d-mode="3d"]');
-      if(mode3d&&!mode3d.classList.contains('active'))mode3d.click();
+      const active=$('palletPreview3D')?.querySelector('[data-p3d-mode].active');
+      if(!active||active.dataset.p3dMode==='3d')$('palletPreview3D')?.querySelector('[data-p3d-mode="top"]')?.click();
       setTimeout(()=>{
         const livePreview=$('palletPreview3D')?.closest('.previewCard')||preview;
         livePreview?.classList.add('partPickMode');
         livePreview?.scrollIntoView({behavior:'smooth',block:'center'});
         const hint=document.querySelector('.palletPickHint');
-        if(hint){hint.textContent='Режим выбора: нажмите на подсвеченную область любой верхней доски';hint.classList.add('attention');}
+        if(hint){hint.hidden=false;hint.textContent='Режим выбора: нажмите на подсвеченную деталь';hint.classList.add('attention');}
         setTimeout(()=>hint?.classList.remove('attention'),2600);
       },90);
     });
@@ -110,8 +110,8 @@
 
   function renderSelected(){
     const title=$('smartSelectedTitle'),dims=$('smartSelectedDims'),qty=$('smartSelectedQty');if(!title||!dims||!qty)return;
-    if(!selectedPart){title.textContent='Выберите доску';dims.textContent='Нажмите кнопку ниже — откроется 3D. Затем нажмите на любую верхнюю доску.';qty.textContent='Выбранная доска подсветится, а размеры появятся здесь.';return;}
-    title.textContent=`${selectedPart.name} №${selectedPart.boardNo}`;
+    if(!selectedPart){title.textContent='Выберите деталь';dims.textContent='Нажмите кнопку ниже. Выбор доступен в режимах «Сверху», «Сбоку» и «Разнести».';qty.textContent='Настил, поперечина, лыжа или шашка подсветится, а размеры появятся здесь.';return;}
+    title.textContent=`${selectedPart.name} №${selectedPart.itemNo||selectedPart.boardNo||1}`;
     dims.textContent=`${fmt(selectedPart.t)} × ${fmt(selectedPart.w)} × ${fmt(selectedPart.l)} мм`;
     qty.textContent=`${selectedPart.per} шт. на поддон · ${Number(selectedPart.total||0).toLocaleString('ru-RU')} шт. на заказ`;
   }
