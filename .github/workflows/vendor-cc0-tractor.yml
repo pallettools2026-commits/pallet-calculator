@@ -37,3 +37,5 @@ jobs:
             git commit -m 'Vendor CC0 long-nose tractor GLB'
             git push origin HEAD:main
           fi
+
+# Re-save to trigger the vendor job after workflow registration.
