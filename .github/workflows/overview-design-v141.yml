@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/overview-design-v141.yml'
+      - '.github/scripts/enable_overview_v141.py'
 
 permissions:
   contents: write
