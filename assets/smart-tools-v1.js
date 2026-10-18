@@ -77,13 +77,21 @@
       <div class="smartToolsGrid">
         <article class="smartToolCard optimizer"><div class="smartToolIcon">◎</div><div class="smartToolBody"><small>1 · ОПТИМИЗАТОР НАСТИЛА</small><h3 id="smartOptimizeMain">Расчёт…</h3><p id="smartOptimizeSub">Подбираем количество, ширину и равномерный зазор.</p><button id="smartOptimizeApply" type="button">Применить вариант</button></div></article>
         <article class="smartToolCard checker"><div class="smartToolIcon">✓</div><div class="smartToolBody"><small>2 · ПРОВЕРКА КОНСТРУКЦИИ</small><div class="smartCheckStatus" id="smartCheckStatus">Проверка…</div><div class="smartCheckList" id="smartCheckList"></div></div></article>
-        <article class="smartToolCard selected"><div class="smartToolIcon">◇</div><div class="smartToolBody"><small>3 · ДЕТАЛЬ ИЗ 3D</small><h3 id="smartSelectedTitle">Выберите доску</h3><p id="smartSelectedDims">Нажмите на верхнюю доску прямо на 3D-модели.</p><div class="smartSelectedQty" id="smartSelectedQty">Размеры и количество появятся здесь.</div></div></article>
+        <article class="smartToolCard selected"><div class="smartToolIcon">◇</div><div class="smartToolBody"><small>3 · ДЕТАЛЬ ИЗ 3D</small><h3 id="smartSelectedTitle">Выберите доску</h3><p id="smartSelectedDims">Нажмите на верхнюю доску прямо на 3D-модели.</p><div class="smartSelectedQty" id="smartSelectedQty">Размеры и количество появятся здесь.</div><button class="smartSelect3D" id="smartSelect3D" type="button">Показать 3D и выбрать доску</button></div></article>
         <article class="smartToolCard material"><div class="smartToolIcon">m³</div><div class="smartToolBody"><small>4 · ДРЕВЕСИНА И ВЕС</small><div class="smartDensity"><label for="smartDensity">Плотность древесины, кг/м³</label><input id="smartDensity" type="number" min="250" max="1000" step="10" value="500"></div><div class="smartMetrics"><div><span>На 1 поддон</span><b id="smartM3Per">0,000 м³</b></div><div><span>На заказ</span><b id="smartM3Batch">0,000 м³</b></div><div><span>Вес 1 поддона</span><b id="smartWeightPer">0 кг</b></div><div><span>Вес древесины заказа</span><b id="smartWeightBatch">0 кг</b></div></div></div></article>
       </div>`;
     calc.insertAdjacentElement('afterend',panel);
     try{const saved=Number(localStorage.getItem('pallettools:woodDensity'));if(saved>=250&&saved<=1000)$('smartDensity').value=String(saved);}catch(_){}
     $('smartOptimizeApply')?.addEventListener('click',applySuggestion);
     $('smartDensity')?.addEventListener('input',()=>{try{localStorage.setItem('pallettools:woodDensity',$('smartDensity').value);}catch(_){}update();});
+    $('smartSelect3D')?.addEventListener('click',()=>{
+      const preview=$('palletPreview3D')?.closest('.previewCard');
+      preview?.classList.add('partPickMode');
+      preview?.scrollIntoView({behavior:'smooth',block:'center'});
+      const hint=document.querySelector('.palletPickHint');
+      if(hint){hint.textContent='Нажмите на любую верхнюю доску';hint.classList.add('attention');}
+      setTimeout(()=>hint?.classList.remove('attention'),2200);
+    });
     return panel;
   }
 
@@ -97,7 +105,7 @@
 
   function renderSelected(){
     const title=$('smartSelectedTitle'),dims=$('smartSelectedDims'),qty=$('smartSelectedQty');if(!title||!dims||!qty)return;
-    if(!selectedPart){title.textContent='Выберите доску';dims.textContent='Нажмите на верхнюю доску прямо на 3D-модели.';qty.textContent='Размеры и количество появятся здесь.';return;}
+    if(!selectedPart){title.textContent='Выберите доску';dims.textContent='Нажмите кнопку ниже — откроется 3D. Затем нажмите на любую верхнюю доску.';qty.textContent='Выбранная доска подсветится, а размеры появятся здесь.';return;}
     title.textContent=`${selectedPart.name} №${selectedPart.boardNo}`;
     dims.textContent=`${fmt(selectedPart.t)} × ${fmt(selectedPart.w)} × ${fmt(selectedPart.l)} мм`;
     qty.textContent=`${selectedPart.per} шт. на поддон · ${Number(selectedPart.total||0).toLocaleString('ru-RU')} шт. на заказ`;
@@ -125,7 +133,7 @@
     if(!ensurePanel())return;
     document.addEventListener('input',e=>{if(e.target?.id&&/^(pL|pW|qty|n[0-6]|t[0-6]|w[0-6]|l[0-6])$/.test(e.target.id))requestAnimationFrame(update);});
     document.addEventListener('change',e=>{if(e.target?.id&&/^(pL|pW|qty|n[0-6]|t[0-6]|w[0-6]|l[0-6])$/.test(e.target.id))requestAnimationFrame(update);});
-    window.addEventListener('pallet3d:partselect',e=>{selectedPart=e.detail||null;renderSelected();});
+    window.addEventListener('pallet3d:partselect',e=>{selectedPart=e.detail||null;document.querySelector('.previewCard')?.classList.remove('partPickMode');document.querySelector('.palletPickHint')?.classList.remove('attention');renderSelected();});
     update();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
