@@ -1,15 +1,13 @@
 name: Vendor CC0 tractor asset
 
-on:
-  push:
-    paths:
-      - '.github/workflows/vendor-cc0-tractor.yml'
+on: [push]
 
 permissions:
   contents: write
 
 jobs:
   vendor:
+    if: contains(github.event.head_commit.message, 'TRIGGER_VENDOR')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,5 +35,3 @@ jobs:
             git commit -m 'Vendor CC0 long-nose tractor GLB'
             git push origin HEAD:main
           fi
-
-# Re-save to trigger the vendor job after workflow registration.
