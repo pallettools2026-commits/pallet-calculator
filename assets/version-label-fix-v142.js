@@ -1,6 +1,6 @@
 (()=>{
   const VERSION='v1.1.16';
-  const UPDATE_NO=367;
+  const UPDATE_NO=368;
   const OWNER_USER_ID='8c7c190b-8d8c-4e51-adb6-580b519a44aa';
   const SELECTOR='.sideVersion,.mobileMoreVersion';
 
