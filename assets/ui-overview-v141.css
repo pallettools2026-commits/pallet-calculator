@@ -1,0 +1,95 @@
+/* Pallet Tools — overview workspace polish v141
+   Structural hierarchy only. Existing theme colors remain untouched. */
+
+.productionDashboardV3{max-width:1640px!important}
+.productionDashboardV3 .dashIntro{align-items:center!important;min-height:74px!important;padding:2px 0 4px!important}
+.productionDashboardV3 .dashIntro>div:first-child{max-width:760px!important}
+.productionDashboardV3 .dashIntro h1{font-size:30px!important;line-height:1.05!important}
+.productionDashboardV3 .dashIntro p{font-size:12px!important;margin-top:6px!important}
+.productionDashboardV3 .dashIntroActions{align-self:center!important}
+.productionDashboardV3 .dashIntroActions button{min-width:132px!important}
+
+/* KPI strip */
+.productionDashboardV3 .dashKpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:0 0 12px!important}
+.productionDashboardV3 .dashKpi{min-height:72px!important;padding:11px 12px!important;gap:9px!important;box-shadow:none!important}
+.productionDashboardV3 .dashKpiIcon{width:34px!important;height:34px!important;font-size:15px!important}
+.productionDashboardV3 .dashKpi strong{font-size:19px!important;line-height:1.05!important}
+.productionDashboardV3 .dashKpi small{font-size:9px!important}
+.productionDashboardV3 .dashKpi span{font-size:9px!important;margin-top:2px!important}
+
+/* Main desktop composition */
+.productionDashboardV3 .dashLayout{grid-template-columns:minmax(0,1.82fr) minmax(292px,.58fr)!important;gap:12px!important;align-items:start!important}
+.productionDashboardV3 .dashMainCol,.productionDashboardV3 .dashSideCol{gap:10px!important}
+.productionDashboardV3 .dashPanel{padding:14px!important;box-shadow:none!important}
+.productionDashboardV3 .currentOrderPanel{padding:16px!important}
+.productionDashboardV3 .currentOrderPanel .dashPanelHead{margin-bottom:12px!important}
+.productionDashboardV3 .currentOrderPanel .dashPanelHead h3{font-size:15px!important}
+
+/* Active order becomes the visual anchor */
+.productionDashboardV3 .orderFocus{grid-template-columns:150px minmax(0,1fr) 178px!important;gap:18px!important;padding:16px!important;min-height:150px!important}
+.productionDashboardV3 .orderFocus>img{height:116px!important;align-self:center!important}
+.productionDashboardV3 .orderFocusMain{align-self:center!important}
+.productionDashboardV3 .orderFocusMain h2{font-size:22px!important;line-height:1.1!important;margin:8px 0 4px!important}
+.productionDashboardV3 .orderFocusMain p{font-size:11px!important;line-height:1.4!important}
+.productionDashboardV3 .orderBadges{gap:5px!important}
+.productionDashboardV3 .orderBadges span{padding:4px 8px!important;font-size:9px!important}
+.productionDashboardV3 .orderProgress{margin-top:16px!important}
+.productionDashboardV3 .orderProgressTop{font-size:10px!important;margin-bottom:6px!important}
+.productionDashboardV3 .dashBar{height:9px!important}
+.productionDashboardV3 .orderFocusAside{padding-left:16px!important;gap:4px!important;align-self:stretch!important;align-content:center!important}
+.productionDashboardV3 .orderFocusAside small{font-size:8px!important}
+.productionDashboardV3 .orderFocusAside b{font-size:12px!important;margin-bottom:9px!important}
+
+/* Readiness block reads as part of the order, not another card */
+.productionDashboardV3 .orderReadiness{margin-top:10px!important;padding:11px 12px!important;border-radius:9px!important;box-shadow:none!important}
+.productionDashboardV3 .orderReadinessIcon{width:32px!important;height:32px!important;flex:0 0 32px!important}
+.productionDashboardV3 .orderReadinessMain strong{font-size:12px!important}
+.productionDashboardV3 .orderReadinessMain span{font-size:9px!important}
+.productionDashboardV3 .orderReadinessChips{gap:4px!important;margin-top:6px!important}
+.productionDashboardV3 .orderReadinessAction{min-height:34px!important;padding:7px 10px!important;border-radius:7px!important;font-size:10px!important}
+
+/* Secondary content */
+.productionDashboardV3 .dashMiniGrid{gap:10px!important}
+.productionDashboardV3 .dashPanel.compact{min-height:144px!important;padding:13px!important}
+.productionDashboardV3 .dashPanel.compact .dashPanelHead{margin-bottom:8px!important}
+.productionDashboardV3 .miniMetric{margin:10px 0 7px!important}
+.productionDashboardV3 .miniMetric strong{font-size:25px!important}
+.productionDashboardV3 .shiftMini{margin-top:12px!important;gap:6px!important}
+.productionDashboardV3 .shiftMini div{padding:8px!important;border-radius:8px!important}
+.productionDashboardV3 .shiftMini b{font-size:17px!important}
+.productionDashboardV3 .dashPalletImage{height:184px!important;margin-top:2px!important}
+.productionDashboardV3 .quickGrid{grid-template-columns:1fr!important;gap:6px!important}
+.productionDashboardV3 .quickGrid button{display:grid!important;grid-template-columns:26px minmax(0,1fr)!important;align-items:center!important;gap:8px!important;min-height:42px!important;padding:8px 10px!important}
+.productionDashboardV3 .quickGrid span{margin:0!important;font-size:15px!important}
+
+/* Keep right rail visually calm */
+.productionDashboardV3 .dashSideCol .dashPanel{padding:12px!important}
+.productionDashboardV3 .dashSideCol .dashPanelHead{margin-bottom:8px!important}
+.productionDashboardV3 .dashSideCol .dashPanelHead h3{font-size:13px!important}
+.productionDashboardV3 .dashSideCol .dashPanelHead p{display:none!important}
+
+@media(max-width:1180px){
+  .productionDashboardV3 .dashLayout{grid-template-columns:1fr!important}
+  .productionDashboardV3 .dashSideCol{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .productionDashboardV3 .quickGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+@media(max-width:760px){
+  .productionDashboardV3 .dashIntro{min-height:0!important;align-items:flex-start!important}
+  .productionDashboardV3 .dashIntroActions{align-self:stretch!important}
+  .productionDashboardV3 .dashIntroActions button{min-width:0!important}
+  .productionDashboardV3 .dashKpis{grid-template-columns:1fr 1fr!important}
+  .productionDashboardV3 .orderFocus{grid-template-columns:88px minmax(0,1fr)!important;gap:11px!important;padding:12px!important;min-height:0!important}
+  .productionDashboardV3 .orderFocus>img{height:82px!important}
+  .productionDashboardV3 .orderFocusMain h2{font-size:18px!important}
+  .productionDashboardV3 .orderFocusAside{grid-column:1/-1!important;padding:10px 0 0!important}
+  .productionDashboardV3 .dashSideCol{grid-template-columns:1fr!important}
+  .productionDashboardV3 .quickGrid{grid-template-columns:1fr 1fr!important}
+}
+
+@media(max-width:460px){
+  .productionDashboardV3 .dashKpis{grid-template-columns:1fr!important}
+  .productionDashboardV3 .orderFocus{grid-template-columns:1fr!important}
+  .productionDashboardV3 .orderFocus>img{height:100px!important}
+  .productionDashboardV3 .quickGrid{grid-template-columns:1fr!important}
+}
