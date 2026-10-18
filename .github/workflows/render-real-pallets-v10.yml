@@ -1,3 +1,4 @@
+# v10 trigger 2
 name: Render realistic pallet stacks
 
 on:
@@ -55,24 +56,16 @@ jobs:
             const deckH=.022,blockH=.078,crossH=.022;
             const woodA=alt?M.wood2:M.wood,woodB=alt?M.wood:M.wood2;
             const edgeX=Math.max(.05,W/2-.0725),edgeZ=Math.max(.05,L/2-.0725);
-
-            // Нижние доски — 22 мм
             const runnerWidths=[.10,.145,.10],runnerX=[-edgeX,0,edgeX];
             runnerX.forEach((x,i)=>g.add(box(Math.min(runnerWidths[i],W*.24),deckH,L*.96,woodB,x,deckH/2,0)));
-
-            // 9 шашек — 78 мм
             const xs=[-edgeX,0,edgeX],zs=[-edgeZ,0,edgeZ];
             for(let ix=0;ix<3;ix++)for(let iz=0;iz<3;iz++){
               const bw=ix===1?Math.min(.145,W*.24):Math.min(.10,W*.22);
               const bd=iz===1?Math.min(.145,L*.20):Math.min(.10,L*.18);
               g.add(box(bw,blockH,bd,woodB,xs[ix],deckH+blockH/2,zs[iz]));
             }
-
-            // Поперечные доски — 22 мм
             const crossY=deckH+blockH+crossH/2;
             zs.forEach(z=>g.add(box(W*.98,crossH,Math.min(.145,L*.20),woodA,0,crossY,z)));
-
-            // Верхний настил — 5 досок по 22 мм
             const widths=[.145,.10,.145,.10,.145].map(v=>Math.min(v,W*.22));
             const total=widths.reduce((a,b)=>a+b,0);
             const gap=Math.max(.008,(W-total)/4);
