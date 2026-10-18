@@ -1,0 +1,34 @@
+name: Assembly measure fix v133
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/assembly-measure-fix-v133.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix assembly dimension visibility
+        run: python .github/scripts/fix_assembly_measure_visibility_v133.py
+      - name: Validate pallet JavaScript
+        run: node --check assets/pallet3d-v10.js
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Refine assembly step dimensions"
+          git push
