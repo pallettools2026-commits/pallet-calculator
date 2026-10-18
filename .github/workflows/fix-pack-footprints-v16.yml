@@ -1,0 +1,101 @@
+name: Fix pack footprints v16
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-pack-footprints-v16.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply exact one-by-one and mama-papa footprints
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('assets/truck-planner-v9.js')
+          html_path = Path('truck-planner.html')
+          js = js_path.read_text(encoding='utf-8')
+          html = html_path.read_text(encoding='utf-8')
+
+          old = "  const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0),pk=bestPacking(v.L,v.W,p.L+gap,p.W+gap);\n  const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne';"
+          new = "  const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0);\n  const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne';\n  const footprintL=p.L,footprintW=p.W+(packMode==='mamaPapa'?100:0),pk=bestPacking(v.L,v.W,footprintL+gap,footprintW+gap);"
+          assert old in js, 'calculate footprint block not found'
+          js = js.replace(old, new, 1)
+
+          old = "  S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show,packMode,packQty,packH,packStep};"
+          new = "  S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show,packMode,packQty,packH,packStep,footprintL,footprintW};"
+          assert old in js, 'state line not found'
+          js = js.replace(old, new, 1)
+
+          old = "  if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: количество задаётся вручную. Первый поддон ${h} мм, следующий шаг по высоте ${nestedStep} мм (доска 22 мм + шашка 78 мм).`:`Один на один: количество задаётся вручную. Каждый следующий поддон добавляет ${h} мм.`;"
+          new = "  if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: один поддон ${mm(p.W)} × ${mm(p.L)}, пачка по полу ${mm(footprintW)} × ${mm(footprintL)}. Количество задаётся вручную.`:`Один на один: габарит пачки по полу не меняется — ${mm(p.W)} × ${mm(p.L)}. Количество задаётся вручную.`;"
+          assert old in js, 'hint line not found'
+          js = js.replace(old, new, 1)
+
+          old = "  E.vn.textContent=v.name;E.vd.textContent=`${mm(v.L)} × ${mm(v.W)} × ${mm(v.H)}`;E.pn.textContent=p.name;E.pd.textContent=`${mm(p.L)} × ${mm(p.W)} · 1 поддон ${mm(h)} · пачка ${packQty} шт. = ${mm(packH)}`;"
+          new = "  E.vn.textContent=v.name;E.vd.textContent=`${mm(v.L)} × ${mm(v.W)} × ${mm(v.H)}`;E.pn.textContent=p.name;E.pd.textContent=`1 поддон ${mm(p.W)} × ${mm(p.L)} · пачка по полу ${mm(footprintW)} × ${mm(footprintL)} · высота ${mm(packH)}`;"
+          assert old in js, 'pallet dims line not found'
+          js = js.replace(old, new, 1)
+
+          old = '''function makePalletPack(p,count,mode,altSeed=0){
+  const g=new THREE.Group(),fullH=(p.H||144)/1000,step=(mode==='mamaPapa'?0.100:fullH);
+  for(let i=0;i<count;i++){
+    const q=makePallet(p,p.H||144,(i+altSeed)%2===1);
+    if(mode==='mamaPapa'&&i%2===1){q.rotation.x=Math.PI;q.rotation.y=Math.PI;q.position.y=i*step+fullH;}
+    else{q.position.y=i*step;}
+    g.add(q);
+  }
+  return g;
+}'''
+          new = '''function makePalletPack(p,count,mode,altSeed=0){
+  const g=new THREE.Group(),fullH=(p.H||144)/1000,step=(mode==='mamaPapa'?0.100:fullH);
+  for(let i=0;i<count;i++){
+    const q=makePallet(p,p.H||144,(i+altSeed)%2===1);
+    if(mode==='mamaPapa'){
+      // По полу мама-папа шире одного поддона ровно на 100 мм.
+      q.position.x=i%2===0?-0.05:0.05;
+      if(i%2===1){q.rotation.x=Math.PI;q.rotation.y=Math.PI;q.position.y=i*step+fullH;}
+      else q.position.y=i*step;
+    }else{
+      // Один на один: никаких смещений по X/Z, габарит остаётся размером поддона.
+      q.position.set(0,i*step,0);
+    }
+    g.add(q);
+  }
+  return g;
+}'''
+          assert old in js, 'makePalletPack block not found'
+          js = js.replace(old, new, 1)
+
+          old = '<div class="tp-note" id="packHint">Введите нужное количество поддонов в пачке вручную. Ограничение определяется высотой кузова и массой.</div>'
+          new = '<div class="tp-note" id="packHint">Один на один: 800 × 1200 мм. Мама‑папа: 900 × 1200 мм. Количество поддонов вводится вручную.</div>'
+          assert old in html, 'HTML hint not found'
+          html = html.replace(old, new, 1)
+
+          old = 'assets/truck-planner-v9.js?v=20261018-2325'
+          new = 'assets/truck-planner-v9.js?v=20261018-2348'
+          assert old in html, 'script cache buster not found'
+          html = html.replace(old, new, 1)
+
+          js_path.write_text(js, encoding='utf-8')
+          html_path.write_text(html, encoding='utf-8')
+          PY
+
+          node --check assets/truck-planner-v9.js
+
+      - name: Commit footprint rules
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/truck-planner-v9.js truck-planner.html
+          git commit -m "Fix pallet pack floor dimensions" || exit 0
+          git push
