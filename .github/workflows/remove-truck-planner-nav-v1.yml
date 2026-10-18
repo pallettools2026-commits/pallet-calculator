@@ -22,7 +22,6 @@ jobs:
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
-          # Keep the desktop sidebar explicitly limited to the main Pallet Tools sections.
           nav = '''<nav class="sideNav">
     <button class="navLink appSideLink active" type="button" data-screen="overview"><span>⌂</span>Обзор</button>
     <button class="navLink appSideLink" type="button" data-screen="production"><span>▥</span>Производство</button>
@@ -71,3 +70,5 @@ jobs:
             git commit -m "Remove truck planner from main sidebar"
             git push
           fi
+
+# trigger-v2
