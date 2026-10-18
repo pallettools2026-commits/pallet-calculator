@@ -726,3 +726,43 @@ html[data-theme="dark"] .palletCompositionTotal{border-color:#4a3d33;background:
 html[data-theme="dark"] .palletCompositionTotal b{color:#f0d5b8}
 @media(max-width:1040px){.palletModelWorkspace.hasComposition{grid-template-columns:minmax(0,1fr)}.palletCompositionPanel{margin-top:0}.palletCompositionRows{grid-template-columns:repeat(2,minmax(0,1fr))}.palletCompositionRow:nth-child(odd){border-right:1px solid #eee7df}}
 @media(max-width:620px){.palletCompositionRows{grid-template-columns:1fr}.palletCompositionRow:nth-child(odd){border-right:0}.palletCompositionMetrics{gap:4px}.palletCompositionPanel{border-radius:12px}.palletCompositionHead{padding:11px}.palletCompositionRow{padding:10px}.palletCompositionTotal{padding:10px}}
+
+
+/* palletAssemblyV1132 */
+#palletPreview3D [data-p3d-assembly]{min-width:82px}
+#palletPreview3D [data-p3d-assembly].active{background:#8d5a32!important;border-color:#8d5a32!important;color:#fff!important;box-shadow:0 5px 14px rgba(112,66,31,.18)!important}
+.palletAssemblyPanel{margin:9px 0 3px;padding:12px 13px 11px;border:1px solid #dfd2c3;border-radius:14px;background:linear-gradient(135deg,#fffaf3,#f7ede1);box-shadow:0 8px 22px rgba(79,53,31,.08);color:#40352c}
+.palletAssemblyHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.palletAssemblyHead small{display:block;margin-bottom:4px;color:#a36a36;font-size:8px;font-weight:950;letter-spacing:.14em}
+.palletAssemblyHead strong{display:block;color:#362c24;font-size:14px;line-height:1.2}
+.palletAssemblyHead p{margin:5px 0 0;color:#74665a;font-size:10px;font-weight:720;line-height:1.4}
+.palletAssemblyHead em{display:inline-block;margin-top:7px;padding:4px 7px;border:1px solid #e2cdb5;border-radius:7px;background:#fff8ef;color:#795331;font-size:9px;font-style:normal;font-weight:850;line-height:1.25}
+.palletAssemblyHead>button{flex:0 0 30px;width:30px;height:30px;min-height:30px;padding:0;border:1px solid #dfd1c3;border-radius:9px;background:#fff;color:#8a7563;font-size:18px;line-height:1;box-shadow:none}
+.palletAssemblySteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:11px}
+.palletAssemblySteps button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:36px;padding:6px 7px;border:1px solid #e2d6ca;border-radius:10px;background:#fff;color:#837366;font-size:9px;font-weight:850;box-shadow:none}
+.palletAssemblySteps button b{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;border-radius:50%;background:#eee7df;color:#75665a;font-size:9px}
+.palletAssemblySteps button.done{border-color:#ddc4a8;background:#fff7ed;color:#825a37}
+.palletAssemblySteps button.done b{background:#dca96f;color:#fff}
+.palletAssemblySteps button.active{border-color:#b8793d;background:#f5e5d2;color:#633e20;box-shadow:inset 0 0 0 1px rgba(184,121,61,.10)}
+.palletAssemblySteps button.active b{background:#9d6232;color:#fff;box-shadow:0 0 0 3px rgba(184,121,61,.14)}
+.palletAssemblyActions{display:flex;justify-content:flex-end;gap:7px;margin-top:10px}
+.palletAssemblyActions button{min-height:36px;padding:7px 12px;border:1px solid #ddcfc1;border-radius:9px;background:#fff;color:#66584d;font-size:10px;font-weight:900;box-shadow:none}
+.palletAssemblyActions button.primary{border-color:#9d6232;background:#9d6232;color:#fff;box-shadow:0 5px 13px rgba(117,67,29,.16)}
+.palletAssemblyActions button:disabled{opacity:.38;cursor:not-allowed}
+html[data-theme="dark"] .palletAssemblyPanel{border-color:#564537;background:linear-gradient(135deg,#312a24,#2a2521);color:#efe2d4}
+html[data-theme="dark"] .palletAssemblyHead strong{color:#f5eadf}
+html[data-theme="dark"] .palletAssemblyHead p{color:#bdb0a4}
+html[data-theme="dark"] .palletAssemblyHead em{border-color:#5d4633;background:#392e25;color:#e7c298}
+html[data-theme="dark"] .palletAssemblyHead>button,html[data-theme="dark"] .palletAssemblySteps button,html[data-theme="dark"] .palletAssemblyActions button{border-color:#4e4035;background:#302a25;color:#d9cdc1}
+html[data-theme="dark"] .palletAssemblySteps button.done{border-color:#624b36;background:#382e26;color:#d7b28c}
+html[data-theme="dark"] .palletAssemblySteps button.active{border-color:#a86e39;background:#493522;color:#f1cfaa}
+html[data-theme="dark"] .palletAssemblyActions button.primary{border-color:#a86e39;background:#9a6233;color:#fff}
+@media(max-width:620px){
+  .palletAssemblyPanel{padding:10px;margin-top:7px}
+  .palletAssemblyHead strong{font-size:13px}
+  .palletAssemblyHead p{font-size:9px}
+  .palletAssemblySteps{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  .palletAssemblySteps button{justify-content:flex-start;min-height:38px}
+  .palletAssemblyActions{display:grid;grid-template-columns:1fr 1fr}
+  .palletAssemblyActions button{min-height:42px}
+}
