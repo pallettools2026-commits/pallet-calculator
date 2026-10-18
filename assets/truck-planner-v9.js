@@ -57,18 +57,19 @@ function getPallet(){const p=PALLETS[E.p.value]||PALLETS.eur;if(E.p.value!=='cus
 function bestPacking(L,W,pL,pW){let best={count:0,pos:[],text:''};for(let rot=0;rot<2;rot++){const along=rot?pW:pL,across=rot?pL:pW,cols=Math.floor(W/across),rows=Math.floor(L/along),count=cols*rows,pos=[];for(let c=0;c<cols;c++)for(let r=0;r<rows;r++)pos.push({x:-cols*across/2+across/2+c*across,z:-rows*along/2+along/2+r*along,r:rot?Math.PI/2:0});if(count>best.count)best={count,pos,text:`${cols} × ${rows} · ${rot?'поперёк':'вдоль'}`};}return best;}
 
 function calculate(){
-  const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0),pk=bestPacking(v.L,v.W,p.L+gap,p.W+gap);
+  const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0);
   const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne';
+  const footprintL=p.L,footprintW=p.W+(packMode==='mamaPapa'?100:0),pk=bestPacking(v.L,v.W,footprintL+gap,footprintW+gap);
   const packQty=Math.max(1,Math.floor(Number(E.packQty?.value)||1));
   if(E.packQty&&Number(E.packQty.value)!==packQty)E.packQty.value=packQty;
   const nestedStep=100,packStep=packMode==='mamaPapa'?nestedStep:h,packH=h+(packQty-1)*packStep;
   const floor=pk.count,fitsHeight=packH<=v.H,layers=fitsHeight?(E.stack.checked?Math.max(1,Math.floor(v.H/packH)):1):0;
   const geo=floor*layers*packQty,byWeight=w>0?Math.floor(v.payload/w):Infinity,cap=Math.max(0,Math.min(geo,byWeight)),desired=Math.max(0,Math.floor(Number(E.qty.value)||0)),show=Math.min(cap,desired||cap);
-  S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show,packMode,packQty,packH,packStep};
+  S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show,packMode,packQty,packH,packStep,footprintL,footprintW};
   E.cap.textContent=cap.toLocaleString('ru-RU');E.floor.textContent=floor.toLocaleString('ru-RU');E.layers.textContent=layers.toLocaleString('ru-RU');E.weight.textContent=Number.isFinite(byWeight)?byWeight.toLocaleString('ru-RU'):'∞';
   E.capSub.textContent=`поддонов · ${packQty} шт. в пачке`;E.floorSub.textContent='мест под пачки на полу кузова';E.layersSub.textContent=E.stack.checked?`пачек по высоте · пачка ${mm(packH)}`:`1 ярус пачек · пачка ${mm(packH)}`;E.weightSub.textContent=w?`грузоподъёмность ${kg(v.payload)}`:'масса не задана';
-  if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: количество задаётся вручную. Первый поддон ${h} мм, следующий шаг по высоте ${nestedStep} мм (доска 22 мм + шашка 78 мм).`:`Один на один: количество задаётся вручную. Каждый следующий поддон добавляет ${h} мм.`;
-  E.vn.textContent=v.name;E.vd.textContent=`${mm(v.L)} × ${mm(v.W)} × ${mm(v.H)}`;E.pn.textContent=p.name;E.pd.textContent=`${mm(p.L)} × ${mm(p.W)} · 1 поддон ${mm(h)} · пачка ${packQty} шт. = ${mm(packH)}`;E.layout.textContent=`${pk.text} · ${packMode==='mamaPapa'?'мама‑папа':'один на один'}`;E.usage.textContent=`${show} из ${cap} поддонов · ${cap?Math.round(show/cap*100):0}% заполнения`;E.rendered.textContent=w?`Текущая масса: ${kg(show*w)} из ${kg(v.payload)}`:`В 3D: ${show} поддонов · ${packQty} в пачке`; 
+  if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: один поддон ${mm(p.W)} × ${mm(p.L)}, пачка по полу ${mm(footprintW)} × ${mm(footprintL)}. Количество задаётся вручную.`:`Один на один: габарит пачки по полу не меняется — ${mm(p.W)} × ${mm(p.L)}. Количество задаётся вручную.`;
+  E.vn.textContent=v.name;E.vd.textContent=`${mm(v.L)} × ${mm(v.W)} × ${mm(v.H)}`;E.pn.textContent=p.name;E.pd.textContent=`1 поддон ${mm(p.W)} × ${mm(p.L)} · пачка по полу ${mm(footprintW)} × ${mm(footprintL)} · высота ${mm(packH)}`;E.layout.textContent=`${pk.text} · ${packMode==='mamaPapa'?'мама‑папа':'один на один'}`;E.usage.textContent=`${show} из ${cap} поддонов · ${cap?Math.round(show/cap*100):0}% заполнения`;E.rendered.textContent=w?`Текущая масса: ${kg(show*w)} из ${kg(v.payload)}`:`В 3D: ${show} поддонов · ${packQty} в пачке`; 
   const warn=[];if(!floor)warn.push('Пачка не помещается по длине или ширине кузова.');if(!fitsHeight)warn.push(`Пачка высотой ${Math.round(packH)} мм выше кузова ${Math.round(v.H)} мм.`);if(w&&byWeight<geo)warn.push(`Ограничение по массе: максимум ${byWeight} поддонов.`);if(desired>cap)warn.push(`Запрошено ${desired}, максимум ${cap}.`);E.warn.hidden=!warn.length;E.warn.textContent=warn.join(' ');renderSceneTruck();
 }
 
@@ -176,8 +177,13 @@ function makePalletPack(p,count,mode,altSeed=0){
   const g=new THREE.Group(),fullH=(p.H||144)/1000,step=(mode==='mamaPapa'?0.100:fullH);
   for(let i=0;i<count;i++){
     const q=makePallet(p,p.H||144,(i+altSeed)%2===1);
-    if(mode==='mamaPapa'&&i%2===1){q.rotation.x=Math.PI;q.rotation.y=Math.PI;q.position.y=i*step+fullH;}
-    else{q.position.y=i*step;}
+    if(mode==='mamaPapa'){
+      q.position.x=i%2===0?-0.05:0.05;
+      if(i%2===1){q.rotation.x=Math.PI;q.rotation.y=Math.PI;q.position.y=i*step+fullH;}
+      else q.position.y=i*step;
+    }else{
+      q.position.set(0,i*step,0);
+    }
     g.add(q);
   }
   return g;
