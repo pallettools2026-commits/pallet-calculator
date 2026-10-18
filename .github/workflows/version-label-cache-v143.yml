@@ -1,0 +1,30 @@
+name: Sidebar version cache v143
+
+on:
+  push:
+    paths:
+      - '.github/workflows/version-label-cache-v143.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version label cache
+        run: python .github/scripts/bump_version_label_cache_v143.py
+      - name: Validate JavaScript
+        run: node --check assets/version-label-fix-v142.js
+      - name: Commit cache bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Finalize sidebar version label fix"
+            git push
+          fi
