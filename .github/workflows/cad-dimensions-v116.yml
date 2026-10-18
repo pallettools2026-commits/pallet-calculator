@@ -1,4 +1,4 @@
-name: Fix 3D board picker v1.1.14
+name: Fix 3D board picker v1.1.15
 
 on:
   push:
@@ -17,26 +17,26 @@ jobs:
           fetch-depth: 0
       - name: Prepare main
         run: |
-          cp .github/scripts/fix_3d_picker_v1113.py /tmp/fix_3d_picker_v1114.py
+          cp .github/scripts/fix_3d_picker_overlay_v1115.py /tmp/fix_3d_picker_overlay_v1115.py
           git fetch origin main
           git checkout -B main origin/main
-          test "$(git rev-parse HEAD)" = "52158c4c62f231395e785f79ca302dc50c21ddc2"
-      - name: Apply robust picker fix
-        run: python3 /tmp/fix_3d_picker_v1114.py
+          test "$(git rev-parse HEAD)" = "a3c5dbc51957f9390ae9638928d360c9f7a5e188"
+      - name: Apply picker overlay fix
+        run: python3 /tmp/fix_3d_picker_overlay_v1115.py
       - name: Validate
         run: |
           node --check assets/pallet3d-v10.js
           node --check assets/smart-tools-v1.js
-          grep -q 'const pickDeckByProjection=(clientX,clientY)' assets/pallet3d-v10.js
-          grep -q 'pointInPolygon' assets/pallet3d-v10.js
-          grep -q 'Режим выбора: нажмите прямо на верхнюю доску' assets/smart-tools-v1.js
-          grep -q 'partPickerFixV1114' assets/theme-industrial-v130.css
-          grep -q 'Pallet Tools · v1.1.14' assets/theme-industrial-v130.css
-          grep -q 'обновление №348' assets/theme-industrial-v130.css
+          grep -q 'palletBoardPickOverlay' assets/pallet3d-v10.js
+          grep -q 'updatePickButtons=()=>{' assets/pallet3d-v10.js
+          grep -q 'pickerOverlayV1115' assets/theme-industrial-v130.css
+          grep -q 'подсвеченную область любой верхней доски' assets/smart-tools-v1.js
+          grep -q 'Pallet Tools · v1.1.15' assets/theme-industrial-v130.css
+          grep -q 'обновление №349' assets/theme-industrial-v130.css
       - name: Commit to main
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js assets/smart-tools-v1.js
-          git commit -m 'Make 3D board selection reliable'
+          git commit -m 'Fix 3D board picker with clickable overlays'
           git push origin HEAD:main
