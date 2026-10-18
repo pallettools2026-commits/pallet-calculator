@@ -1,0 +1,99 @@
+name: Fix mama-papa pack width v14
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-mamapapa-width-v14.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply +100 mm width for mama-papa packs
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          js_path=Path('assets/truck-planner-v9.js')
+          html_path=Path('truck-planner.html')
+          js=js_path.read_text(encoding='utf-8')
+          html=html_path.read_text(encoding='utf-8')
+
+          # Packing footprint: single pallet remains L x W, mama-papa pack gets +100 mm on width only.
+          js=re.sub(
+              r"const v=getVehicle\(\),p=getPallet\(\),h=p\.H\|\|144,w=Number\(E\.pw\.value\)\|\|0,gap=Math\.max\(0,Number\(E\.gap\.value\)\|\|0\),(?:footprintL=p\.L,footprintW=p\.W,)?pk=bestPacking\(v\.L,v\.W,(?:footprintL|p\.L)\+gap,(?:footprintW|p\.W)\+gap\);",
+              "const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0);\n  const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne',footprintL=p.L,footprintW=p.W+(packMode==='mamaPapa'?100:0),pk=bestPacking(v.L,v.W,footprintL+gap,footprintW+gap);",
+              js,count=1
+          )
+
+          # Avoid redeclaring packMode later in calculate().
+          js=js.replace(
+              "const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne',packQty=Math.max(1,Math.floor(Number(E.packQty?.value)||1));",
+              "const packQty=Math.max(1,Math.floor(Number(E.packQty?.value)||1));"
+          )
+          js=js.replace(
+              "const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne',maxPerPack=Infinity;",
+              "const maxPerPack=Infinity;"
+          )
+
+          # Ensure status line reports correct pack floor size.
+          js=re.sub(
+              r"E\.pn\.textContent=p\.name;E\.pd\.textContent=`[^`]*`;",
+              "E.pn.textContent=p.name;E.pd.textContent=`${mm(p.L)} × ${mm(p.W)} · пачка по полу ${mm(footprintL)} × ${mm(footprintW)} · высота ${mm(packH)}`;",
+              js,count=1
+          )
+
+          # Visualize the +100 mm width by alternating a 50 mm lateral offset.
+          pattern=r"function makePalletPack\(p,count,mode,altSeed=0\)\{.*?\n\}"
+          replacement=r'''function makePalletPack(p,count,mode,altSeed=0){
+  const g=new THREE.Group(),fullH=(p.H||144)/1000,verticalStep=(mode==='mamaPapa'?0.100:fullH);
+  for(let i=0;i<count;i++){
+    const q=makePallet(p,p.H||144,(i+altSeed)%2===1);
+    if(mode==='mamaPapa'){
+      // mama-papa: overall pack is 100 mm wider than a single pallet.
+      // Alternate ±50 mm so an 800 mm pallet produces a 900 mm pack footprint.
+      q.position.x=(i%2===0?-0.05:0.05);
+      if(i%2===1){q.rotation.x=Math.PI;q.rotation.y=Math.PI;q.position.y=i*verticalStep+fullH;}
+      else q.position.y=i*verticalStep;
+    }else{
+      q.position.set(0,i*verticalStep,0);
+    }
+    g.add(q);
+  }
+  return g;
+}'''
+          js,n=re.subn(pattern,replacement,js,count=1,flags=re.S)
+          assert n==1, f'makePalletPack replacement count={n}'
+
+          # Replace hints with the corrected rule.
+          js=re.sub(
+              r"if\(E\.packHint\)E\.packHint\.textContent=packMode==='mamaPapa'\?`[^`]*`:`[^`]*`;",
+              "if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: один поддон ${mm(p.W)} × ${mm(p.L)}, пачка по ширине +100 мм = ${mm(footprintW)} × ${mm(footprintL)}. Шаг 100 мм применяется по высоте.`:`Один на один: пачка по полу ${mm(footprintW)} × ${mm(footprintL)}. Количество вводится вручную.`;",
+              js,count=1
+          )
+
+          html=html.replace('truck-planner-v9.js?v=20261018-2335','truck-planner-v9.js?v=20261018-2342')
+          html=html.replace('truck-planner-v9.js?v=20261018-2325','truck-planner-v9.js?v=20261018-2342')
+          html=re.sub(r'<div class="tp-note" id="packHint">.*?</div>', '<div class="tp-note" id="packHint">Для «мама‑папа»: один EUR/EPAL 800 × 1200 мм, пачка занимает 900 × 1200 мм по полу. Количество вводится вручную.</div>', html, count=1)
+
+          js_path.write_text(js,encoding='utf-8')
+          html_path.write_text(html,encoding='utf-8')
+          PY
+
+          node --check assets/truck-planner-v9.js
+
+      - name: Commit mama-papa width fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/truck-planner-v9.js truck-planner.html
+          git commit -m "Use +100 mm width for mama-papa pallet packs" || exit 0
+          git push
