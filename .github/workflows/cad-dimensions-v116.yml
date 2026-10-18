@@ -1,4 +1,4 @@
-name: Apply CAD pallet dimensions v1.1.8
+name: Fix top-view CAD dimensions v1.1.9
 
 on:
   push:
@@ -17,25 +17,63 @@ jobs:
           fetch-depth: 0
       - name: Prepare main
         run: |
-          cp .github/scripts/cad_dimensions_v118.py /tmp/cad_dimensions_v118.py
           git fetch origin main
           git checkout -B main origin/main
-          test "$(git rev-parse HEAD)" = "0889f5fd8b54ad00ef6aab919d9e953c481f7351"
-      - name: Apply updater
-        run: python3 /tmp/cad_dimensions_v118.py
+          test "$(git rev-parse HEAD)" = "377c487eb1e1bc2d7f1c5f1ffd2af83b24329d8b"
+      - name: Apply top-view dimension fix
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          js_path = Path('assets/pallet3d-v10.js')
+          css_path = Path('assets/theme-industrial-v130.css')
+          html_path = Path('index.html')
+
+          js = js_path.read_text(encoding='utf-8')
+          replacements = [
+              ("const leftOutsideX=-PW/2-(topView?.46:.72),rightOutsideX=PW/2+.72;", "const leftOutsideX=-PW/2-(topView?.62:.72),rightOutsideX=PW/2+.72;"),
+              ("const frontOutsideZ=PL/2+(topView?.58:.70);", "const frontOutsideZ=PL/2+(topView?.92:.70);"),
+              ("if(!sideView)paintMeasure('overall-width',[leftX,.08,frontOutsideZ],[rightX,.08,frontOutsideZ],`${fmtMm(profile.width)} мм`,{major:true,labelDy:topView?-12:14});", "if(!sideView)paintMeasure('overall-width',[leftX,.08,frontOutsideZ],[rightX,.08,frontOutsideZ],`${fmtMm(profile.width)} мм`,{major:true,labelDy:topView?0:14});"),
+              ("const boardFront=Math.min(deckL/2,PL/2)-.10;\n        const gapFront=topView?Math.min(PL/2,deckL/2)+.14:Math.min(PL/2,deckL/2)+.36;", "const edgeZ=Math.min(deckL/2,PL/2);\n        const boardFront=topView?edgeZ+.18:edgeZ-.10;\n        const gapFront=topView?edgeZ+.50:edgeZ+.36;"),
+              ("{compact:true,kind:'board',labelDy:topView?-17:(i%2?10:-10),minPx:7}", "{compact:true,kind:'board',labelDy:topView?0:(i%2?10:-10),minPx:7}"),
+              ("{compact:true,kind:'gap',bad:gapBad,labelDy:topView?17:(i%2?-11:11),minPx:5}", "{compact:true,kind:'gap',bad:gapBad,labelDy:topView?0:(i%2?-11:11),minPx:5}"),
+              ("camera.position.set(0,Math.max(PW,PL)*2.0,.001);", "camera.position.set(0,Math.max(PW,PL)*2.55,.001);")
+          ]
+          for old, new in replacements:
+              if old not in js:
+                  raise SystemExit(f'JS marker not found: {old[:80]}')
+              js = js.replace(old, new, 1)
+          js_path.write_text(js, encoding='utf-8')
+
+          css = css_path.read_text(encoding='utf-8')
+          if 'Pallet Tools · v1.1.8' not in css:
+              raise SystemExit('CSS version marker not found')
+          css = css.replace('Pallet Tools · v1.1.8', 'Pallet Tools · v1.1.9')
+          css = css.replace('обновление №342', 'обновление №343')
+          css_path.write_text(css, encoding='utf-8')
+
+          html = html_path.read_text(encoding='utf-8')
+          m = re.search(r'assets/pallet3d-v10\.js\?v=(\d+)', html)
+          if not m:
+              raise SystemExit('pallet3d cache marker not found')
+          html = html[:m.start(1)] + str(int(m.group(1)) + 1) + html[m.end(1):]
+          html_path.write_text(html, encoding='utf-8')
+          PY
       - name: Validate
         run: |
           node --check assets/pallet3d-v10.js
-          grep -q "const topView=mode==='top',sideView=mode==='side'" assets/pallet3d-v10.js
-          grep -q "showDeckLength=Math.abs(deckLengthMm-profile.length)>1" assets/pallet3d-v10.js
-          grep -q "labelDy:topView?-17" assets/pallet3d-v10.js
-          grep -q 'v1.1.8' assets/theme-industrial-v130.css
-          grep -q 'обновление №342' assets/theme-industrial-v130.css
-          grep -Eq 'pallet3d-v10.js\?v=[0-9]+' index.html
+          grep -q 'Math.max(PW,PL)*2.55' assets/pallet3d-v10.js || grep -q 'Math.max(PW,PL)\*2.55' assets/pallet3d-v10.js
+          grep -q 'frontOutsideZ=PL/2+(topView?.92:.70)' assets/pallet3d-v10.js
+          grep -q 'boardFront=topView?edgeZ+.18:edgeZ-.10' assets/pallet3d-v10.js
+          grep -q 'gapFront=topView?edgeZ+.50:edgeZ+.36' assets/pallet3d-v10.js
+          grep -q 'Pallet Tools · v1.1.9' assets/theme-industrial-v130.css
+          grep -q 'обновление №343' assets/theme-industrial-v130.css
       - name: Commit to main
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
-          git commit -m 'Fix CAD dimensions layout by 3D view mode'
+          git commit -m 'Keep CAD dimensions visible in top view'
           git push origin HEAD:main
