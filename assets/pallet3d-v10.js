@@ -3,6 +3,7 @@
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   if(typeof state.showDimensions!=='boolean')state.showDimensions=true;
   if(typeof state.showComposition!=='boolean')state.showComposition=false;
+  if(typeof state.showValidation!=='boolean')state.showValidation=false;
   if(!Number.isInteger(state.assemblyStep))state.assemblyStep=0;
   if(!Array.isArray(state.hiddenKinds))state.hiddenKinds=[];
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
@@ -32,7 +33,7 @@
 
   function currentSignature(){
     const ids=['pL','pW','n0','n1','n2','n3','n4','n5','n6','t0','t1','t2','t3','t4','t5','t6','w0','w1','w2','w3','w4','w5','w6','l0','l1','l2','l3','l4','l5','l6'];
-    return ids.map(id=>el(id)?.value??'').join('|')+'|'+(state.mode||'3d')+'|'+(state.selected||'all')+'|'+(state.showComposition?'composition':'model')+'|assembly:'+(state.assemblyStep||0)+'|'+(Array.isArray(state.hiddenKinds)?state.hiddenKinds.join(','):'');
+    return ids.map(id=>el(id)?.value??'').join('|')+'|'+(state.mode||'3d')+'|'+(state.selected||'all')+'|'+(state.showComposition?'composition':'model')+'|validation:'+(state.showValidation?'open':'closed')+'|assembly:'+(state.assemblyStep||0)+'|'+(Array.isArray(state.hiddenKinds)?state.hiddenKinds.join(','):'');
   }
 
   function dispose(){
@@ -123,6 +124,42 @@
     const compositionPerWeight=compositionRows.reduce((a,r)=>a+r.perWeight,0);
     const compositionBatchWeight=compositionPerWeight*orderQty;
     const compositionPanel=showComposition?`<aside class="palletCompositionPanel" aria-label="Состав поддона"><div class="palletCompositionHead"><div><small>СПЕЦИФИКАЦИЯ</small><strong>Состав поддона</strong></div><span>${orderQty.toLocaleString('ru-RU')} подд.</span></div><div class="palletCompositionRows">${compositionRows.length?compositionRows.map(r=>`<div class="palletCompositionRow" data-kind="${r.kind}"><div class="palletCompositionName"><i class="legendDot ${r.kind}"></i><div><b>${r.name}</b><span>${fmtMm(r.t)} × ${fmtMm(r.w)} × ${fmtMm(r.l)} мм</span></div></div><div class="palletCompositionMetrics"><span><small>На поддон</small><b>${r.qty} шт.</b></span><span><small>Вес 1 шт.</small><b>${fmtKg(r.oneWeight)} кг</b></span><span><small>На заказ</small><b>${fmtKg(r.batchWeight)} кг</b></span></div></div>`).join(''):'<div class="palletCompositionEmpty">Добавьте детали в калькулятор, чтобы увидеть состав.</div>'}</div><div class="palletCompositionTotal"><div><span>Деталей</span><b>${compositionCount.toLocaleString('ru-RU')} шт. / поддон</b></div><div><span>Вес древесины</span><b>${fmtKg(compositionPerWeight)} кг / поддон</b></div><div><span>Весь заказ</span><b>${compositionOrderCount.toLocaleString('ru-RU')} шт. · ${fmtKg(compositionBatchWeight)} кг</b></div><small>Плотность: ${Math.round(density)} кг/м³</small></div></aside>`:'';
+    /* palletValidationV1134 — automatic construction checks */
+    const validationIssues=[];
+    const addValidationIssue=(level,title,detail,target='')=>validationIssues.push({level,title,detail,target});
+    const rawCross=Math.max(0,Math.round(num(bindParts[0].n)))+Math.max(0,Math.round(num(bindParts[1].n)));
+    const rawRunner=Math.max(0,Math.round(num(runnerParts[0].n)))+Math.max(0,Math.round(num(runnerParts[1].n)));
+    const rawOrderQty=num(el('qty')?.value,1);
+    const densityInput=el('smartDensity');
+    const densityRaw=densityInput?num(densityInput.value,500):500;
+
+    if(rawOrderQty<=0)addValidationIssue('error','Количество заказа должно быть больше нуля','Укажите минимум 1 поддон в заказе.','qty');
+    if(rawDeck<=0)addValidationIssue('error','Настил отсутствует','Добавьте хотя бы одну доску настила.','n0');
+    if(rawDeck>profile.deckMax)addValidationIssue('error','Слишком много досок настила',`Для этой схемы максимум ${profile.deckMax} шт., сейчас указано ${rawDeck}.`,'n0');
+    if(deckCount>1&&gapBad)addValidationIssue('error','Настил не помещается',`Доски перекрываются примерно на ${fmtMm(Math.abs(rawGapMm))} мм. Уменьшите ширину доски или количество настила.`,'w0');
+    if(deckCount>1&&!gapBad&&rawGapMm>100)addValidationIssue('warn','Слишком большой зазор настила',`Текущий зазор около ${fmtMm(rawGapMm)} мм. Проверьте ширину и количество досок.`,'w0');
+    if(rawCross<=0)addValidationIssue('error','Поперечины отсутствуют','Для сборки поддона нужны поперечины.','n1');
+    else if(rawCross!==profile.bindingCount)addValidationIssue('warn','Количество поперечин отличается от 3D-схемы',`В расчёте ${rawCross} шт., стандартная 3D-схема использует ${profile.bindingCount} шт.`,'n1');
+    if(rawRunner<=0)addValidationIssue('error','Лыжи отсутствуют','Добавьте лыжи для нижней части поддона.','n3');
+    else if(rawRunner!==profile.runnerLengths.length)addValidationIssue('warn','Количество лыж отличается от 3D-схемы',`В расчёте ${rawRunner} шт., стандартная 3D-схема использует ${profile.runnerLengths.length} шт.`,'n3');
+    if(rawBlocks<=0)addValidationIssue('error','Шашки отсутствуют','Добавьте шашки между лыжами и поперечинами.','n5');
+    else if(rawBlocks!==9)addValidationIssue('warn','Нестандартное количество шашек',`Сейчас ${rawBlocks} шт. Для стандартной схемы ожидается 9 шт.`,'n5');
+
+    P.forEach((p,i)=>{
+      const q=Math.max(0,Math.round(num(p.n,0)));if(!q)return;
+      const dims=[['t','толщина'],['w','ширина'],['l','длина']];
+      dims.forEach(([key,label])=>{if(num(p[key],0)<=0)addValidationIssue('error',`${partNames[i]||`Деталь ${i+1}`}: неверный размер`,`Поле «${label}» должно быть больше 0 мм.`,`${key}${i}`);});
+    });
+    if(rawDeck>0&&deckLengthMm>profile.length+2)addValidationIssue('warn','Настил длиннее габарита поддона',`Длина доски ${fmtMm(deckLengthMm)} мм, габарит поддона ${fmtMm(profile.length)} мм.`,'l0');
+    if(rawDeck>0&&deckLengthMm<profile.length-2)addValidationIssue('warn','Настил короче габарита поддона',`Длина доски ${fmtMm(deckLengthMm)} мм, габарит поддона ${fmtMm(profile.length)} мм.`,'l0');
+    if(densityInput&&(densityRaw<250||densityRaw>1000))addValidationIssue('warn','Проверьте плотность древесины',`Указано ${fmtMm(densityRaw)} кг/м³. Рабочий диапазон калькулятора: 250–1000 кг/м³.`,'smartDensity');
+
+    const validationErrors=validationIssues.filter(x=>x.level==='error').length;
+    const validationWarnings=validationIssues.filter(x=>x.level==='warn').length;
+    const validationStatus=validationErrors?'error':validationWarnings?'warn':'ok';
+    const validationButtonLabel=validationErrors?`Ошибки ${validationErrors}`:validationWarnings?`Внимание ${validationWarnings}`:'Проверка ✓';
+    const validationSummary=validationErrors?`${validationErrors} критич. · ${validationWarnings} предупрежд.`:validationWarnings?`${validationWarnings} предупрежд.`:'Ошибок не найдено';
+    const validationPanel=state.showValidation?`<section class="palletValidationPanel ${validationStatus}" aria-label="Контроль ошибок конструкции"><div class="palletValidationHead"><div><small>КОНТРОЛЬ КОНСТРУКЦИИ</small><strong>${validationErrors?'Нужно исправить ошибки':validationWarnings?'Есть моменты для проверки':'Конструкция выглядит корректно'}</strong></div><span>${validationSummary}</span></div>${validationIssues.length?`<div class="palletValidationList">${validationIssues.map(issue=>`<button type="button" class="palletValidationIssue ${issue.level}" ${issue.target?`data-validation-target="${issue.target}"`:''}><i>${issue.level==='error'?'!':'?'}</i><span><b>${issue.title}</b><em>${issue.detail}</em></span>${issue.target?'<strong>Исправить →</strong>':''}</button>`).join('')}</div>`:`<div class="palletValidationOk"><b>✓ Основные проверки пройдены</b><span>Габариты, состав и размеры деталей не содержат очевидных конфликтов.</span></div>`}<div class="palletValidationFoot">Проверяется автоматически при каждом изменении размеров и количества деталей.</div></section>`:'';
     const assemblySteps=[
       {kind:'runner',label:'Лыжи',title:'Установите лыжи',text:'Разложите лыжи параллельно по длине поддона и проверьте их положение.'},
       {kind:'block',label:'Шашки',title:'Установите шашки',text:'Поставьте шашки на лыжи по схеме поддона и закрепите соединение.'},
@@ -138,7 +175,7 @@
     const fastenerLegend=mode==='explode'&&!assemblyActive?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
     const legendItems=[['deck','Настил'],['cross','Поперечины'],['runner','Лыжи'],['block','Шашки']];
     const partLegend=mode==='3d'||assemblyActive?'':`<div class="palletPartLegend" aria-label="Группы деталей"><span class="palletPartLegendTitle">ДЕТАЛИ</span>${legendItems.map(([kind,label])=>`<button type="button" data-p3d-kind-toggle="${kind}" class="${kindVisible(kind)?'active':'off'}" aria-pressed="${kindVisible(kind)?'true':'false'}"><i class="legendDot ${kind}"></i><span>${label}</span></button>`).join('')}<button type="button" class="palletPartLegendReset" data-p3d-kind-reset ${hiddenKinds.size?'':'hidden'}>Показать все</button></div>`;
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'&&!assemblyActive?'active':''}">${mode==='explode'&&!assemblyActive?'Собрать':'Разнести'}</button><button type="button" data-p3d-assembly class="${assemblyActive?'active':''}" aria-pressed="${assemblyActive?'true':'false'}">Сборка</button><button type="button" data-p3d-dims aria-pressed="${showDimensions?'true':'false'}" class="${showDimensions?'active':''}" ${mode==='3d'?'hidden':''}>Размеры</button><button type="button" data-p3d-composition aria-pressed="${showComposition?'true':'false'}" class="${showComposition?'active':''}" ${mode==='3d'||assemblyActive?'hidden':''}>Состав</button></div>${assemblyPanel}${partLegend}${fastenerLegend}<div class="palletModelWorkspace ${showComposition?'hasComposition':''}"><div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'&&!assemblyActive?'hidden':''}>${pickHintText}</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>${compositionPanel}</div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'&&!assemblyActive?'active':''}">${mode==='explode'&&!assemblyActive?'Собрать':'Разнести'}</button><button type="button" data-p3d-assembly class="${assemblyActive?'active':''}" aria-pressed="${assemblyActive?'true':'false'}">Сборка</button><button type="button" data-p3d-dims aria-pressed="${showDimensions?'true':'false'}" class="${showDimensions?'active':''}" ${mode==='3d'?'hidden':''}>Размеры</button><button type="button" data-p3d-composition aria-pressed="${showComposition?'true':'false'}" class="${showComposition?'active':''}" ${mode==='3d'||assemblyActive?'hidden':''}>Состав</button><button type="button" data-p3d-validation aria-pressed="${state.showValidation?'true':'false'}" class="palletValidationButton ${validationStatus} ${state.showValidation?'active':''}">${validationButtonLabel}</button></div>${validationPanel}${assemblyPanel}${partLegend}${fastenerLegend}<div class="palletModelWorkspace ${showComposition?'hasComposition':''}"><div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'&&!assemblyActive?'hidden':''}>${pickHintText}</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>${compositionPanel}</div>`;
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const stage=root.querySelector('.palletReferenceStage');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
@@ -375,6 +412,8 @@
     root.querySelector('[data-p3d-assembly-close]')?.addEventListener('click',()=>{state.assemblyStep=0;state.mode='3d';render(num(el('pL')?.value),num(el('pW')?.value));});
     root.querySelector('[data-p3d-dims]')?.addEventListener('click',()=>{state.showDimensions=!state.showDimensions;render(num(el('pL')?.value),num(el('pW')?.value));});
     root.querySelector('[data-p3d-composition]')?.addEventListener('click',()=>{state.showComposition=!state.showComposition;render(num(el('pL')?.value),num(el('pW')?.value));});
+    root.querySelector('[data-p3d-validation]')?.addEventListener('click',()=>{state.showValidation=!state.showValidation;render(num(el('pL')?.value),num(el('pW')?.value));});
+    root.querySelectorAll('[data-validation-target]').forEach(btn=>btn.addEventListener('click',()=>{const target=el(btn.dataset.validationTarget);if(!target)return;target.scrollIntoView?.({behavior:'smooth',block:'center'});setTimeout(()=>{target.focus?.();target.select?.();},260);}));
     root.querySelectorAll('[data-p3d-kind-toggle]').forEach(btn=>btn.addEventListener('click',()=>{const kind=btn.dataset.p3dKindToggle,next=new Set(Array.isArray(state.hiddenKinds)?state.hiddenKinds:[]);next.has(kind)?next.delete(kind):next.add(kind);state.hiddenKinds=[...next];render(num(el('pL')?.value),num(el('pW')?.value));}));
     root.querySelector('[data-p3d-kind-reset]')?.addEventListener('click',()=>{state.hiddenKinds=[];render(num(el('pL')?.value),num(el('pW')?.value));});
     root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const k=btn.dataset.p3dPart;state.selected=state.selected===k?'all':k;render(num(el('pL')?.value),num(el('pW')?.value));}));

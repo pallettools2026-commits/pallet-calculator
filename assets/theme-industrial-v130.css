@@ -766,3 +766,50 @@ html[data-theme="dark"] .palletAssemblyActions button.primary{border-color:#a86e
   .palletAssemblyActions{display:grid;grid-template-columns:1fr 1fr}
   .palletAssemblyActions button{min-height:42px}
 }
+
+
+/* palletValidationV1134 */
+#palletPreview3D .palletValidationButton{min-width:94px;font-weight:900!important}
+#palletPreview3D .palletValidationButton.ok{border-color:#b9d2be!important;background:#eef7f0!important;color:#376543!important}
+#palletPreview3D .palletValidationButton.warn{border-color:#e2c38d!important;background:#fff7e8!important;color:#8a5d18!important}
+#palletPreview3D .palletValidationButton.error{border-color:#ddb0aa!important;background:#fff0ee!important;color:#9b3d34!important}
+#palletPreview3D .palletValidationButton.ok.active{background:#dfeee2!important;box-shadow:0 0 0 2px rgba(67,116,78,.10)!important}
+#palletPreview3D .palletValidationButton.warn.active{background:#f7e8c8!important;box-shadow:0 0 0 2px rgba(166,111,28,.10)!important}
+#palletPreview3D .palletValidationButton.error.active{background:#f5dcd8!important;box-shadow:0 0 0 2px rgba(155,61,52,.10)!important}
+.palletValidationPanel{margin:9px 0 3px;border:1px solid #ded7cf;border-radius:14px;background:#fffdf9;box-shadow:0 8px 22px rgba(72,53,38,.07);overflow:hidden;color:#3c342d}
+.palletValidationPanel.error{border-color:#e2bbb6}.palletValidationPanel.warn{border-color:#e5cfaa}.palletValidationPanel.ok{border-color:#c8d9cb}
+.palletValidationHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:12px 13px;border-bottom:1px solid #eee6dd;background:#faf6f1}
+.palletValidationHead small{display:block;margin-bottom:3px;color:#9d795a;font-size:8px;font-weight:950;letter-spacing:.13em}
+.palletValidationHead strong{display:block;color:#382f28;font-size:14px;line-height:1.2}
+.palletValidationHead>span{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:#fff;border:1px solid #e5ddd4;color:#796b60;font-size:8px;font-weight:900;white-space:nowrap}
+.palletValidationPanel.error .palletValidationHead>span{border-color:#e2bbb6;background:#fff2f0;color:#963c34}
+.palletValidationPanel.warn .palletValidationHead>span{border-color:#e5cb9d;background:#fff8e9;color:#88601e}
+.palletValidationPanel.ok .palletValidationHead>span{border-color:#c6d8ca;background:#f1f8f2;color:#426e4b}
+.palletValidationList{display:grid;gap:0}
+.palletValidationIssue{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;width:100%;padding:10px 12px;border:0;border-bottom:1px solid #eee8e1;border-radius:0;background:#fff;text-align:left;box-shadow:none;cursor:pointer}
+.palletValidationIssue:last-child{border-bottom:0}
+.palletValidationIssue>i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:12px;font-style:normal;font-weight:950}
+.palletValidationIssue.error>i{background:#f7dfdc;color:#a5453a}.palletValidationIssue.warn>i{background:#faedcf;color:#97671c}
+.palletValidationIssue span{min-width:0}.palletValidationIssue span b{display:block;color:#493d34;font-size:10px;line-height:1.25}.palletValidationIssue span em{display:block;margin-top:2px;color:#81746a;font-size:9px;font-style:normal;font-weight:700;line-height:1.35}
+.palletValidationIssue>strong{color:#956238;font-size:8px;font-weight:900;white-space:nowrap}
+.palletValidationIssue:hover{background:#fffaf4}
+.palletValidationOk{display:grid;gap:3px;padding:13px}.palletValidationOk b{color:#477151;font-size:11px}.palletValidationOk span{color:#7c746d;font-size:9px;line-height:1.4}
+.palletValidationFoot{padding:8px 12px;border-top:1px solid #eee7df;background:#faf7f3;color:#91867c;font-size:8px;font-weight:750;line-height:1.3}
+html[data-theme="dark"] .palletValidationPanel{background:#2b2723;border-color:#4d433b;color:#eee3d7}
+html[data-theme="dark"] .palletValidationHead{background:#332d28;border-color:#4a413a}
+html[data-theme="dark"] .palletValidationHead strong{color:#f3e8dc}
+html[data-theme="dark"] .palletValidationIssue{background:#2c2824;border-color:#423a34}
+html[data-theme="dark"] .palletValidationIssue:hover{background:#352e28}
+html[data-theme="dark"] .palletValidationIssue span b{color:#eee2d6}
+html[data-theme="dark"] .palletValidationIssue span em{color:#b7aba0}
+html[data-theme="dark"] .palletValidationFoot{background:#302a25;border-color:#463d36;color:#a99d92}
+html[data-theme="dark"] .palletValidationOk b{color:#9fc7a6}
+html[data-theme="dark"] .palletValidationOk span{color:#b8aea4}
+@media(max-width:620px){
+  #palletPreview3D .palletValidationButton{min-width:0}
+  .palletValidationHead{display:grid;gap:7px;padding:10px}
+  .palletValidationHead>span{justify-self:start}
+  .palletValidationIssue{grid-template-columns:26px minmax(0,1fr);padding:10px}
+  .palletValidationIssue>strong{grid-column:2;margin-top:1px}
+  .palletValidationFoot{padding:8px 10px}
+}
