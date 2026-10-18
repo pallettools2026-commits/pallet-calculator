@@ -138,9 +138,34 @@
     const projectMeasurePoint=(x,y,z)=>{if(!stage||!renderer.domElement)return null;const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;const cr=renderer.domElement.getBoundingClientRect(),sr=stage.getBoundingClientRect();return{x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height};};
     const overlay=root.querySelector('.palletOnModelMeasures');
     const measureMarks={};
+    let measureLabelBoxes=[];
     const ensureMeasure=(name,kind='normal')=>{let mark=measureMarks[name];if(mark)return mark;mark=document.createElement('div');mark.className=`palletMeasureMark ${kind}`;mark.innerHTML='<i class="measureLine"></i><em class="measureTick tickA"></em><em class="measureTick tickB"></em><span></span>';overlay?.appendChild(mark);measureMarks[name]=mark;return mark;};
-    const clearMeasures=()=>Object.values(measureMarks).forEach(mark=>mark.style.display='none');
-    const paintMeasure=(name,a,b,text,opts={})=>{const mark=ensureMeasure(name,opts.kind||'normal');const p1=projectMeasurePoint(a[0],a[1],a[2]),p2=projectMeasurePoint(b[0],b[1],b[2]);if(!p1||!p2){mark.style.display='none';return;}const dx=p2.x-p1.x,dy=p2.y-p1.y,dist=Math.hypot(dx,dy);if(dist<(opts.minPx||4)){mark.style.display='none';return;}const angle=Math.atan2(dy,dx)*180/Math.PI,mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,line=mark.querySelector('.measureLine'),tickA=mark.querySelector('.tickA'),tickB=mark.querySelector('.tickB'),label=mark.querySelector('span');mark.style.display='block';mark.classList.toggle('bad',!!opts.bad);mark.classList.toggle('major',!!opts.major);mark.classList.toggle('compact',!!opts.compact);if(line){line.style.left=`${p1.x}px`;line.style.top=`${p1.y}px`;line.style.width=`${dist}px`;line.style.transform=`rotate(${angle}deg)`;}[[tickA,p1],[tickB,p2]].forEach(([tick,p])=>{if(!tick)return;tick.style.left=`${p.x}px`;tick.style.top=`${p.y}px`;tick.style.transform=`translate(-50%,-50%) rotate(${angle+90}deg)`;});if(label){label.textContent=text;label.style.left=`${mx+(opts.labelDx||0)}px`;label.style.top=`${my+(opts.labelDy||0)}px`;}return mark;};
+    const clearMeasures=()=>{measureLabelBoxes=[];Object.values(measureMarks).forEach(mark=>mark.style.display='none');};
+    const paintMeasure=(name,a,b,text,opts={})=>{
+      const mark=ensureMeasure(name,opts.kind||'normal');
+      const p1=projectMeasurePoint(a[0],a[1],a[2]),p2=projectMeasurePoint(b[0],b[1],b[2]);
+      if(!p1||!p2){mark.style.display='none';return;}
+      const dx=p2.x-p1.x,dy=p2.y-p1.y,dist=Math.hypot(dx,dy);
+      if(dist<(opts.minPx||4)){mark.style.display='none';return;}
+      const angle=Math.atan2(dy,dx)*180/Math.PI,mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+      const line=mark.querySelector('.measureLine'),tickA=mark.querySelector('.tickA'),tickB=mark.querySelector('.tickB'),label=mark.querySelector('span');
+      mark.style.display='block';mark.classList.toggle('bad',!!opts.bad);mark.classList.toggle('major',!!opts.major);mark.classList.toggle('compact',!!opts.compact);
+      if(line){line.style.left=`${p1.x}px`;line.style.top=`${p1.y}px`;line.style.width=`${dist}px`;line.style.transform=`rotate(${angle}deg)`;}
+      [[tickA,p1],[tickB,p2]].forEach(([tick,p])=>{if(!tick)return;tick.style.left=`${p.x}px`;tick.style.top=`${p.y}px`;tick.style.transform=`translate(-50%,-50%) rotate(${angle+90}deg)`;});
+      if(label){
+        label.textContent=text;
+        const stageW=Math.max(1,stage?.clientWidth||renderer.domElement.clientWidth||cw),stageH=Math.max(1,stage?.clientHeight||renderer.domElement.clientHeight||ch);
+        const charW=opts.compact?6.1:(opts.major?8.0:7.0),labelW=Math.max(opts.compact?28:(opts.major?54:38),String(text).length*charW+(opts.compact?10:16)),labelH=opts.compact?18:(opts.major?28:22);
+        const pad=6;
+        let lx=mx+(opts.labelDx||0),ly=my+(opts.labelDy||0);
+        lx=clamp(lx,labelW/2+pad,stageW-labelW/2-pad);ly=clamp(ly,labelH/2+pad,stageH-labelH/2-pad);
+        const box={left:lx-labelW/2-3,right:lx+labelW/2+3,top:ly-labelH/2-3,bottom:ly+labelH/2+3};
+        if(opts.avoidOverlap&&measureLabelBoxes.some(b=>box.left<b.right&&box.right>b.left&&box.top<b.bottom&&box.bottom>b.top)){mark.style.display='none';return;}
+        measureLabelBoxes.push(box);
+        label.style.left=`${lx}px`;label.style.top=`${ly}px`;
+      }
+      return mark;
+    };
     const updateOnModelMeasures=()=>{
       clearMeasures();
       if(!topXs.length)return;
@@ -148,13 +173,13 @@
       const deckOffset=groups.deck.position.y;
       const topSurface=topY+deckT/2+deckOffset+.08;
       const leftX=-PW/2,rightX=PW/2,totalTop=runnerT+blockH+bindT+deckT;
-      const leftOutsideX=-PW/2-(topView?.62:.72),rightOutsideX=PW/2+.72;
+      const leftOutsideX=-PW/2-(topView?.62:.72),rightOutsideX=PW/2+(topView?.72:(sideView?.72:.38));
       const frontOutsideZ=PL/2+(topView?.92:.70);
       const showDeckLength=Math.abs(deckLengthMm-profile.length)>1;
 
       paintMeasure('overall-length',[leftOutsideX,.08,-PL/2],[leftOutsideX,.08,PL/2],`${fmtMm(profile.length)} мм`,{major:true,labelDx:topView?-4:-8});
       if(!sideView)paintMeasure('overall-width',[leftX,.08,frontOutsideZ],[rightX,.08,frontOutsideZ],`${fmtMm(profile.width)} мм`,{major:true,labelDy:topView?0:14});
-      if(!topView)paintMeasure('overall-height',[rightOutsideX,0,PL*.36],[rightOutsideX,totalTop,PL*.36],`${fmtMm(totalTop/S)} мм`,{major:true,labelDx:28});
+      if(!topView)paintMeasure('overall-height',[rightOutsideX,0,PL*.36],[rightOutsideX,totalTop,PL*.36],`${fmtMm(totalTop/S)} мм`,{major:true,labelDx:18});
 
       if(showDeckLength&&!sideView){
         const focusIndex=Math.floor((topXs.length-1)/2),focusX=topXs[focusIndex];
@@ -166,12 +191,12 @@
         const boardFront=topView?edgeZ+.18:edgeZ-.10;
         const gapFront=topView?edgeZ+.50:edgeZ+.36;
         topXs.forEach((x,i)=>{
-          paintMeasure(`board-width-${i}`,[x-actualDeckW/2,topSurface,boardFront],[x+actualDeckW/2,topSurface,boardFront],fmtMm(deckWidthMm),{compact:true,kind:'board',labelDy:topView?0:(i%2?10:-10),minPx:7});
+          paintMeasure(`board-width-${i}`,[x-actualDeckW/2,topSurface,boardFront],[x+actualDeckW/2,topSurface,boardFront],fmtMm(deckWidthMm),{compact:true,kind:'board',labelDy:topView?0:(i%2?10:-10),minPx:topView?7:16,avoidOverlap:!topView});
         });
         if(topXs.length>1){
           for(let i=0;i<topXs.length-1;i++){
             const a=topXs[i]+actualDeckW/2,b=topXs[i+1]-actualDeckW/2;
-            paintMeasure(`gap-${i}`,[a,topSurface,gapFront],[b,topSurface,gapFront],gapBad?`−${fmtMm(Math.abs(rawGapMm))}`:fmtMm(rawGapMm),{compact:true,kind:'gap',bad:gapBad,labelDy:topView?0:(i%2?-11:11),minPx:5});
+            paintMeasure(`gap-${i}`,[a,topSurface,gapFront],[b,topSurface,gapFront],gapBad?`−${fmtMm(Math.abs(rawGapMm))}`:fmtMm(rawGapMm),{compact:true,kind:'gap',bad:gapBad,labelDy:topView?0:(i%2?-11:11),minPx:topView?5:13,avoidOverlap:!topView});
           }
         }
       }
@@ -290,7 +315,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.5 · обновление №339':'Pallet Tools · v1.1.5';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.10 · обновление №344':'Pallet Tools · v1.1.10';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
