@@ -89,8 +89,14 @@
     const rawBlocks=Math.max(0,Math.round(num(block1.n)))+Math.max(0,Math.round(num(block2.n))),blockCount=isReference?9:Math.min(9,rawBlocks||9);
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
+    const deckThicknessMm=Math.max(0,num(deck.t,22)),deckWidthMm=Math.max(0,num(deck.w,98)),deckLengthMm=Math.max(0,num(deck.l,profile.length));
+    const remainingMm=profile.width-deckCount*deckWidthMm,rawGapMm=deckCount>1?remainingMm/(deckCount-1):0,gapBad=deckCount>1&&rawGapMm<0;
+    const fmtMm=v=>{const x=Math.round(num(v,0)*10)/10;return Number.isInteger(x)?String(x):x.toFixed(1).replace('.',',');};
+    const gapText=deckCount>1?`${fmtMm(Math.max(0,rawGapMm))} мм`:'—';
+    const fitNote=gapBad?`Не хватает ${fmtMm(Math.abs(remainingMm))} мм по ширине`:`Остаток ${fmtMm(Math.max(0,remainingMm))} мм`;
+    const dimensionHud=`<div class="palletDimensionHud" aria-label="Размеры настила"><div class="palletMeasure deck"><span>Доска настила</span><strong>${fmtMm(deckThicknessMm)} × ${fmtMm(deckWidthMm)} × ${fmtMm(deckLengthMm)} мм</strong><small>толщина × ширина × длина</small></div><div class="palletMeasure gap ${gapBad?'bad':''}"><span>Между досками</span><strong>${gapText}</strong><small>${deckCount} шт. · ${fitNote}</small></div></div>`;
     const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div></div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionHud}</div>`;
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
     const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(33,cw/ch,.1,120),world=new THREE.Group();scene.add(world);
@@ -115,7 +121,7 @@
     const runnerT=isReference?.22:Math.max(.15,num(runnerParts[0].t,22)*S),runnerW=isReference?.98:Math.max(.58,num(runnerParts[0].w,98)*S);
     const blockH=.75,blockXSize1=.95,blockZSize1=.95,blockXSize2=.95,blockZSize2=.95;
     const bindT=isReference?.22:Math.max(.15,num(bindParts[0].t,22)*S),bindDepth=isReference?.98:Math.max(.58,num(bindParts[0].w,98)*S);
-    const deckT=isReference?.22:Math.max(.15,num(deck.t,22)*S),deckW=isReference?.98:Math.max(.58,num(deck.w,98)*S);
+    const deckT=isReference?.22:Math.max(.01,deckThicknessMm*S),deckW=isReference?.98:Math.max(.01,deckWidthMm*S),deckL=Math.max(.01,deckLengthMm*S);
     const runnerLengths=profile.runnerLengths||Array.from({length:runnerCount},(_,i)=>Math.min(profile.length,num((i<Math.max(0,num(runnerParts[0].n)))?runnerParts[0].l:runnerParts[1].l,profile.length)));
     const runnerActualW=Math.min(runnerW,PW/Math.max(3,runnerLengths.length)*.56),edgeRunnerX=Math.max(0,PW/2-runnerActualW/2-.03);
     let runnerXs;if(runnerLengths.length===5)runnerXs=[-edgeRunnerX,-edgeRunnerX*.5,0,edgeRunnerX*.5,edgeRunnerX];else if(runnerLengths.length===3)runnerXs=[-edgeRunnerX,0,edgeRunnerX];else runnerXs=spread(runnerLengths.length,PW,runnerActualW);
@@ -124,10 +130,10 @@
     for(let zi=0;zi<3;zi++)for(let xi=0;xi<3;xi++){const idx=zi*3+xi;if(idx>=blockCount)continue;const centerType=(xi===1),bx=centerType?blockXSize2:blockXSize1,bz=centerType?blockZSize2:blockZSize1;const sx=xi===0?-1:xi===2?1:0,sz=zi===0?-1:zi===2?1:0;const bxPos=sx===0?0:sx*Math.max(0,PW/2-bx/2-.03),bzPos=sz===0?0:sz*Math.max(0,PL/2-bz/2-.03);blockRows[zi]=bzPos;blockPoints.push({x:bxPos,z:bzPos,bx,bz});piece('block',bx,blockH,bz,bxPos,blockY,bzPos,idx,groups.block);}
     if(selected==='all'||selected==='runner'){runnerXs.forEach((x,xi)=>blockRows.forEach((z,zi)=>{if(z==null||zi*3+Math.min(xi,2)>=blockCount)return;pairNails(nail80,groups.runner,x,runnerT+.014,z,Math.min(.072,runnerActualW*.22),1);}));}
     const bindY=runnerT+blockH+bindT/2,bindZ=[-PL/2+bindDepth/2+.02,0,PL/2-bindDepth/2-.02];bindZ.forEach((z,i)=>piece('cross',PW,bindT,bindDepth,0,bindY,z,i,groups.cross));
-    const topY=runnerT+blockH+bindT+deckT/2,actualDeckW=deckCount?Math.min(deckW,(PW*.92/Math.max(1,deckCount))*.78):deckW,topXs=deckCount?spread(deckCount,PW,actualDeckW):[],nailY=topY+deckT/2+.014;
+    const topY=runnerT+blockH+bindT+deckT/2,actualDeckW=deckCount?Math.min(deckW,PW):deckW,topXs=deckCount?spread(deckCount,PW,actualDeckW):[],nailY=topY+deckT/2+.014;
     const pairNailsDepth=(fn,group,x,y,z,dz,direction=-1)=>{fn(group,x,y,z-dz,direction);fn(group,x,y,z+dz,direction);};
     if(selected==='all'||selected==='cross'){blockPoints.forEach(p=>pairNailsDepth(nail80,groups.cross,p.x,bindY+bindT/2+.014,p.z,Math.min(.13,bindDepth*.18),-1));}
-    topXs.forEach((x,i)=>{piece('deck',actualDeckW,deckT,PL,x,topY,0,i,groups.deck);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
+    topXs.forEach((x,i)=>{piece('deck',actualDeckW,deckT,deckL,x,topY,0,i,groups.deck);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
     const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};let yaw=num(state.angle,-34)*Math.PI/180,pitch=.43,distance=clamp(Math.max(PW,PL)*1.68,15,28);
     function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.0,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);}
     active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
@@ -140,6 +146,11 @@
     root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{state.mode=btn.dataset.p3dMode;render(num(el('pL')?.value),num(el('pW')?.value));}));
     root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const k=btn.dataset.p3dPart;state.selected=state.selected===k?'all':k;render(num(el('pL')?.value),num(el('pW')?.value));}));
     if(window.ResizeObserver){const observer=new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!active||!host.isConnected)return;const w=Math.max(280,host.clientWidth),h=window.innerWidth<620?390:510;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();draw();},100);});observer.observe(host);active.observer=observer;}
+  }
+
+  function setupLivePalletDimensions(){
+    const refresh=()=>{if(syncQueued)return;syncQueued=true;requestAnimationFrame(()=>{syncQueued=false;window.rerenderPallet3D?.();});};
+    ['pL','pW','n0','t0','w0','l0'].forEach(id=>{const input=el(id);if(!input||input.dataset.palletMeasureReady==='1')return;input.dataset.palletMeasureReady='1';input.addEventListener('input',refresh);input.addEventListener('change',refresh);});
   }
 
   function setupDeckCountControl(){
@@ -228,13 +239,13 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.3 · обновление №337':'Pallet Tools · v1.1.3';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.4 · обновление №338':'Pallet Tools · v1.1.4';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
   window.renderDynamicPallet=render;
   window.rerenderPallet3D=function(){const sig=currentSignature();if(active&&active.signature===sig&&active.mode===(state.mode||'3d')&&document.querySelector('.palletReferenceHost canvas')){active.draw();return;}render(num(el('pL')?.value),num(el('pW')?.value));};
-  setupDeckCountControl();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();setupUserPresence();setupAdminPresenceStatus();setupDashboardPalletPreview();updateSiteVersion();
+  setupDeckCountControl();setupLivePalletDimensions();setupAdminEmployeeDelete();setupAdminEmployeeInvite();setupPrivateRegistration();setupPasswordRecovery();setupUserPresence();setupAdminPresenceStatus();setupDashboardPalletPreview();updateSiteVersion();
   setTimeout(()=>render(num(el('pL')?.value),num(el('pW')?.value)),120);
   window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>window.rerenderPallet3D?.(),160);});
 })();
