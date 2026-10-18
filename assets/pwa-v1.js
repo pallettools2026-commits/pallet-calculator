@@ -23,8 +23,9 @@
     node.content=content;
   }
 
-  ensureLink('manifest','manifest.webmanifest?v=1');
+  ensureLink('manifest','manifest.webmanifest?v=2');
   ensureLink('icon','assets/pwa-icon.svg',{type:'image/svg+xml'});
+  ensureLink('apple-touch-icon','assets/pwa-icon-192.png',{sizes:'192x192'});
   ensureMeta('theme-color','#0d392f');
   ensureMeta('mobile-web-app-capable','yes');
   ensureMeta('apple-mobile-web-app-capable','yes');
