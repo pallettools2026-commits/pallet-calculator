@@ -14,54 +14,13 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import base64
           p = Path('assets/theme-industrial-v130.css')
           s = p.read_text(encoding='utf-8')
           marker = '/* pickerHoverOnlyV1118 */'
+          patch = base64.b64decode('LyogcGlja2VySG92ZXJPbmx5VjExMTggKi8KLyogS2VlcCBldmVyeSBwYWxsZXQgcGFydCBjbGlja2FibGUgaW4gcGlja2VyIG1vZGUsIGJ1dCBkbyBub3QgZHJhdyB0aGUgd2hvbGUgaGl0LWFyZWEgZ3JpZC4gKi8KLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpub3QoW2hpZGRlbl0pewogIGRpc3BsYXk6YmxvY2shaW1wb3J0YW50OwogIHBvaW50ZXItZXZlbnRzOmF1dG8haW1wb3J0YW50OwogIGJvcmRlci1jb2xvcjp0cmFuc3BhcmVudCFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDp0cmFuc3BhcmVudCFpbXBvcnRhbnQ7CiAgYm94LXNoYWRvdzpub25lIWltcG9ydGFudDsKfQoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lIHNwYW57CiAgZGlzcGxheTpub25lIWltcG9ydGFudDsKfQoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lOmhvdmVyLAoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lOmZvY3VzLXZpc2libGV7CiAgYm9yZGVyLWNvbG9yOnJnYmEoNDUsMTExLDE3MywuNzIpIWltcG9ydGFudDsKICBiYWNrZ3JvdW5kOnJnYmEoNjIsMTMyLDE5NiwuMTYpIWltcG9ydGFudDsKICBib3gtc2hhZG93OjAgMCAwIDNweCByZ2JhKDQ1LDExMSwxNzMsLjE0KSFpbXBvcnRhbnQ7Cn0KLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpob3ZlciBzcGFuLAoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lOmZvY3VzLXZpc2libGUgc3BhbnsKICBkaXNwbGF5OmdyaWQhaW1wb3J0YW50Owp9Cmh0bWxbZGF0YS10aGVtZT0iZGFyayJdIC5wcmV2aWV3Q2FyZC5wYXJ0UGlja01vZGUgLnBhbGxldEJvYXJkUGlja1pvbmU6bm90KFtoaWRkZW5dKXsKICBib3JkZXItY29sb3I6dHJhbnNwYXJlbnQhaW1wb3J0YW50OwogIGJhY2tncm91bmQ6dHJhbnNwYXJlbnQhaW1wb3J0YW50OwogIGJveC1zaGFkb3c6bm9uZSFpbXBvcnRhbnQ7Cn0KaHRtbFtkYXRhLXRoZW1lPSJkYXJrIl0gLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpob3ZlciwKaHRtbFtkYXRhLXRoZW1lPSJkYXJrIl0gLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpmb2N1cy12aXNpYmxlewogIGJvcmRlci1jb2xvcjpyZ2JhKDEwNywxNjksMjI0LC43OCkhaW1wb3J0YW50OwogIGJhY2tncm91bmQ6cmdiYSg3MSwxMzcsMTk2LC4yMCkhaW1wb3J0YW50Owp9CkBtZWRpYSAoaG92ZXI6bm9uZSl7CiAgLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpob3ZlcnsKICAgIGJvcmRlci1jb2xvcjp0cmFuc3BhcmVudCFpbXBvcnRhbnQ7CiAgICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50IWltcG9ydGFudDsKICAgIGJveC1zaGFkb3c6bm9uZSFpbXBvcnRhbnQ7CiAgfQogIC5wcmV2aWV3Q2FyZC5wYXJ0UGlja01vZGUgLnBhbGxldEJvYXJkUGlja1pvbmU6aG92ZXIgc3BhbntkaXNwbGF5Om5vbmUhaW1wb3J0YW50fQp9Cg==').decode('utf-8')
           if marker not in s:
-              s += r'''
-
-/* pickerHoverOnlyV1118 */
-/* Keep every pallet part clickable in picker mode, but do not draw the whole hit-area grid. */
-.previewCard.partPickMode .palletBoardPickZone:not([hidden]){
-  display:block!important;
-  pointer-events:auto!important;
-  border-color:transparent!important;
-  background:transparent!important;
-  box-shadow:none!important;
-}
-.previewCard.partPickMode .palletBoardPickZone span{
-  display:none!important;
-}
-.previewCard.partPickMode .palletBoardPickZone:hover,
-.previewCard.partPickMode .palletBoardPickZone:focus-visible{
-  border-color:rgba(45,111,173,.72)!important;
-  background:rgba(62,132,196,.16)!important;
-  box-shadow:0 0 0 3px rgba(45,111,173,.14)!important;
-}
-.previewCard.partPickMode .palletBoardPickZone:hover span,
-.previewCard.partPickMode .palletBoardPickZone:focus-visible span{
-  display:grid!important;
-}
-html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:not([hidden]){
-  border-color:transparent!important;
-  background:transparent!important;
-  box-shadow:none!important;
-}
-html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:hover,
-html[data-theme="dark"] .previewCard.partPickMode .palletBoardPickZone:focus-visible{
-  border-color:rgba(107,169,224,.78)!important;
-  background:rgba(71,137,196,.20)!important;
-}
-@media (hover:none){
-  .previewCard.partPickMode .palletBoardPickZone:hover{
-    border-color:transparent!important;
-    background:transparent!important;
-    box-shadow:none!important;
-  }
-  .previewCard.partPickMode .palletBoardPickZone:hover span{display:none!important}
-}
-'''
-              p.write_text(s, encoding='utf-8')
+              p.write_text(s + '\n\n' + patch, encoding='utf-8')
           PY
       - name: Commit picker display fix
         run: |
