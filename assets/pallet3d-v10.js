@@ -2,6 +2,7 @@
 (function(){
   const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});
   if(typeof state.showDimensions!=='boolean')state.showDimensions=true;
+  if(!Array.isArray(state.hiddenKinds))state.hiddenKinds=[];
   let active=null,raf=0,syncQueued=false,resizeTimer=0;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const near=(a,b,t=2)=>Math.abs(Number(a)-Number(b))<=t;
@@ -90,6 +91,8 @@
     const rawBlocks=Math.max(0,Math.round(num(block1.n)))+Math.max(0,Math.round(num(block2.n))),blockCount=isReference?9:Math.min(9,rawBlocks||9);
     const runnerCount=isReference?3:(profile.runnerLengths?profile.runnerLengths.length:Math.max(1,Math.min(7,Math.round(num(runnerParts[0].n)+num(runnerParts[1].n))||3)));
     const mode=state.mode||'3d';
+    const hiddenKinds=new Set(Array.isArray(state.hiddenKinds)?state.hiddenKinds:[]);
+    const kindVisible=kind=>mode==='3d'||!hiddenKinds.has(kind);
     const showDimensions=mode!=='3d'&&state.showDimensions!==false;
     root.classList.toggle('palletDimsHidden',!showDimensions);
     const deckThicknessMm=Math.max(0,num(deck.t,22)),deckWidthMm=Math.max(0,num(deck.w,98)),deckLengthMm=Math.max(0,num(deck.l,profile.length));
@@ -98,7 +101,9 @@
     const gapText=deckCount>1?(gapBad?`−${fmtMm(Math.abs(rawGapMm))} мм`:`${fmtMm(rawGapMm)} мм`):'—';
     const dimensionOverlay='<div class="palletOnModelMeasures" aria-label="Полная размерная схема поддона"></div>';
     const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
-    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button><button type="button" data-p3d-dims aria-pressed="${showDimensions?'true':'false'}" class="${showDimensions?'active':''}" ${mode==='3d'?'hidden':''}>Размеры</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'?'hidden':''}>Выберите деталь: настил, поперечину, лыжу или шашку</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>`;
+    const legendItems=[['deck','Настил'],['cross','Поперечины'],['runner','Лыжи'],['block','Шашки']];
+    const partLegend=mode==='3d'?'':`<div class="palletPartLegend" aria-label="Группы деталей"><span class="palletPartLegendTitle">ДЕТАЛИ</span>${legendItems.map(([kind,label])=>`<button type="button" data-p3d-kind-toggle="${kind}" class="${kindVisible(kind)?'active':'off'}" aria-pressed="${kindVisible(kind)?'true':'false'}"><i class="legendDot ${kind}"></i><span>${label}</span></button>`).join('')}<button type="button" class="palletPartLegendReset" data-p3d-kind-reset ${hiddenKinds.size?'':'hidden'}>Показать все</button></div>`;
+    root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button><button type="button" data-p3d-dims aria-pressed="${showDimensions?'true':'false'}" class="${showDimensions?'active':''}" ${mode==='3d'?'hidden':''}>Размеры</button></div>${partLegend}${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}<div class="palletPickHint" ${mode==='3d'?'hidden':''}>Выберите деталь: настил, поперечину, лыжу или шашку</div><div class="palletPartInspector" hidden><strong></strong><span></span><b></b></div></div>`;
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
     const stage=root.querySelector('.palletReferenceStage');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
@@ -109,12 +114,12 @@
     const fill=new THREE.DirectionalLight(0xe4efff,1.15);fill.position.set(12,8,-10);scene.add(fill);
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,36),new THREE.ShadowMaterial({color:0x64584e,opacity:.13}));floor.rotation.x=-Math.PI/2;floor.position.y=-.025;floor.receiveShadow=true;scene.add(floor);
     const S=.01,PW=profile.width*S,PL=profile.length*S,selected=state.selected||'all';
-    const textures={deck:woodTexture(17,'#f3dfbd','#9a724b'),cross:woodTexture(31,'#ecd2a8','#906642'),runner:woodTexture(47,'#e8ca9a','#875d39'),block:woodTexture(61,'#dfbb86','#805433')};Object.values(textures).forEach((t,i)=>t.repeat.set(i===3?1.4:3.2,1));
-    const colors={deck:[0xf3dab2,0xefd1a4,0xf6e0bf],cross:[0xeccda0,0xe6c18f,0xf0d5ad],runner:[0xe4c08d,0xddb47f,0xe9ca9a],block:[0xd8aa72,0xdfb783,0xd2a069]};
+    const textures={deck:woodTexture(17,'#f3dfbd','#9a724b'),cross:woodTexture(31,'#e4bd86','#895d37'),runner:woodTexture(47,'#c99361','#70482d'),block:woodTexture(61,'#a86f49','#583722')};Object.values(textures).forEach((t,i)=>t.repeat.set(i===3?1.4:3.2,1));
+    const colors={deck:[0xf4ddb9,0xefd1a4,0xf7e3c5],cross:[0xdfb477,0xd6a666,0xe8c08a],runner:[0xbd7f4e,0xb27145,0xc98d5d],block:[0x955d3c,0x9e6947,0x875235]};
     const inspectable=[];
     const inspectShort={deck:'Н',cross:'П',runner:'Л',block:'Ш'};
     function mat(kind,i){const on=selected==='all'||selected===kind,map=textures[kind].clone();map.needsUpdate=true;map.offset.x=(i*.149)%1;return new THREE.MeshStandardMaterial({map,color:on?colors[kind][i%colors[kind].length]:0xbdb8b0,roughness:.78,metalness:0,transparent:!on,opacity:on?1:.15,depthWrite:on,emissive:selected===kind?0x14382e:0,emissiveIntensity:selected===kind?.09:0});}
-    function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
+    function piece(kind,dx,dy,dz,x,y,z,i,group){const g=roundedBoxGeometry(dx,dy,dz,kind==='block'?.055:.035),m=new THREE.Mesh(g,mat(kind,i));m.position.set(x,y,z);m.visible=kindVisible(kind);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
     function registerInspectable(mesh,kind,index,name,t,w,l,n){if(!mesh)return mesh;mesh.userData.palletInspect={name,kind,index,short:inspectShort[kind]||'',t:num(t),w:num(w),l:num(l),n:Math.max(1,Math.round(num(n,1)))};mesh.userData.baseEmissiveHex=selected===kind?0x14382e:0;mesh.userData.baseEmissiveIntensity=selected===kind?.09:0;inspectable.push(mesh);return mesh;}
     const nail40Length=.40,nail80Length=.80;
     const nail40HeadGeo=new THREE.CylinderGeometry(.044,.044,.026,16),nail80HeadGeo=new THREE.CylinderGeometry(.052,.052,.030,18);
@@ -210,11 +215,11 @@
       if(!topView){
         const stackX=-PW/2-.28,stackZ=PL*.33;
         const y0=0,y1=runnerT,y2=runnerT+blockH,y3=runnerT+blockH+bindT;
-        paintMeasure('layer-runner',[stackX,y0,stackZ],[stackX,y1,stackZ],fmtMm(runnerT/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
-        paintMeasure('layer-block',[stackX,y1,stackZ],[stackX,y2,stackZ],fmtMm(blockH/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
-        paintMeasure('layer-bind',[stackX,y2,stackZ],[stackX,y3,stackZ],fmtMm(bindT/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+        if(kindVisible('runner'))paintMeasure('layer-runner',[stackX,y0,stackZ],[stackX,y1,stackZ],fmtMm(runnerT/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+        if(kindVisible('block'))paintMeasure('layer-block',[stackX,y1,stackZ],[stackX,y2,stackZ],fmtMm(blockH/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+        if(kindVisible('cross'))paintMeasure('layer-bind',[stackX,y2,stackZ],[stackX,y3,stackZ],fmtMm(bindT/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
         const deckBottom=topY-deckT/2+deckOffset,deckTop=topY+deckT/2+deckOffset;
-        paintMeasure('layer-deck',[stackX,deckBottom,stackZ],[stackX,deckTop,stackZ],fmtMm(deckThicknessMm),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+        if(kindVisible('deck'))paintMeasure('layer-deck',[stackX,deckBottom,stackZ],[stackX,deckTop,stackZ],fmtMm(deckThicknessMm),{compact:true,kind:'layer',labelDx:-24,minPx:5});
       }
     };
     let updatePickButtons=()=>{};
@@ -271,7 +276,7 @@
       lastInspectAt=performance.now();
       return true;
     };
-    const pickAt=(clientX,clientY)=>{const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;pickPoint.x=((clientX-rect.left)/rect.width)*2-1;pickPoint.y=-((clientY-rect.top)/rect.height)*2+1;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);raycaster.setFromCamera(pickPoint,camera);return raycaster.intersectObjects(inspectable,false).find(hit=>hit.object?.userData?.palletInspect)||null;};
+    const pickAt=(clientX,clientY)=>{const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;pickPoint.x=((clientX-rect.left)/rect.width)*2-1;pickPoint.y=-((clientY-rect.top)/rect.height)*2+1;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);raycaster.setFromCamera(pickPoint,camera);const candidates=inspectable.filter(mesh=>kindVisible(mesh?.userData?.palletInspect?.kind));return raycaster.intersectObjects(candidates,false).find(hit=>hit.object?.userData?.palletInspect)||null;};
     const pointInPolygon=(x,y,poly)=>{let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>y)!==(b.y>y))&&(x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x))inside=!inside;}return inside;};
     const projectToCanvas=(x,y,z,rect)=>{const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;return{x:(v.x*.5+.5)*rect.width,y:(-v.y*.5+.5)*rect.height};};
     const deckInspectables=inspectable.filter(mesh=>mesh?.userData?.palletInspect?.kind==='deck');
@@ -304,7 +309,7 @@
       const visibleKinds=mode==='top'?new Set(['deck','cross']):new Set(['deck','cross','runner','block']);
       const cornerBits=[[-1,-1,-1],[1,-1,-1],[-1,1,-1],[1,1,-1],[-1,-1,1],[1,-1,1],[-1,1,1],[1,1,1]];
       pickButtons.forEach((btn,i)=>{
-        const mesh=inspectable[i],info=mesh?.userData?.palletInspect;if(!mesh||!info||!visibleKinds.has(info.kind)){btn.hidden=true;return;}
+        const mesh=inspectable[i],info=mesh?.userData?.palletInspect;if(!mesh||!info||!kindVisible(info.kind)||!visibleKinds.has(info.kind)){btn.hidden=true;return;}
         mesh.geometry.computeBoundingBox?.();const bb=mesh.geometry.boundingBox;if(!bb){btn.hidden=true;return;}
         const cx=(bb.min.x+bb.max.x)/2,cy=(bb.min.y+bb.max.y)/2,cz=(bb.min.z+bb.max.z)/2,hx=(bb.max.x-bb.min.x)/2,hy=(bb.max.y-bb.min.y)/2,hz=(bb.max.z-bb.min.z)/2,pts=[];
         for(const [sx,sy,sz] of cornerBits){const v=new THREE.Vector3(cx+sx*hx,cy+sy*hy,cz+sz*hz).applyMatrix4(mesh.matrixWorld).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)continue;pts.push({x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height});}
@@ -328,6 +333,8 @@
     canvas.addEventListener('wheel',e=>{if(mode==='top'||mode==='side')return;e.preventDefault();distance=clamp(distance*(e.deltaY>0?1.08:.92),10,38);draw();},{passive:false});
     root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{state.mode=btn.dataset.p3dMode;render(num(el('pL')?.value),num(el('pW')?.value));}));
     root.querySelector('[data-p3d-dims]')?.addEventListener('click',()=>{state.showDimensions=!state.showDimensions;render(num(el('pL')?.value),num(el('pW')?.value));});
+    root.querySelectorAll('[data-p3d-kind-toggle]').forEach(btn=>btn.addEventListener('click',()=>{const kind=btn.dataset.p3dKindToggle,next=new Set(Array.isArray(state.hiddenKinds)?state.hiddenKinds:[]);next.has(kind)?next.delete(kind):next.add(kind);state.hiddenKinds=[...next];render(num(el('pL')?.value),num(el('pW')?.value));}));
+    root.querySelector('[data-p3d-kind-reset]')?.addEventListener('click',()=>{state.hiddenKinds=[];render(num(el('pL')?.value),num(el('pW')?.value));});
     root.querySelectorAll('[data-p3d-part]').forEach(btn=>btn.addEventListener('click',()=>{const k=btn.dataset.p3dPart;state.selected=state.selected===k?'all':k;render(num(el('pL')?.value),num(el('pW')?.value));}));
     if(window.ResizeObserver){const observer=new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!active||!host.isConnected)return;const w=Math.max(280,host.clientWidth),h=window.innerWidth<620?390:510;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();draw();},100);});observer.observe(host);active.observer=observer;}
   }
