@@ -1,0 +1,28 @@
+name: Admin version label v145
+
+on:
+  push:
+    paths:
+      - '.github/workflows/version-label-admin-v145.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version label cache
+        run: python .github/scripts/bump_version_label_v145.py
+      - name: Commit cache bump
+        run: |
+          if git diff --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Refresh admin version label cache"
+          git push
