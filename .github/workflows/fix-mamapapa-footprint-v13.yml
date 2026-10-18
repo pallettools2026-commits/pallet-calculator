@@ -1,0 +1,87 @@
+name: Fix mama-papa pallet footprint v13
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-mamapapa-footprint-v13.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep mama-papa footprint exact
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          js_path=Path('assets/truck-planner-v9.js')
+          html_path=Path('truck-planner.html')
+          js=js_path.read_text(encoding='utf-8')
+          html=html_path.read_text(encoding='utf-8')
+
+          old="const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0),pk=bestPacking(v.L,v.W,p.L+gap,p.W+gap);"
+          new="const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,gap=Math.max(0,Number(E.gap.value)||0),footprintL=p.L,footprintW=p.W,pk=bestPacking(v.L,v.W,footprintL+gap,footprintW+gap);"
+          if old in js:
+              js=js.replace(old,new,1)
+
+          old_pd="E.pn.textContent=p.name;E.pd.textContent=`${mm(p.L)} × ${mm(p.W)} · 1 поддон ${mm(h)} · пачка ${packQty} шт. = ${mm(packH)}`;"
+          new_pd="E.pn.textContent=p.name;E.pd.textContent=`${mm(p.L)} × ${mm(p.W)} · пачка по полу ${mm(footprintL)} × ${mm(footprintW)} · высота ${mm(packH)}`;"
+          if old_pd in js:
+              js=js.replace(old_pd,new_pd,1)
+
+          pattern=r"function makePalletPack\(p,count,mode,altSeed=0\)\{.*?\n\}"
+          replacement=r'''function makePalletPack(p,count,mode,altSeed=0){
+  const g=new THREE.Group(),fullH=(p.H||144)/1000,verticalStep=(mode==='mamaPapa'?0.100:fullH);
+  for(let i=0;i<count;i++){
+    const holder=new THREE.Group();
+    holder.position.set(0,i*verticalStep,0); // только высота: X/Z всегда 0
+    const q=makePallet(p,p.H||144,(i+altSeed)%2===1);
+    q.position.x=0;q.position.z=0;
+    if(mode==='mamaPapa'&&i%2===1){
+      q.rotation.x=Math.PI;
+      q.rotation.y=Math.PI;
+      q.position.y=fullH;
+    }else{
+      q.position.y=0;
+    }
+    holder.add(q);g.add(holder);
+  }
+  return g;
+}'''
+          js,n=re.subn(pattern,replacement,js,count=1,flags=re.S)
+          assert n==1, f'makePalletPack replacement count={n}'
+
+          # Add explicit hint that footprint never changes in mama-papa.
+          js=js.replace(
+              "Введите нужное количество вручную. Предел определяется высотой кузова и массой.",
+              "Введите нужное количество вручную. Пачка по полу остаётся размером одного поддона; меняется только высота."
+          )
+          js=js.replace(
+              "Мама‑папа: ${packQty} шт. в пачке. Ограничение только по высоте кузова и массе.",
+              "Мама‑папа: ${packQty} шт. в пачке. По полу всегда ${mm(p.L)} × ${mm(p.W)}; шаг 100 мм применяется только по высоте."
+          )
+
+          html=html.replace('truck-planner-v9.js?v=20261018-2325','truck-planner-v9.js?v=20261018-2335')
+          html=html.replace('Введите нужное количество поддонов в пачке вручную. Ограничение определяется высотой кузова и массой.','Введите нужное количество вручную. В режиме «мама‑папа» габарит пачки по полу остаётся размером одного поддона; меняется только высота.')
+
+          js_path.write_text(js,encoding='utf-8')
+          html_path.write_text(html,encoding='utf-8')
+          PY
+
+          node --check assets/truck-planner-v9.js
+
+      - name: Commit footprint fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/truck-planner-v9.js truck-planner.html
+          git commit -m "Keep mama-papa pallet footprint at exact pallet size" || exit 0
+          git push
