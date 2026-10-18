@@ -1,0 +1,21 @@
+name: Apply pallet on-model measures v1.1.5
+
+on:
+  push:
+    branches:
+      - pallet-onmodel-measures-v115
+    paths:
+      - .github/workflows/pallet-onmodel-measures-v115.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply dimensions to main
+        run: python3 .github/scripts/apply_pallet_onmodel_measures_v115.py
