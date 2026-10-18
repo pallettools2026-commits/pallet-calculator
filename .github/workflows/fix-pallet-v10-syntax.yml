@@ -1,0 +1,41 @@
+name: Fix pallet v10 syntax
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-pallet-v10-syntax.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Repair pallet functions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path('assets/truck-planner-v9.js')
+          s = p.read_text(encoding='utf-8')
+          clean_get = "function getPallet(){const p=PALLETS[E.p.value]||PALLETS.eur;if(E.p.value!=='custom')return{...p};return{name:p.name,L:val(E.pL,p.L),W:val(E.pW,p.W),H:val(E.loadH,p.H||144)};}"
+          s = re.sub(r'^function getPallet\(\)\{.*$', clean_get, s, count=1, flags=re.M)
+          clean_sync = "function syncPresets(){const v=VEHICLES[E.v.value]||VEHICLES.semi136;E.cv.classList.toggle('show',E.v.value==='custom');E.L.value=v.L;E.W.value=v.W;E.H.value=v.H;E.pay.value=v.payload;const p=PALLETS[E.p.value]||PALLETS.eur;E.cp.classList.toggle('show',E.p.value==='custom');E.pL.value=p.L;E.pW.value=p.W;E.loadH.readOnly=E.p.value!=='custom';if(E.p.value!=='custom')E.loadH.value=p.H||144;}"
+          s = re.sub(r'^function syncPresets\(\)\{.*$', clean_sync, s, count=1, flags=re.M)
+          if 'g.add(box(W*.92,H,L*.92' in s:
+              raise SystemExit('blue cargo box still present')
+          if "H:144" not in s or "blockH=.078" not in s:
+              raise SystemExit('pallet geometry missing')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit repaired v10 pallet renderer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/truck-planner-v9.js
+          git commit -m "Fix pallet renderer syntax and keep 144mm EUR pallets" || exit 0
+          git push
