@@ -28,6 +28,15 @@
     document.querySelectorAll('a[href*="truck-planner"],button[data-screen*="truck"]').forEach(node=>node.remove());
   }
 
+  function installPwaBootstrap(){
+    if(document.getElementById('palletToolsPwaBootstrapV1'))return;
+    const script=document.createElement('script');
+    script.id='palletToolsPwaBootstrapV1';
+    script.src='assets/pwa-v1.js?v=1';
+    script.defer=true;
+    document.head.appendChild(script);
+  }
+
   function installVisibilityGuard(){
     if(document.getElementById('versionLabelGuardV148'))return;
     ['versionLabelGuardV143','versionLabelGuardV145','versionLabelGuardV146','versionLabelGuardV147'].forEach(id=>document.getElementById(id)?.remove());
@@ -100,6 +109,7 @@
 
   function start(){
     installVisibilityGuard();
+    installPwaBootstrap();
     removeLegacyTruckPlannerLinks();
     normalize();
     observe(document.getElementById('adminSideNav'));
