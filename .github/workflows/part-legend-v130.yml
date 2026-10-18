@@ -1,0 +1,21 @@
+name: Pallet part legend v130
+on:
+  push:
+    paths:
+      - '.github/workflows/part-legend-v130.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply pallet part legend
+        run: python .github/scripts/part_legend_v130.py
+      - name: Commit pallet part legend
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          git commit -m "Add pallet part color legend" || exit 0
+          git push
