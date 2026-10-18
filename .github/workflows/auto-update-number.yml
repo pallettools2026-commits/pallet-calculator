@@ -1,0 +1,49 @@
+name: Auto update number
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/**'
+      - '!assets/version-label-fix-v142.js'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pallet-tools-update-number-main
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync latest main
+        run: git pull --rebase origin main
+      - name: Increase visible update number
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('assets/version-label-fix-v142.js')
+          s = p.read_text(encoding='utf-8')
+          m = re.search(r"const UPDATE_NO=(\d+);", s)
+          if not m:
+              raise SystemExit('UPDATE_NO not found')
+          old = int(m.group(1))
+          new = old + 1
+          s = s[:m.start(1)] + str(new) + s[m.end(1):]
+          p.write_text(s, encoding='utf-8')
+          print(f'Update number: {old} -> {new}')
+          PY
+      - name: Commit update number
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/version-label-fix-v142.js
+          git diff --cached --quiet || (git commit -m "Auto bump update number" && git push)
