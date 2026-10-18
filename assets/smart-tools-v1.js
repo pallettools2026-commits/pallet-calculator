@@ -93,7 +93,7 @@
         livePreview?.classList.add('partPickMode');
         livePreview?.scrollIntoView({behavior:'smooth',block:'center'});
         const hint=document.querySelector('.palletPickHint');
-        if(hint){hint.textContent='Режим выбора: нажмите прямо на верхнюю доску';hint.classList.add('attention');}
+        if(hint){hint.textContent='Режим выбора: нажмите на подсвеченную область любой верхней доски';hint.classList.add('attention');}
         setTimeout(()=>hint?.classList.remove('attention'),2600);
       },90);
     });

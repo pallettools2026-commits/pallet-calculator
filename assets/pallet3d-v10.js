@@ -212,12 +212,15 @@
         paintMeasure('layer-deck',[stackX,deckBottom,stackZ],[stackX,deckTop,stackZ],fmtMm(deckThicknessMm),{compact:true,kind:'layer',labelDx:-24,minPx:5});
       }
     };
-    function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.55,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);updateOnModelMeasures();}
+    let updatePickButtons=()=>{};
+    function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.55,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);updateOnModelMeasures();updatePickButtons();}
     active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
     if(exploded){const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/420,0,1),e=1-Math.pow(1-q,3);groups.block.position.y=offsets.block*e;groups.cross.position.y=offsets.cross*e;groups.deck.position.y=offsets.deck*e;draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else draw();
     const canvas=renderer.domElement;
     const partInspector=root.querySelector('.palletPartInspector');
     const pickHint=root.querySelector('.palletPickHint');
+    const pickOverlay=document.createElement('div');pickOverlay.className='palletBoardPickOverlay';stage?.appendChild(pickOverlay);
+    const pickButtons=inspectable.map((mesh,i)=>{const btn=document.createElement('button');btn.type='button';btn.className='palletBoardPickZone';btn.setAttribute('aria-label',`Выбрать доску настила №${i+1}`);btn.dataset.board=String(i);btn.innerHTML=`<span>${i+1}</span>`;pickOverlay.appendChild(btn);return btn;});
     const raycaster=new THREE.Raycaster(),pickPoint=new THREE.Vector2();
     let inspectDown=null,lastInspectAt=0;
     const resetInspectHighlight=()=>inspectable.forEach(mesh=>{if(!mesh.material)return;mesh.material.emissive.setHex(mesh.userData.baseEmissiveHex||0);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||0;});
@@ -245,6 +248,17 @@
       return null;
     };
     const selectAt=(clientX,clientY)=>{const projected=pickDeckByProjection(clientX,clientY);if(projected)return showInspect(projected.object);const hit=pickAt(clientX,clientY);return hit?showInspect(hit.object):false;};
+    updatePickButtons=()=>{
+      if(!stage||!pickButtons.length)return;
+      const sr=stage.getBoundingClientRect(),cr=canvas.getBoundingClientRect();
+      if(!sr.width||!sr.height||!cr.width||!cr.height)return;
+      scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+      const deckLift=groups.deck.position.y||0,halfW=actualDeckW/2,halfL=deckL/2,y=topY+deckT/2+deckLift+.035;
+      const project=(x,z)=>{const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;return{x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height};};
+      pickButtons.forEach((btn,i)=>{const x=topXs[i]??inspectable[i]?.position.x??0,pts=[project(x-halfW,-halfL),project(x+halfW,-halfL),project(x+halfW,halfL),project(x-halfW,halfL)];if(pts.some(p=>!p)){btn.hidden=true;return;}let minX=Math.min(...pts.map(p=>p.x)),maxX=Math.max(...pts.map(p=>p.x)),minY=Math.min(...pts.map(p=>p.y)),maxY=Math.max(...pts.map(p=>p.y));const pad=7;minX-=pad;maxX+=pad;minY-=pad;maxY+=pad;btn.hidden=false;btn.style.left=`${minX}px`;btn.style.top=`${minY}px`;btn.style.width=`${Math.max(20,maxX-minX)}px`;btn.style.height=`${Math.max(30,maxY-minY)}px`;});
+    };
+    pickButtons.forEach((btn,i)=>btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const mesh=inspectable[i];if(mesh)showInspect(mesh);previewCard?.classList.remove('partPickMode');}));
+    updatePickButtons();
     canvas.addEventListener('pointerdown',e=>{inspectDown={x:e.clientX,y:e.clientY};},true);
     canvas.addEventListener('pointerup',e=>{if(!inspectDown)return;const moved=Math.hypot(e.clientX-inspectDown.x,e.clientY-inspectDown.y);inspectDown=null;if(moved<=18)selectAt(e.clientX,e.clientY);},true);
     canvas.addEventListener('click',e=>{if(performance.now()-lastInspectAt>220)selectAt(e.clientX,e.clientY);});
@@ -350,7 +364,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.14 · обновление №346':'Pallet Tools · v1.1.14';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.15 · обновление №346':'Pallet Tools · v1.1.15';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 
