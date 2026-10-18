@@ -1,0 +1,33 @@
+name: Set block 1 default to 9 v137
+
+on:
+  push:
+    paths:
+      - '.github/workflows/set-block1-default-9-v137.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Set Shashka 1 default to 9
+        run: python .github/scripts/set_block1_default_9_v137.py
+      - name: Commit default quantity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Set Shashka 1 default to 9"
+          git pull --rebase origin main
+          git push origin main
