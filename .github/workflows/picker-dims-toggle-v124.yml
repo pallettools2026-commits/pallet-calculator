@@ -1,0 +1,86 @@
+name: Pallet dimensions toggle v124
+on:
+  push:
+    paths:
+      - '.github/workflows/picker-dims-toggle-v124.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add dimensions toggle
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          js = Path('assets/pallet3d-v10.js')
+          s = js.read_text(encoding='utf-8')
+
+          state_line = "  const state=window.pallet3DState||(window.pallet3DState={mode:'3d',angle:-34,selected:'all'});"
+          if "state.showDimensions" not in s:
+              if state_line not in s:
+                  raise SystemExit('state line not found')
+              s = s.replace(state_line, state_line + "\n  if(typeof state.showDimensions!=='boolean')state.showDimensions=true;", 1)
+
+          mode_old = "    const mode=state.mode||'3d';"
+          mode_new = "    const mode=state.mode||'3d';\n    const showDimensions=mode!=='3d'&&state.showDimensions!==false;\n    root.classList.toggle('palletDimsHidden',!showDimensions);"
+          if "const showDimensions=mode!=='3d'" not in s:
+              if mode_old not in s:
+                  raise SystemExit('mode line not found')
+              s = s.replace(mode_old, mode_new, 1)
+
+          old_toolbar = "<button type=\"button\" data-p3d-mode=\"explode\" class=\"${mode==='explode'?'active':''}\">${mode==='explode'?'Собрать':'Разнести'}</button></div>"
+          new_toolbar = "<button type=\"button\" data-p3d-mode=\"explode\" class=\"${mode==='explode'?'active':''}\">${mode==='explode'?'Собрать':'Разнести'}</button><button type=\"button\" data-p3d-dims aria-pressed=\"${showDimensions?'true':'false'}\" class=\"${showDimensions?'active':''}\" ${mode==='3d'?'hidden':''}>Размеры</button></div>"
+          if "data-p3d-dims" not in s:
+              if old_toolbar not in s:
+                  raise SystemExit('toolbar target not found')
+              s = s.replace(old_toolbar, new_toolbar, 1)
+
+          mode_handler = "    root.querySelectorAll('[data-p3d-mode]').forEach(btn=>btn.addEventListener('click',()=>{state.mode=btn.dataset.p3dMode;render(num(el('pL')?.value),num(el('pW')?.value));}));"
+          dims_handler = "\n    root.querySelector('[data-p3d-dims]')?.addEventListener('click',()=>{state.showDimensions=!state.showDimensions;render(num(el('pL')?.value),num(el('pW')?.value));});"
+          if "state.showDimensions=!state.showDimensions" not in s:
+              if mode_handler not in s:
+                  raise SystemExit('mode handler not found')
+              s = s.replace(mode_handler, mode_handler + dims_handler, 1)
+
+          js.write_text(s, encoding='utf-8')
+
+          css = Path('assets/theme-industrial-v130.css')
+          c = css.read_text(encoding='utf-8')
+          marker = '/* palletDimensionsToggleV1124 */'
+          if marker not in c:
+              c += r'''
+
+/* palletDimensionsToggleV1124 */
+/* One-click declutter: keep picking active while hiding dimensional annotations. */
+#palletPreview3D.palletDimsHidden .palletBoardPickZone span{
+  display:none!important;
+}
+#palletPreview3D.palletDimsHidden .palletOnModelMeasures{
+  display:none!important;
+}
+#palletPreview3D [data-p3d-dims]{
+  min-width:78px;
+}
+#palletPreview3D [data-p3d-dims][hidden]{
+  display:none!important;
+}
+'''
+              css.write_text(c, encoding='utf-8')
+
+          idx = Path('index.html')
+          h = idx.read_text(encoding='utf-8')
+          h = re.sub(r'assets/theme-industrial-v130\.css\?v=\d+', 'assets/theme-industrial-v130.css?v=174', h)
+          h = re.sub(r'assets/pallet3d-v10\.js\?v=\d+', 'assets/pallet3d-v10.js?v=124', h)
+          idx.write_text(h, encoding='utf-8')
+          PY
+      - name: Commit dimensions toggle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          git commit -m "Add pallet dimensions toggle" || exit 0
+          git push
