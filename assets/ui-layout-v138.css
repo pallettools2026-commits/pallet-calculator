@@ -160,3 +160,12 @@ main{max-width:none!important;width:100%!important;margin:0!important;padding:0 
   #protectedApp{margin-left:0!important;padding:0!important}
   main{padding:0!important}
 }
+
+
+/* sidebarBrandTextOnlyV139 */
+@media(min-width:1151px){
+  .sideBrand{gap:0!important;padding-left:10px!important;padding-right:10px!important}
+  .sideBrand img{display:none!important}
+  .sideBrand strong{font-size:16px!important;letter-spacing:-.2px!important}
+  .sideBrand span{font-size:10px!important;margin-top:4px!important}
+}
