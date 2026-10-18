@@ -1,0 +1,21 @@
+name: Pallet composition v131
+on:
+  push:
+    paths:
+      - '.github/workflows/pallet-composition-v131.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply pallet composition
+        run: python .github/scripts/pallet-composition-v131.py
+      - name: Commit pallet composition
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          git commit -m "Add pallet composition specification" || exit 0
+          git push
