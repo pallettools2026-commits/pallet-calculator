@@ -1,4 +1,4 @@
-name: Fix 3D board picker v1.1.13
+name: Fix 3D board picker v1.1.14
 
 on:
   push:
@@ -17,26 +17,26 @@ jobs:
           fetch-depth: 0
       - name: Prepare main
         run: |
-          cp .github/scripts/fix_3d_picker_v1113.py /tmp/fix_3d_picker_v1113.py
+          cp .github/scripts/fix_3d_picker_v1113.py /tmp/fix_3d_picker_v1114.py
           git fetch origin main
           git checkout -B main origin/main
-          test "$(git rev-parse HEAD)" = "6fbf7a45146866b51655a3ee9c0c996e1b6f724d"
-      - name: Apply picker fix
-        run: python3 /tmp/fix_3d_picker_v1113.py
+          test "$(git rev-parse HEAD)" = "52158c4c62f231395e785f79ca302dc50c21ddc2"
+      - name: Apply robust picker fix
+        run: python3 /tmp/fix_3d_picker_v1114.py
       - name: Validate
         run: |
           node --check assets/pallet3d-v10.js
           node --check assets/smart-tools-v1.js
-          grep -q 'const pickAt=(clientX,clientY)' assets/pallet3d-v10.js
-          grep -q 'palletPickHint' assets/pallet3d-v10.js
-          grep -q 'smartSelect3D' assets/smart-tools-v1.js
-          grep -q 'partPickerFixV1113' assets/theme-industrial-v130.css
-          grep -q 'Pallet Tools · v1.1.13' assets/theme-industrial-v130.css
-          grep -q 'обновление №347' assets/theme-industrial-v130.css
+          grep -q 'const pickDeckByProjection=(clientX,clientY)' assets/pallet3d-v10.js
+          grep -q 'pointInPolygon' assets/pallet3d-v10.js
+          grep -q 'Режим выбора: нажмите прямо на верхнюю доску' assets/smart-tools-v1.js
+          grep -q 'partPickerFixV1114' assets/theme-industrial-v130.css
+          grep -q 'Pallet Tools · v1.1.14' assets/theme-industrial-v130.css
+          grep -q 'обновление №348' assets/theme-industrial-v130.css
       - name: Commit to main
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js assets/smart-tools-v1.js
-          git commit -m 'Fix 3D board selection workflow'
+          git commit -m 'Make 3D board selection reliable'
           git push origin HEAD:main
