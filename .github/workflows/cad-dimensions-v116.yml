@@ -1,4 +1,4 @@
-name: Fix 3D board picker v1.1.15
+name: Extend 3D part picker v1.1.16
 
 on:
   push:
@@ -17,26 +17,29 @@ jobs:
           fetch-depth: 0
       - name: Prepare main
         run: |
-          cp .github/scripts/fix_3d_picker_overlay_v1115.py /tmp/fix_3d_picker_overlay_v1115.py
+          cp .github/scripts/fix_3d_all_parts_v1116.py /tmp/fix_3d_all_parts_v1116.py
           git fetch origin main
           git checkout -B main origin/main
-          test "$(git rev-parse HEAD)" = "a3c5dbc51957f9390ae9638928d360c9f7a5e188"
-      - name: Apply picker overlay fix
-        run: python3 /tmp/fix_3d_picker_overlay_v1115.py
+          test "$(git rev-parse HEAD)" = "51ee12de946247be88bc455eeb2834b6ac96a62d"
+      - name: Apply all-part picker update
+        run: python3 /tmp/fix_3d_all_parts_v1116.py
       - name: Validate
         run: |
           node --check assets/pallet3d-v10.js
           node --check assets/smart-tools-v1.js
-          grep -q 'palletBoardPickOverlay' assets/pallet3d-v10.js
-          grep -q 'updatePickButtons=()=>{' assets/pallet3d-v10.js
-          grep -q 'pickerOverlayV1115' assets/theme-industrial-v130.css
-          grep -q 'подсвеченную область любой верхней доски' assets/smart-tools-v1.js
-          grep -q 'Pallet Tools · v1.1.15' assets/theme-industrial-v130.css
-          grep -q 'обновление №349' assets/theme-industrial-v130.css
+          grep -q 'registerInspectable' assets/pallet3d-v10.js
+          grep -q "const pickerEnabled=mode==='top'||mode==='side'||mode==='explode'" assets/pallet3d-v10.js
+          grep -q "registerInspectable(mesh,'block'" assets/pallet3d-v10.js
+          grep -q "registerInspectable(mesh,'cross'" assets/pallet3d-v10.js
+          grep -q "registerInspectable(mesh,'runner'" assets/pallet3d-v10.js
+          grep -q 'Показать модель и выбрать деталь' assets/smart-tools-v1.js
+          grep -q 'allPartPickerV1116' assets/theme-industrial-v130.css
+          grep -q 'Pallet Tools · v1.1.16' assets/theme-industrial-v130.css
+          grep -q 'обновление №350' assets/theme-industrial-v130.css
       - name: Commit to main
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html assets/theme-industrial-v130.css assets/pallet3d-v10.js assets/smart-tools-v1.js
-          git commit -m 'Fix 3D board picker with clickable overlays'
+          git commit -m 'Select all pallet parts outside normal 3D view'
           git push origin HEAD:main
