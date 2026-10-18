@@ -93,11 +93,11 @@
     const remainingMm=profile.width-deckCount*deckWidthMm,rawGapMm=deckCount>1?remainingMm/(deckCount-1):0,gapBad=deckCount>1&&rawGapMm<0;
     const fmtMm=v=>{const x=Math.round(num(v,0)*10)/10;return Number.isInteger(x)?String(x):x.toFixed(1).replace('.',',');};
     const gapText=deckCount>1?(gapBad?`−${fmtMm(Math.abs(rawGapMm))} мм`:`${fmtMm(rawGapMm)} мм`):'—';
-    const dimensionOverlay=`<div class="palletOnModelMeasures" aria-label="Размеры настила на модели"><div class="palletMeasureMark length" data-measure="length"><i></i><span></span></div><div class="palletMeasureMark width" data-measure="width"><i></i><span></span></div><div class="palletMeasureMark thickness" data-measure="thickness"><i></i><span></span></div><div class="palletMeasureMark gap" data-measure="gap"><i></i><span></span></div></div>`;
+    const dimensionOverlay='<div class="palletOnModelMeasures" aria-label="Полная размерная схема поддона"></div>';
     const fastenerLegend=mode==='explode'?'<div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:7px auto 0;font-size:11px;font-weight:800;color:#46514d"><span>● 2,8×80 мм — поперечины над шашками и лыжи</span><span>● 2,5×40 мм — настил к поперечинам</span></div>':'';
     root.innerHTML=`<div class="pallet3dToolbar" role="tablist"><button type="button" data-p3d-mode="3d" class="${mode==='3d'?'active':''}">3D</button><button type="button" data-p3d-mode="top" class="${mode==='top'?'active':''}">Сверху</button><button type="button" data-p3d-mode="side" class="${mode==='side'?'active':''}">Сбоку</button><button type="button" data-p3d-mode="explode" class="${mode==='explode'?'active':''}">${mode==='explode'?'Собрать':'Разнести'}</button></div>${fastenerLegend}<div class="palletReferenceStage" style="width:100%;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 30%,#fff 0,#faf8f3 52%,#efede7 100%);border-radius:14px;margin-top:8px"><div class="palletReferenceHost" style="width:100%;min-height:390px;position:relative"></div>${dimensionOverlay}</div>`;
     const host=root.querySelector('.palletReferenceHost'),cw=Math.max(280,host.clientWidth||760),ch=window.innerWidth<620?390:510;
-    const stage=root.querySelector('.palletReferenceStage'),measureMarks={};root.querySelectorAll('.palletMeasureMark').forEach(mark=>{measureMarks[mark.dataset.measure]=mark;});
+    const stage=root.querySelector('.palletReferenceStage');
     const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(cw,ch,false);renderer.setClearColor(0,0);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;host.appendChild(renderer.domElement);
     const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(33,cw/ch,.1,120),world=new THREE.Group();scene.add(world);
     const groups={runner:new THREE.Group(),block:new THREE.Group(),cross:new THREE.Group(),deck:new THREE.Group()};Object.values(groups).forEach(g=>world.add(g));
@@ -136,9 +136,42 @@
     topXs.forEach((x,i)=>{piece('deck',actualDeckW,deckT,deckL,x,topY,0,i,groups.deck);if(selected==='all'||selected==='deck')bindZ.forEach((z,zi)=>{const edgeBoard=i===0||i===topXs.length-1,edgeCross=zi===0||zi===bindZ.length-1;if(edgeBoard&&edgeCross)cornerTriple(x,nailY,z,Math.min(.08,actualDeckW*.24));else pairNails(nail40,groups.deck,x,nailY,z,Math.min(.06,actualDeckW*.22),-1);});});
     const exploded=mode==='explode',offsets={runner:0,block:exploded?1.25:0,cross:exploded?2.55:0,deck:exploded?3.85:0};let yaw=num(state.angle,-34)*Math.PI/180,pitch=.43,distance=clamp(Math.max(PW,PL)*1.68,15,28);
     const projectMeasurePoint=(x,y,z)=>{if(!stage||!renderer.domElement)return null;const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;const cr=renderer.domElement.getBoundingClientRect(),sr=stage.getBoundingClientRect();return{x:cr.left-sr.left+(v.x*.5+.5)*cr.width,y:cr.top-sr.top+(-v.y*.5+.5)*cr.height};};
-    const hideMeasure=name=>{const mark=measureMarks[name];if(mark)mark.style.display='none';};
-    const paintMeasure=(name,a,b,text,bad=false)=>{const mark=measureMarks[name];if(!mark)return;const p1=projectMeasurePoint(a[0],a[1],a[2]),p2=projectMeasurePoint(b[0],b[1],b[2]);if(!p1||!p2){mark.style.display='none';return;}const dx=p2.x-p1.x,dy=p2.y-p1.y,dist=Math.hypot(dx,dy);if(dist<2.5){mark.style.display='none';return;}const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,angle=Math.atan2(dy,dx)*180/Math.PI,line=mark.querySelector('i'),label=mark.querySelector('span');mark.style.display='block';mark.style.left=`${mx}px`;mark.style.top=`${my}px`;if(line){line.style.width=`${dist}px`;line.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`;}if(label)label.textContent=text;mark.classList.toggle('bad',!!bad);};
-    const updateOnModelMeasures=()=>{if(!topXs.length){Object.keys(measureMarks).forEach(hideMeasure);return;}const deckOffset=groups.deck.position.y,topSurface=topY+deckT/2+deckOffset+.07,focusIndex=Math.floor((topXs.length-1)/2),boardX=topXs[focusIndex];paintMeasure('length',[boardX,topSurface,-deckL/2],[boardX,topSurface,deckL/2],`Длина ${fmtMm(deckLengthMm)} мм`);const widthZ=-deckL*.28;paintMeasure('width',[boardX-actualDeckW/2,topSurface,widthZ],[boardX+actualDeckW/2,topSurface,widthZ],`Ширина ${fmtMm(deckWidthMm)} мм`);const edgeX=boardX+actualDeckW/2+.04,thicknessZ=deckL*.34;paintMeasure('thickness',[edgeX,topY-deckT/2+deckOffset,thicknessZ],[edgeX,topY+deckT/2+deckOffset,thicknessZ],`Толщина ${fmtMm(deckThicknessMm)} мм`);if(topXs.length>1){const gi=Math.max(0,Math.min(topXs.length-2,Math.floor(topXs.length/2)-1)),left=topXs[gi]+actualDeckW/2,right=topXs[gi+1]-actualDeckW/2;paintMeasure('gap',[left,topSurface,deckL*.12],[right,topSurface,deckL*.12],`Зазор ${gapText}`,gapBad);}else hideMeasure('gap');};
+    const overlay=root.querySelector('.palletOnModelMeasures');
+    const measureMarks={};
+    const ensureMeasure=(name,kind='normal')=>{let mark=measureMarks[name];if(mark)return mark;mark=document.createElement('div');mark.className=`palletMeasureMark ${kind}`;mark.innerHTML='<i class="measureLine"></i><em class="measureTick tickA"></em><em class="measureTick tickB"></em><span></span>';overlay?.appendChild(mark);measureMarks[name]=mark;return mark;};
+    const clearMeasures=()=>Object.values(measureMarks).forEach(mark=>mark.style.display='none');
+    const paintMeasure=(name,a,b,text,opts={})=>{const mark=ensureMeasure(name,opts.kind||'normal');const p1=projectMeasurePoint(a[0],a[1],a[2]),p2=projectMeasurePoint(b[0],b[1],b[2]);if(!p1||!p2){mark.style.display='none';return;}const dx=p2.x-p1.x,dy=p2.y-p1.y,dist=Math.hypot(dx,dy);if(dist<(opts.minPx||4)){mark.style.display='none';return;}const angle=Math.atan2(dy,dx)*180/Math.PI,mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2,line=mark.querySelector('.measureLine'),tickA=mark.querySelector('.tickA'),tickB=mark.querySelector('.tickB'),label=mark.querySelector('span');mark.style.display='block';mark.classList.toggle('bad',!!opts.bad);mark.classList.toggle('major',!!opts.major);mark.classList.toggle('compact',!!opts.compact);if(line){line.style.left=`${p1.x}px`;line.style.top=`${p1.y}px`;line.style.width=`${dist}px`;line.style.transform=`rotate(${angle}deg)`;}[[tickA,p1],[tickB,p2]].forEach(([tick,p])=>{if(!tick)return;tick.style.left=`${p.x}px`;tick.style.top=`${p.y}px`;tick.style.transform=`translate(-50%,-50%) rotate(${angle+90}deg)`;});if(label){label.textContent=text;label.style.left=`${mx+(opts.labelDx||0)}px`;label.style.top=`${my+(opts.labelDy||0)}px`;}return mark;};
+    const updateOnModelMeasures=()=>{
+      clearMeasures();
+      if(!topXs.length)return;
+      const deckOffset=groups.deck.position.y;
+      const topSurface=topY+deckT/2+deckOffset+.08;
+      const frontZ=Math.min(PL/2,deckL/2)+.08;
+      const leftX=-PW/2,rightX=PW/2,frontOutsideZ=PL/2+.70,leftOutsideX=-PW/2-.72,rightOutsideX=PW/2+.72;
+      const totalTop=runnerT+blockH+bindT+deckT;
+      paintMeasure('overall-length',[leftOutsideX,.08,-PL/2],[leftOutsideX,.08,PL/2],`${fmtMm(profile.length)} мм`,{major:true,labelDx:-8});
+      paintMeasure('overall-width',[leftX,.08,frontOutsideZ],[rightX,.08,frontOutsideZ],`${fmtMm(profile.width)} мм`,{major:true,labelDy:14});
+      paintMeasure('overall-height',[rightOutsideX,0,PL*.36],[rightOutsideX,totalTop,PL*.36],`${fmtMm(totalTop/S)} мм`,{major:true,labelDx:28});
+      const focusIndex=Math.floor((topXs.length-1)/2),focusX=topXs[focusIndex];
+      paintMeasure('deck-length',[focusX,topSurface,-deckL/2],[focusX,topSurface,deckL/2],`${fmtMm(deckLengthMm)} мм`,{labelDx:22});
+      topXs.forEach((x,i)=>{
+        const boardFront=Math.min(deckL/2,PL/2)-.12;
+        paintMeasure(`board-width-${i}`,[x-actualDeckW/2,topSurface,boardFront],[x+actualDeckW/2,topSurface,boardFront],fmtMm(deckWidthMm),{compact:true,kind:'board',labelDy:i%2?10:-10,minPx:7});
+      });
+      if(topXs.length>1){
+        for(let i=0;i<topXs.length-1;i++){
+          const a=topXs[i]+actualDeckW/2,b=topXs[i+1]-actualDeckW/2;
+          paintMeasure(`gap-${i}`,[a,topSurface,frontZ+.28],[b,topSurface,frontZ+.28],gapBad?`−${fmtMm(Math.abs(rawGapMm))}`:fmtMm(rawGapMm),{compact:true,kind:'gap',bad:gapBad,labelDy:i%2?-11:11,minPx:5});
+        }
+      }
+      const stackX=-PW/2-.28,stackZ=PL*.33;
+      const y0=0,y1=runnerT,y2=runnerT+blockH,y3=runnerT+blockH+bindT,y4=totalTop;
+      paintMeasure('layer-runner',[stackX,y0,stackZ],[stackX,y1,stackZ],fmtMm(runnerT/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+      paintMeasure('layer-block',[stackX,y1,stackZ],[stackX,y2,stackZ],fmtMm(blockH/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+      paintMeasure('layer-bind',[stackX,y2,stackZ],[stackX,y3,stackZ],fmtMm(bindT/S),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+      const deckBottom=topY-deckT/2+deckOffset,deckTop=topY+deckT/2+deckOffset;
+      paintMeasure('layer-deck',[stackX,deckBottom,stackZ],[stackX,deckTop,stackZ],fmtMm(deckThicknessMm),{compact:true,kind:'layer',labelDx:-24,minPx:5});
+    };
     function draw(){if(mode==='top'){camera.up.set(0,0,-1);camera.position.set(0,Math.max(PW,PL)*2.0,.001);camera.lookAt(0,topY*.55,0);}else if(mode==='side'){camera.up.set(0,1,0);camera.position.set(Math.max(PW,PL)*2.0,Math.max(4.2,topY*2.0),0);camera.lookAt(0,topY*.55,0);}else{camera.up.set(0,1,0);const cy=Math.sin(pitch)*distance,rad=Math.cos(pitch)*distance;camera.position.set(Math.cos(yaw)*rad,cy+2.0,Math.sin(yaw)*rad);camera.lookAt(0,exploded?3.1:topY*.42,0);}renderer.render(scene,camera);updateOnModelMeasures();}
     active={renderer,scene,camera,groups,mode,signature:currentSignature(),draw,profile};
     if(exploded){const t0=performance.now();const animate=t=>{const q=clamp((t-t0)/420,0,1),e=1-Math.pow(1-q,3);groups.block.position.y=offsets.block*e;groups.cross.position.y=offsets.cross*e;groups.deck.position.y=offsets.deck*e;draw();if(q<1)raf=requestAnimationFrame(animate);};raf=requestAnimationFrame(animate);}else draw();
