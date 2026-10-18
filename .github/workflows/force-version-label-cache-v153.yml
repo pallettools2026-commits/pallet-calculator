@@ -1,0 +1,29 @@
+name: Force version label cache refresh
+
+on:
+  push:
+    paths:
+      - '.github/workflows/force-version-label-cache-v153.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  bump-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version label script cache
+        run: |
+          sed -i 's/version-label-fix-v142.js?v=149/version-label-fix-v142.js?v=150/g' index.html
+      - name: Commit cache refresh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No cache change required"
+          else
+            git commit -m "Refresh sidebar script cache"
+            git push
+          fi
