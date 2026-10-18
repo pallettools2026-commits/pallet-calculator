@@ -1,0 +1,21 @@
+name: Pallet selected part card v128
+on:
+  push:
+    paths:
+      - '.github/workflows/part-card-v128.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply selected part card
+        run: python .github/scripts/part-card-v128.py
+      - name: Commit selected part card
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          git commit -m "Improve selected pallet part card" || exit 0
+          git push
