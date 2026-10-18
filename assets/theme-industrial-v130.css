@@ -644,3 +644,24 @@ html[data-theme="dark"] .previewCard.partPickMode .palletPickHint{
   }
   .palletPartInspector strong{font-size:14px!important}
 }
+
+
+/* selectedPartWeightV1129 */
+.palletPartInspector .palletPartWeight{
+  display:block!important;
+  margin-top:5px!important;
+  padding-top:6px!important;
+  border-top:1px solid rgba(139,91,45,.18)!important;
+  color:#7a512c!important;
+  font-size:10px!important;
+  font-style:normal!important;
+  font-weight:850!important;
+  line-height:1.35!important;
+}
+html[data-theme="dark"] .palletPartInspector .palletPartWeight{
+  border-top-color:rgba(232,202,154,.18)!important;
+  color:#efc998!important;
+}
+@media(max-width:620px){
+  .palletPartInspector .palletPartWeight{font-size:9px!important}
+}

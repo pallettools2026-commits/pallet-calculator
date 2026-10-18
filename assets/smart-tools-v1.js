@@ -113,7 +113,9 @@
     if(!selectedPart){title.textContent='Выберите деталь';dims.textContent='Нажмите кнопку ниже. Выбор доступен в режимах «Сверху», «Сбоку» и «Разнести».';qty.textContent='Настил, поперечина, лыжа или шашка подсветится, а размеры появятся здесь.';return;}
     title.textContent=`${selectedPart.name} №${selectedPart.itemNo||selectedPart.boardNo||1}`;
     dims.textContent=`${fmt(selectedPart.t)} × ${fmt(selectedPart.w)} × ${fmt(selectedPart.l)} мм`;
-    qty.textContent=`${selectedPart.per} шт. на поддон · ${Number(selectedPart.total||0).toLocaleString('ru-RU')} шт. на заказ`;
+    const weightOne=Number(selectedPart.pieceWeightKg||0),weightOrder=Number(selectedPart.orderWeightKg||0);
+    const weightText=weightOne>0?` · вес 1 шт. ${fmt(weightOne)} кг · заказ ${Math.round(weightOrder).toLocaleString('ru-RU')} кг`:'';
+    qty.textContent=`${selectedPart.per} шт. на поддон · ${Number(selectedPart.total||0).toLocaleString('ru-RU')} шт. на заказ${weightText}`;
   }
 
   function update(){

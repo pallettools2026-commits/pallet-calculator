@@ -231,7 +231,46 @@
     let inspectDown=null,lastInspectAt=0;
     const resetInspectHighlight=()=>inspectable.forEach(mesh=>{if(!mesh.material)return;mesh.material.emissive.setHex(mesh.userData.baseEmissiveHex||0);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||0;});
     const setPickHint=(text,selected=false)=>{if(!pickHint)return;pickHint.textContent=text;pickHint.classList.toggle('selected',selected);};
-    const showInspect=(mesh)=>{const info=mesh?.userData?.palletInspect;if(!info)return false;resetInspectHighlight();mesh.material.emissive.setHex(0xb66a2d);mesh.material.emissiveIntensity=.50;const itemNo=Number(info.index||0)+1,qty=Math.max(1,Math.round(num(el('qty')?.value,1))),total=info.n*qty;if(partInspector){partInspector.hidden=false;partInspector.dataset.kind=info.kind||'';partInspector.querySelector('strong').textContent=`${info.name} №${itemNo}`;partInspector.querySelector('span').textContent=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;partInspector.querySelector('b').textContent=`На поддон: ${info.n} шт. · На заказ: ${total.toLocaleString('ru-RU')} шт.`;}setPickHint(`Выбрано: ${info.name} №${itemNo} · ${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`,true);window.dispatchEvent(new CustomEvent('pallet3d:partselect',{detail:{...info,itemNo,boardNo:itemNo,per:info.n,total}}));renderer.render(scene,camera);lastInspectAt=performance.now();return true;};
+    const showInspect=(mesh)=>{
+      const info=mesh?.userData?.palletInspect;
+      if(!info)return false;
+      resetInspectHighlight();
+      mesh.material.emissive.setHex(0xb66a2d);
+      mesh.material.emissiveIntensity=.50;
+      const itemNo=Number(info.index||0)+1;
+      const qty=Math.max(1,Math.round(num(el('qty')?.value,1)));
+      const total=info.n*qty;
+      let density=num(el('smartDensity')?.value,0);
+      if(!(density>=250&&density<=1000)){
+        try{density=num(localStorage.getItem('pallettools:woodDensity'),500);}catch(_){density=500;}
+      }
+      density=clamp(density||500,250,1000);
+      const pieceVolume=Math.max(0,num(info.t))*Math.max(0,num(info.w))*Math.max(0,num(info.l))/1e9;
+      const pieceWeight=pieceVolume*density;
+      const palletWeight=pieceWeight*info.n;
+      const orderWeight=pieceWeight*total;
+      const fmtKg=v=>{
+        const x=Math.max(0,num(v,0));
+        if(x<1)return `${(Math.round(x*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2})} кг`;
+        if(x<100)return `${(Math.round(x*10)/10).toLocaleString('ru-RU',{maximumFractionDigits:1})} кг`;
+        return `${Math.round(x).toLocaleString('ru-RU')} кг`;
+      };
+      if(partInspector){
+        partInspector.hidden=false;
+        partInspector.dataset.kind=info.kind||'';
+        partInspector.querySelector('strong').textContent=`${info.name} №${itemNo}`;
+        partInspector.querySelector('span').textContent=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;
+        partInspector.querySelector('b').textContent=`На поддон: ${info.n} шт. · На заказ: ${total.toLocaleString('ru-RU')} шт.`;
+        let weightLine=partInspector.querySelector('.palletPartWeight');
+        if(!weightLine){weightLine=document.createElement('em');weightLine.className='palletPartWeight';partInspector.appendChild(weightLine);}
+        weightLine.textContent=`Вес 1 шт.: ${fmtKg(pieceWeight)} · На поддон: ${fmtKg(palletWeight)} · Заказ: ${fmtKg(orderWeight)} · ${Math.round(density)} кг/м³`;
+      }
+      setPickHint(`Выбрано: ${info.name} №${itemNo} · ${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`,true);
+      window.dispatchEvent(new CustomEvent('pallet3d:partselect',{detail:{...info,itemNo,boardNo:itemNo,per:info.n,total,density,pieceWeightKg:pieceWeight,palletWeightKg:palletWeight,orderWeightKg:orderWeight}}));
+      renderer.render(scene,camera);
+      lastInspectAt=performance.now();
+      return true;
+    };
     const pickAt=(clientX,clientY)=>{const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;pickPoint.x=((clientX-rect.left)/rect.width)*2-1;pickPoint.y=-((clientY-rect.top)/rect.height)*2+1;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);raycaster.setFromCamera(pickPoint,camera);return raycaster.intersectObjects(inspectable,false).find(hit=>hit.object?.userData?.palletInspect)||null;};
     const pointInPolygon=(x,y,poly)=>{let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>y)!==(b.y>y))&&(x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x))inside=!inside;}return inside;};
     const projectToCanvas=(x,y,z,rect)=>{const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;return{x:(v.x*.5+.5)*rect.width,y:(-v.y*.5+.5)*rect.height};};
