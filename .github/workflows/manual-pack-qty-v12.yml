@@ -15,45 +15,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Remove hard 20/35 pack limits
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          hp=Path('truck-planner.html')
-          jp=Path('assets/truck-planner-v9.js')
-          html=hp.read_text(encoding='utf-8')
-          js=jp.read_text(encoding='utf-8')
-
-          html=html.replace('<option value="oneByOne">Один на один · до 20 шт.</option>','<option value="oneByOne">Один на один</option>')
-          html=html.replace('<option value="mamaPapa">Мама‑папа · до 35 шт.</option>','<option value="mamaPapa">Мама‑папа</option>')
-          html=re.sub(r'<input id="packQty" type="number" min="1" max="20" step="1" value="1">','<input id="packQty" type="number" min="1" step="1" value="1" inputmode="numeric">',html,count=1)
-          html=html.replace('Один на один: 1–20 поддонов в пачке. Высота считается по 144 мм на каждый поддон.','Введите нужное количество поддонов в пачке вручную. Ограничение определяется высотой кузова и массой.')
-          html=re.sub(r'truck-planner-v9\.js\?v=[0-9-]+','truck-planner-v9.js?v=20261018-2325',html,count=1)
-
-          js=js.replace("  const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne',maxPerPack=packMode==='mamaPapa'?35:20;\n  const packQty=Math.max(1,Math.min(maxPerPack,Math.floor(Number(E.packQty?.value)||1)));\n  if(E.packQty){E.packQty.max=maxPerPack;if(Number(E.packQty.value)!==packQty)E.packQty.value=packQty;}","  const packMode=E.packMode?.value==='mamaPapa'?'mamaPapa':'oneByOne';\n  const packQty=Math.max(1,Math.floor(Number(E.packQty?.value)||1));\n  if(E.packQty&&Number(E.packQty.value)!==packQty)E.packQty.value=packQty;")
-          js=js.replace("  S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show,packMode,packQty,packH,maxPerPack,packStep};","  S={v,p,h,w,gap,pk,floor,layers,geo,byWeight,cap,show,packMode,packQty,packH,packStep};")
-          js=js.replace("  if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: 1–35 поддонов в пачке. Первый поддон ${h} мм, следующий шаг по высоте ${nestedStep} мм (доска 22 мм + шашка 78 мм).`:`Один на один: 1–20 поддонов в пачке. Каждый следующий поддон добавляет ${h} мм.`;","  if(E.packHint)E.packHint.textContent=packMode==='mamaPapa'?`Мама‑папа: количество задаётся вручную. Первый поддон ${h} мм, следующий шаг по высоте ${nestedStep} мм (доска 22 мм + шашка 78 мм).`:`Один на один: количество задаётся вручную. Каждый следующий поддон добавляет ${h} мм.`;")
-          js=js.replace("E.rendered.textContent=w?`Текущая масса: ${kg(show*w)} из ${kg(v.payload)}`:`В 3D: ${show} поддонов · до ${maxPerPack} в пачке`;","E.rendered.textContent=w?`Текущая масса: ${kg(show*w)} из ${kg(v.payload)}`:`В 3D: ${show} поддонов · ${packQty} в пачке`; ")
-          js=re.sub(r"function syncPackMode\(\)\{if\(!E\.packMode\|\|!E\.packQty\)return;const max=E\.packMode\.value==='mamaPapa'\?35:20;E\.packQty\.max=max;const n=Math\.max\(1,Math\.min\(max,Math\.floor\(Number\(E\.packQty\.value\)\|\|1\)\)\);E\.packQty\.value=n;\}","function syncPackMode(){if(!E.packMode||!E.packQty)return;const n=Math.max(1,Math.floor(Number(E.packQty.value)||1));E.packQty.removeAttribute('max');E.packQty.value=n;}",js,count=1)
-
-          if 'maxPerPack' in js:
-              raise SystemExit('maxPerPack still present')
-          if 'max="20"' in html or 'до 20 шт.' in html or 'до 35 шт.' in html:
-              raise SystemExit('hard pack limits still present in HTML')
-
-          hp.write_text(html,encoding='utf-8')
-          jp.write_text(js,encoding='utf-8')
-          PY
-
-          node --check assets/truck-planner-v9.js
-
-      - name: Commit manual pack quantity
+      - name: Apply footprint patch
+        run: python .github/scripts/fix_pack_footprints_v16.py
+      - name: Validate JavaScript
+        run: node --check assets/truck-planner-v9.js
+      - name: Commit footprint rules
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add truck-planner.html assets/truck-planner-v9.js
-          git commit -m "Allow manual pallet quantity per pack" || exit 0
+          git add assets/truck-planner-v9.js truck-planner.html
+          git commit -m "Fix pallet pack floor dimensions" || exit 0
           git push
