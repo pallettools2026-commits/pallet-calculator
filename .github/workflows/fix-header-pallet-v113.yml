@@ -1,0 +1,73 @@
+name: Fix header pallet v1.1.3
+
+on:
+  push:
+    branches:
+      - fix-header-pallet-v113
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Restore valid WebP and bump cache/version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/git/blobs/13673b99506b99ca9de528f45955db2b7eb1ce4f"
+          curl -sSfL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api" | jq -r '.content' | tr -d '\n' | base64 --decode > assets/pallet-hero-3d.webp
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          asset = Path('assets/pallet-hero-3d.webp').read_bytes()
+          assert asset[:4] == b'RIFF' and asset[8:12] == b'WEBP', 'invalid WebP asset'
+
+          index = Path('index.html')
+          text = index.read_text(encoding='utf-8')
+          text = re.sub(r'assets/pallet-hero-3d\.webp(?:\?v=\d+)?', 'assets/pallet-hero-3d.webp?v=113', text, count=1)
+          text = text.replace('assets/theme-industrial-v130.css?v=150', 'assets/theme-industrial-v130.css?v=151')
+          text = text.replace('assets/pallet3d-v10.js?v=146', 'assets/pallet3d-v10.js?v=147')
+          text = text.replace('Pallet Tools · v1.1.2', 'Pallet Tools · v1.1.3')
+          index.write_text(text, encoding='utf-8')
+
+          js = Path('assets/pallet3d-v10.js')
+          text = js.read_text(encoding='utf-8')
+          text = text.replace('Pallet Tools · v1.1.2 · обновление №336', 'Pallet Tools · v1.1.3 · обновление №337')
+          text = text.replace("'Pallet Tools · v1.1.2'", "'Pallet Tools · v1.1.3'")
+          js.write_text(text, encoding='utf-8')
+
+          css = Path('assets/theme-industrial-v130.css')
+          text = css.read_text(encoding='utf-8')
+          text = text.replace('Pallet Tools · v1.1.2 · обновление №336', 'Pallet Tools · v1.1.3 · обновление №337')
+          text = text.replace('Pallet Tools · v1.1.2', 'Pallet Tools · v1.1.3')
+          css.write_text(text, encoding='utf-8')
+          PY
+
+          node --check assets/pallet3d-v10.js
+          grep -q 'pallet-hero-3d.webp?v=113' index.html
+          grep -q 'v1.1.3' assets/pallet3d-v10.js
+
+      - name: Commit fix to main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet-hero-3d.webp index.html assets/pallet3d-v10.js assets/theme-industrial-v130.css
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix header pallet image"
+          git push origin HEAD:main
