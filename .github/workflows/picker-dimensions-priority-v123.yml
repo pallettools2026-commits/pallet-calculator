@@ -1,0 +1,35 @@
+name: Picker dimensions priority v123
+on:
+  push:
+    paths:
+      - '.github/workflows/picker-dimensions-priority-v123.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Strengthen mm label styles
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64, re
+          css = Path('assets/theme-industrial-v130.css')
+          c = css.read_text(encoding='utf-8')
+          marker = '/* pickerDimensionsPriorityV1123 */'
+          patch = base64.b64decode('LyogcGlja2VyRGltZW5zaW9uc1ByaW9yaXR5VjExMjMgKi8KLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpub3QoW2hpZGRlbl0pLAoucHJldmlld0NhcmQgLnBhbGxldEJvYXJkUGlja1pvbmU6bm90KFtoaWRkZW5dKXsKICBib3JkZXI6MCFpbXBvcnRhbnQ7CiAgYm9yZGVyLWNvbG9yOnRyYW5zcGFyZW50IWltcG9ydGFudDsKICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50IWltcG9ydGFudDsKICBib3gtc2hhZG93Om5vbmUhaW1wb3J0YW50OwogIG91dGxpbmU6MCFpbXBvcnRhbnQ7CiAgdHJhbnNmb3JtOm5vbmUhaW1wb3J0YW50Owp9Ci5wcmV2aWV3Q2FyZC5wYXJ0UGlja01vZGUgLnBhbGxldEJvYXJkUGlja1pvbmVbZGF0YS1raW5kXSBzcGFuLAoucHJldmlld0NhcmQgLnBhbGxldEJvYXJkUGlja1pvbmVbZGF0YS1raW5kXSBzcGFuewogIGRpc3BsYXk6YmxvY2shaW1wb3J0YW50OwogIHBvc2l0aW9uOmFic29sdXRlIWltcG9ydGFudDsKICBsZWZ0OjUwJSFpbXBvcnRhbnQ7CiAgdG9wOjUwJSFpbXBvcnRhbnQ7CiAgdHJhbnNmb3JtOnRyYW5zbGF0ZSgtNTAlLC01MCUpIWltcG9ydGFudDsKICB3aWR0aDptYXgtY29udGVudCFpbXBvcnRhbnQ7CiAgbWluLXdpZHRoOjAhaW1wb3J0YW50OwogIGhlaWdodDphdXRvIWltcG9ydGFudDsKICBwYWRkaW5nOjNweCA2cHghaW1wb3J0YW50OwogIGJvcmRlcjoxcHggc29saWQgcmdiYSg4NCw2NCw0MywuMjIpIWltcG9ydGFudDsKICBib3JkZXItcmFkaXVzOjZweCFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDpyZ2JhKDI1NSwyNTIsMjQ2LC45NCkhaW1wb3J0YW50OwogIGNvbG9yOiM0ZDNiMmEhaW1wb3J0YW50OwogIGJveC1zaGFkb3c6MCAxcHggNHB4IHJnYmEoNTUsNDIsMjgsLjEyKSFpbXBvcnRhbnQ7CiAgZm9udC1zaXplOjEwcHghaW1wb3J0YW50OwogIGZvbnQtd2VpZ2h0OjgwMCFpbXBvcnRhbnQ7CiAgbGluZS1oZWlnaHQ6MS4xNSFpbXBvcnRhbnQ7CiAgd2hpdGUtc3BhY2U6bm93cmFwIWltcG9ydGFudDsKICBwb2ludGVyLWV2ZW50czpub25lIWltcG9ydGFudDsKfQoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lW2RhdGEta2luZF06aG92ZXIgc3BhbiwKLnByZXZpZXdDYXJkIC5wYWxsZXRCb2FyZFBpY2tab25lW2RhdGEta2luZF06aG92ZXIgc3BhbiwKLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZVtkYXRhLWtpbmRdOmZvY3VzLXZpc2libGUgc3BhbiwKLnByZXZpZXdDYXJkIC5wYWxsZXRCb2FyZFBpY2tab25lW2RhdGEta2luZF06Zm9jdXMtdmlzaWJsZSBzcGFuewogIGRpc3BsYXk6YmxvY2shaW1wb3J0YW50OwogIGJhY2tncm91bmQ6I2ZmZjhlYyFpbXBvcnRhbnQ7CiAgYm9yZGVyLWNvbG9yOnJnYmEoMTIyLDgyLDQxLC40OCkhaW1wb3J0YW50OwogIGNvbG9yOiMzZjJkMWQhaW1wb3J0YW50Owp9Cmh0bWxbZGF0YS10aGVtZT0iZGFyayJdIC5wcmV2aWV3Q2FyZC5wYXJ0UGlja01vZGUgLnBhbGxldEJvYXJkUGlja1pvbmVbZGF0YS1raW5kXSBzcGFuLApodG1sW2RhdGEtdGhlbWU9ImRhcmsiXSAucHJldmlld0NhcmQgLnBhbGxldEJvYXJkUGlja1pvbmVbZGF0YS1raW5kXSBzcGFuewogIGRpc3BsYXk6YmxvY2shaW1wb3J0YW50OwogIGJhY2tncm91bmQ6cmdiYSg0MiwzNywzMSwuOTQpIWltcG9ydGFudDsKICBjb2xvcjojZjNkZmJkIWltcG9ydGFudDsKICBib3JkZXItY29sb3I6cmdiYSgyMzIsMjAyLDE1NCwuMzIpIWltcG9ydGFudDsKfQpAbWVkaWEobWF4LXdpZHRoOjYyMHB4KXsKICAucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lW2RhdGEta2luZF0gc3BhbiwKICAucHJldmlld0NhcmQgLnBhbGxldEJvYXJkUGlja1pvbmVbZGF0YS1raW5kXSBzcGFuewogICAgZGlzcGxheTpibG9jayFpbXBvcnRhbnQ7CiAgICBmb250LXNpemU6OXB4IWltcG9ydGFudDsKICAgIHBhZGRpbmc6MnB4IDRweCFpbXBvcnRhbnQ7CiAgfQp9Cg==').decode('utf-8')
+          if marker not in c:
+              css.write_text(c+'\n\n'+patch,encoding='utf-8')
+          idx = Path('index.html')
+          h = idx.read_text(encoding='utf-8')
+          h = re.sub(r'assets/theme-industrial-v130\.css\?v=\d+','assets/theme-industrial-v130.css?v=173',h)
+          idx.write_text(h,encoding='utf-8')
+          PY
+      - name: Commit priority styles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/theme-industrial-v130.css index.html
+          git commit -m "Prioritize pallet mm labels" || exit 0
+          git push
