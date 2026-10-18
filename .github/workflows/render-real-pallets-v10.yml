@@ -1,0 +1,106 @@
+name: Render realistic pallet stacks
+
+on:
+  push:
+    paths:
+      - '.github/workflows/render-real-pallets-v10.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Replace blue cargo blocks with real pallet geometry
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          js_path = Path('assets/truck-planner-v9.js')
+          html_path = Path('truck-planner.html')
+          js = js_path.read_text(encoding='utf-8')
+          html = html_path.read_text(encoding='utf-8')
+
+          js = re.sub(
+              r"const PALLETS=\{.*?\};",
+              "const PALLETS={eur:{name:'EUR / EPAL',L:1200,W:800,H:144},fin:{name:'FIN',L:1200,W:1000,H:144},square:{name:'Квадратный',L:1200,W:1200,H:144},custom:{name:'Свои размеры',L:1250,W:1180,H:144}};",
+              js,
+              count=1,
+              flags=re.S,
+          )
+
+          js = re.sub(
+              r"function getPallet\(\)\{.*?\}",
+              "function getPallet(){const p=PALLETS[E.p.value]||PALLETS.eur;if(E.p.value!=='custom')return{...p};return{name:p.name,L:val(E.pL,p.L),W:val(E.pW,p.W),H:val(E.loadH,p.H||144)};}",
+              js,
+              count=1,
+              flags=re.S,
+          )
+
+          js = js.replace(
+              "const v=getVehicle(),p=getPallet(),h=val(E.loadH,1200),w=Number(E.pw.value)||0,",
+              "const v=getVehicle(),p=getPallet(),h=p.H||144,w=Number(E.pw.value)||0,",
+              1,
+          )
+
+          new_make = r'''function makePallet(p,h,alt){
+  const g=new THREE.Group(),L=p.L/1000,W=p.W/1000;
+  const deckH=.022,blockH=.078,crossH=.022;
+  const woodA=alt?M.wood2:M.wood,woodB=alt?M.wood:M.wood2;
+  const edgeX=Math.max(.05,W/2-.0725),edgeZ=Math.max(.05,L/2-.0725);
+
+  // Нижние доски — 22 мм
+  const runnerWidths=[.10,.145,.10],runnerX=[-edgeX,0,edgeX];
+  runnerX.forEach((x,i)=>g.add(box(Math.min(runnerWidths[i],W*.24),deckH,L*.96,woodB,x,deckH/2,0)));
+
+  // 9 шашек — 78 мм
+  const xs=[-edgeX,0,edgeX],zs=[-edgeZ,0,edgeZ];
+  for(let ix=0;ix<3;ix++)for(let iz=0;iz<3;iz++){
+    const bw=ix===1?Math.min(.145,W*.24):Math.min(.10,W*.22);
+    const bd=iz===1?Math.min(.145,L*.20):Math.min(.10,L*.18);
+    g.add(box(bw,blockH,bd,woodB,xs[ix],deckH+blockH/2,zs[iz]));
+  }
+
+  // Поперечные доски — 22 мм
+  const crossY=deckH+blockH+crossH/2;
+  zs.forEach(z=>g.add(box(W*.98,crossH,Math.min(.145,L*.20),woodA,0,crossY,z)));
+
+  // Верхний настил — 5 досок по 22 мм
+  const widths=[.145,.10,.145,.10,.145].map(v=>Math.min(v,W*.22));
+  const total=widths.reduce((a,b)=>a+b,0);
+  const gap=Math.max(.008,(W-total)/4);
+  let cursor=-W/2;
+  const topY=deckH+blockH+crossH+deckH/2;
+  widths.forEach((bw,i)=>{
+    const x=cursor+bw/2;
+    g.add(box(bw,deckH,L*.985,i%2?woodB:woodA,x,topY,0));
+    cursor+=bw+(i<widths.length-1?gap:0);
+  });
+  return g;
+}'''
+          js = re.sub(r"function makePallet\(p,h,alt\)\{.*?return g;\}", new_make, js, count=1, flags=re.S)
+
+          old_sync = "const p=PALLETS[E.p.value]||PALLETS.eur;E.cp.classList.toggle('show',E.p.value==='custom');E.pL.value=p.L;E.pW.value=p.W;"
+          new_sync = "const p=PALLETS[E.p.value]||PALLETS.eur;E.cp.classList.toggle('show',E.p.value==='custom');E.pL.value=p.L;E.pW.value=p.W;E.loadH.readOnly=E.p.value!=='custom';if(E.p.value!=='custom')E.loadH.value=p.H||144;"
+          js = js.replace(old_sync, new_sync, 1)
+
+          html = html.replace('Высота с грузом <small>мм</small>', 'Высота 1 поддона <small>мм</small>', 1)
+          html = html.replace('id="loadH" type="number" min="100" step="10" value="1200"', 'id="loadH" type="number" min="50" step="1" value="144" readonly title="EUR/EPAL: 22 + 78 + 22 + 22 = 144 мм"', 1)
+          html = html.replace('id="palletWeight" type="number" min="0" step="10" value="700"', 'id="palletWeight" type="number" min="0" step="1" value="25"', 1)
+          html = re.sub(r'truck-planner-v9\.js\?v=[0-9-]+', 'truck-planner-v9.js?v=20261018-2245', html, count=1)
+
+          js_path.write_text(js, encoding='utf-8')
+          html_path.write_text(html, encoding='utf-8')
+          PY
+      - name: Commit pallet geometry update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/truck-planner-v9.js truck-planner.html
+          git commit -m "Render real EUR pallets instead of cargo blocks" || exit 0
+          git push
