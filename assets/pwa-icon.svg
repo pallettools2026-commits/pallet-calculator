@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pallet Tools">
+  <rect width="512" height="512" rx="112" fill="#0d392f"/>
+  <g fill="#d9a15d">
+    <rect x="92" y="154" width="328" height="42" rx="10"/>
+    <rect x="92" y="220" width="328" height="42" rx="10"/>
+    <rect x="92" y="286" width="328" height="42" rx="10"/>
+    <rect x="116" y="346" width="280" height="34" rx="9"/>
+  </g>
+  <g fill="#f2cf91">
+    <rect x="118" y="196" width="54" height="90" rx="8"/>
+    <rect x="229" y="196" width="54" height="90" rx="8"/>
+    <rect x="340" y="196" width="54" height="90" rx="8"/>
+  </g>
+  <path d="M112 410h288" stroke="#e9c487" stroke-width="24" stroke-linecap="round"/>
+</svg>
