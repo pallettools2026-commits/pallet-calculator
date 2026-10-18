@@ -1,0 +1,43 @@
+name: Picker dimensions v122
+on:
+  push:
+    paths:
+      - '.github/workflows/picker-dimensions-v122.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply mm picker labels
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64, re
+          js = Path('assets/pallet3d-v10.js')
+          s = js.read_text(encoding='utf-8')
+          old = "btn.innerHTML=`<span>${info.short||''}${Number(info.index||0)+1}</span>`;pickOverlay.appendChild(btn);return btn;"
+          new = "const dimLabel=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;btn.title=dimLabel;btn.innerHTML=`<span>${dimLabel}</span>`;pickOverlay.appendChild(btn);return btn;"
+          if old not in s:
+              raise SystemExit('picker label source not found')
+          js.write_text(s.replace(old,new,1),encoding='utf-8')
+          css = Path('assets/theme-industrial-v130.css')
+          c = css.read_text(encoding='utf-8')
+          marker = '/* pickerDimensionsV1122 */'
+          patch = base64.b64decode('LyogcGlja2VyRGltZW5zaW9uc1YxMTIyICovCi8qIFNob3cgcGh5c2ljYWwgZGltZW5zaW9ucyBpbnN0ZWFkIG9mIGJsdWUgcGlja2VyIHJlY3RhbmdsZXMuICovCi5wcmV2aWV3Q2FyZCAucGFsbGV0Qm9hcmRQaWNrWm9uZTpub3QoW2hpZGRlbl0pewogIGJvcmRlcjowIWltcG9ydGFudDsKICBiYWNrZ3JvdW5kOnRyYW5zcGFyZW50IWltcG9ydGFudDsKICBib3gtc2hhZG93Om5vbmUhaW1wb3J0YW50OwogIG91dGxpbmU6MCFpbXBvcnRhbnQ7CiAgdHJhbnNmb3JtOm5vbmUhaW1wb3J0YW50OwogIHBvaW50ZXItZXZlbnRzOmF1dG8haW1wb3J0YW50Owp9Ci5wcmV2aWV3Q2FyZCAucGFsbGV0Qm9hcmRQaWNrWm9uZSBzcGFuewogIGRpc3BsYXk6YmxvY2shaW1wb3J0YW50OwogIHBvc2l0aW9uOmFic29sdXRlIWltcG9ydGFudDsKICBsZWZ0OjUwJSFpbXBvcnRhbnQ7CiAgdG9wOjUwJSFpbXBvcnRhbnQ7CiAgdHJhbnNmb3JtOnRyYW5zbGF0ZSgtNTAlLC01MCUpIWltcG9ydGFudDsKICB3aWR0aDptYXgtY29udGVudCFpbXBvcnRhbnQ7CiAgbWF4LXdpZHRoOjE1MHB4IWltcG9ydGFudDsKICBtaW4td2lkdGg6MCFpbXBvcnRhbnQ7CiAgaGVpZ2h0OmF1dG8haW1wb3J0YW50OwogIHBhZGRpbmc6M3B4IDZweCFpbXBvcnRhbnQ7CiAgYm9yZGVyOjFweCBzb2xpZCByZ2JhKDg0LDY0LDQzLC4yMikhaW1wb3J0YW50OwogIGJvcmRlci1yYWRpdXM6NnB4IWltcG9ydGFudDsKICBiYWNrZ3JvdW5kOnJnYmEoMjU1LDI1MiwyNDYsLjk0KSFpbXBvcnRhbnQ7CiAgY29sb3I6IzRkM2IyYSFpbXBvcnRhbnQ7CiAgYm94LXNoYWRvdzowIDFweCA0cHggcmdiYSg1NSw0MiwyOCwuMTIpIWltcG9ydGFudDsKICBmb250LXNpemU6MTBweCFpbXBvcnRhbnQ7CiAgZm9udC13ZWlnaHQ6ODAwIWltcG9ydGFudDsKICBsaW5lLWhlaWdodDoxLjE1IWltcG9ydGFudDsKICB3aGl0ZS1zcGFjZTpub3dyYXAhaW1wb3J0YW50OwogIGxldHRlci1zcGFjaW5nOjAhaW1wb3J0YW50OwogIHBvaW50ZXItZXZlbnRzOm5vbmUhaW1wb3J0YW50Owp9Ci5wcmV2aWV3Q2FyZCAucGFsbGV0Qm9hcmRQaWNrWm9uZTpob3ZlciwKLnByZXZpZXdDYXJkIC5wYWxsZXRCb2FyZFBpY2tab25lOmZvY3VzLXZpc2libGV7CiAgYm9yZGVyOjAhaW1wb3J0YW50OwogIGJhY2tncm91bmQ6dHJhbnNwYXJlbnQhaW1wb3J0YW50OwogIGJveC1zaGFkb3c6bm9uZSFpbXBvcnRhbnQ7CiAgb3V0bGluZTowIWltcG9ydGFudDsKfQoucHJldmlld0NhcmQgLnBhbGxldEJvYXJkUGlja1pvbmU6aG92ZXIgc3BhbiwKLnByZXZpZXdDYXJkIC5wYWxsZXRCb2FyZFBpY2tab25lOmZvY3VzLXZpc2libGUgc3BhbnsKICBiYWNrZ3JvdW5kOiNmZmY4ZWMhaW1wb3J0YW50OwogIGJvcmRlci1jb2xvcjpyZ2JhKDEyMiw4Miw0MSwuNDgpIWltcG9ydGFudDsKICBjb2xvcjojM2YyZDFkIWltcG9ydGFudDsKICBib3gtc2hhZG93OjAgMnB4IDdweCByZ2JhKDcwLDQ4LDI3LC4xOCkhaW1wb3J0YW50Owp9Cmh0bWxbZGF0YS10aGVtZT0iZGFyayJdIC5wcmV2aWV3Q2FyZCAucGFsbGV0Qm9hcmRQaWNrWm9uZSBzcGFuewogIGJhY2tncm91bmQ6cmdiYSg0MiwzNywzMSwuOTQpIWltcG9ydGFudDsKICBjb2xvcjojZjNkZmJkIWltcG9ydGFudDsKICBib3JkZXItY29sb3I6cmdiYSgyMzIsMjAyLDE1NCwuMzIpIWltcG9ydGFudDsKfQpAbWVkaWEobWF4LXdpZHRoOjYyMHB4KXsKICAucHJldmlld0NhcmQgLnBhbGxldEJvYXJkUGlja1pvbmUgc3BhbnsKICAgIGZvbnQtc2l6ZTo5cHghaW1wb3J0YW50OwogICAgcGFkZGluZzoycHggNHB4IWltcG9ydGFudDsKICAgIG1heC13aWR0aDoxMjBweCFpbXBvcnRhbnQ7CiAgfQp9Cg==').decode('utf-8')
+          if marker not in c:
+              css.write_text(c+'\n\n'+patch,encoding='utf-8')
+          idx = Path('index.html')
+          h = idx.read_text(encoding='utf-8')
+          h = re.sub(r'assets/theme-industrial-v130\.css\?v=\d+','assets/theme-industrial-v130.css?v=172',h)
+          h = re.sub(r'assets/pallet3d-v10\.js\?v=\d+','assets/pallet3d-v10.js?v=122',h)
+          idx.write_text(h,encoding='utf-8')
+          PY
+      - name: Commit mm labels
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          git commit -m "Show pallet dimensions instead of blue picker" || exit 0
+          git push
