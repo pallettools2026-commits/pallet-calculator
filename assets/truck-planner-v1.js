@@ -18,7 +18,7 @@ const PALLETS = {
 const $ = id => document.getElementById(id);
 const els = {
   vehicle:$('vehiclePreset'), customVehicle:$('customVehicle'), trailerL:$('trailerL'), trailerW:$('trailerW'), trailerH:$('trailerH'), payload:$('payload'),
-  pallet:$('palletPreset'), customPallet:$('customPallet'), palletL:$('palletL'), palletW:$('palletW'), loadH:$('loadH'), palletWeight:$('palletWeight'), desiredQty:$('desiredQty'), stacking:$('stacking'),
+  pallet:$('palletPreset'), customPallet:$('customPallet'), palletL:$('palletL'), palletW:$('palletW'), loadH:$('loadH'), palletWeight:$('palletWeight'), desiredQty:$('desiredQty'), clearance:$('clearance'), stacking:$('stacking'),
   capacity:$('capacityMetric'), floor:$('floorMetric'), layers:$('layersMetric'), weight:$('weightMetric'), capacitySub:$('capacitySub'), floorSub:$('floorSub'), layersSub:$('layersSub'), weightSub:$('weightSub'),
   vehicleName:$('vehicleName'), vehicleDims:$('vehicleDims'), palletName:$('palletName'), palletDims:$('palletDims'), layoutName:$('layoutName'), usageText:$('usageText'), renderedText:$('renderedText'), warning:$('plannerWarning'),
   host:$('truck3d'), wallsBtn:$('toggleWalls'), roofBtn:$('toggleRoof'), resetBtn:$('resetView')
@@ -31,7 +31,6 @@ const woodDarkMat = new THREE.MeshStandardMaterial({color:0x8e5d30,roughness:.85
 const loadMat = new THREE.MeshStandardMaterial({color:0x5c8f7b,roughness:.68,metalness:.02});
 const loadAltMat = new THREE.MeshStandardMaterial({color:0x789f91,roughness:.7,metalness:.02});
 const metalMat = new THREE.MeshStandardMaterial({color:0x26322f,roughness:.42,metalness:.58});
-const bodyMat = new THREE.MeshStandardMaterial({color:0xf1f3f2,roughness:.55,metalness:.18});
 const greenMat = new THREE.MeshStandardMaterial({color:0x176b50,roughness:.48,metalness:.18});
 const glassMat = new THREE.MeshPhysicalMaterial({color:0x5e7e88,roughness:.12,metalness:.05,transparent:true,opacity:.58,transmission:.2});
 const wallMat = new THREE.MeshPhysicalMaterial({color:0xdce8e4,roughness:.18,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false});
@@ -102,8 +101,9 @@ function calculate(){
   const pallet=getPallet();
   const loadHeight=numberValue(els.loadH,1200);
   const palletWeight=numberValue(els.palletWeight,0);
+  const clearance=Math.max(0,Number(els.clearance.value)||0);
   const desired=Math.max(0,Math.floor(numberValue(els.desiredQty,0)));
-  const packing=bestPacking(vehicle.length,vehicle.width,pallet.length,pallet.width);
+  const packing=bestPacking(vehicle.length,vehicle.width,pallet.length+clearance,pallet.width+clearance);
   const floorSpots=packing.count;
   const layers=els.stacking.checked?Math.max(1,Math.floor(vehicle.height/loadHeight)):1;
   const geometric=floorSpots*layers;
@@ -112,7 +112,7 @@ function calculate(){
   const renderCount=Math.min(capacity,desired>0?desired:capacity);
   const usedWeight=palletWeight*renderCount;
   const usage=capacity>0?Math.round(renderCount/capacity*100):0;
-  state={vehicle,pallet,loadHeight,palletWeight,desired,packing,floorSpots,layers,geometric,byWeight,capacity,renderCount,usedWeight,usage};
+  state={vehicle,pallet,loadHeight,palletWeight,clearance,desired,packing,floorSpots,layers,geometric,byWeight,capacity,renderCount,usedWeight,usage};
   updateMetrics();
   renderTruck();
 }
@@ -130,7 +130,7 @@ function updateMetrics(){
   els.vehicleName.textContent=s.vehicle.name;
   els.vehicleDims.textContent=`${formatMm(s.vehicle.length)} × ${formatMm(s.vehicle.width)} × ${formatMm(s.vehicle.height)}`;
   els.palletName.textContent=s.pallet.name;
-  els.palletDims.textContent=`${formatMm(s.pallet.length)} × ${formatMm(s.pallet.width)} · высота груза ${formatMm(s.loadHeight)}`;
+  els.palletDims.textContent=`${formatMm(s.pallet.length)} × ${formatMm(s.pallet.width)} · высота груза ${formatMm(s.loadHeight)} · зазор ${Math.round(s.clearance)} мм`;
   els.layoutName.textContent=s.packing.description||'—';
   els.usageText.textContent=`${s.renderCount} из ${s.capacity} · ${s.usage}% заполнения`;
   els.renderedText.textContent=s.palletWeight>0?`Текущая масса: ${formatKg(s.usedWeight)} из ${formatKg(s.vehicle.payload)}`:`В 3D показано: ${s.renderCount} паллет`;
@@ -238,7 +238,7 @@ function syncPresetFields(){
 }
 
 [els.vehicle,els.pallet].forEach(el=>el.addEventListener('change',()=>{syncPresetFields();calculate();}));
-[els.trailerL,els.trailerW,els.trailerH,els.payload,els.palletL,els.palletW,els.loadH,els.palletWeight,els.desiredQty,els.stacking].forEach(el=>el.addEventListener('input',calculate));
+[els.trailerL,els.trailerW,els.trailerH,els.payload,els.palletL,els.palletW,els.loadH,els.palletWeight,els.desiredQty,els.clearance,els.stacking].forEach(el=>el.addEventListener('input',calculate));
 els.wallsBtn.addEventListener('click',()=>{els.wallsBtn.classList.toggle('active');if(wallGroup)wallGroup.visible=els.wallsBtn.classList.contains('active');});
 els.roofBtn.addEventListener('click',()=>{els.roofBtn.classList.toggle('active');if(roofGroup)roofGroup.visible=els.roofBtn.classList.contains('active');});
 els.resetBtn.addEventListener('click',resetCamera);
