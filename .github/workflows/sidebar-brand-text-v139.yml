@@ -1,0 +1,24 @@
+name: Sidebar brand text only v139
+
+on:
+  push:
+    paths:
+      - '.github/workflows/sidebar-brand-text-v139.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove sidebar brand image
+        run: python .github/scripts/remove_sidebar_brand_image_v139.py
+      - name: Commit sidebar cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ui-layout-v138.css
+          git commit -m "Remove sidebar brand image"
+          git push
