@@ -1,0 +1,21 @@
+{
+  "name": "Pallet Tools",
+  "short_name": "Pallet Tools",
+  "description": "Калькулятор и рабочие инструменты для производства поддонов",
+  "lang": "ru",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f2f6f4",
+  "theme_color": "#0d392f",
+  "icons": [
+    {
+      "src": "assets/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
