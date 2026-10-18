@@ -1,27 +1,27 @@
 (()=>{
   const VERSION='v1.1.16';
-  const UPDATE_NO=351;
+  const UPDATE_NO=352;
+  const OWNER_USER_ID='8c7c190b-8d8c-4e51-adb6-580b519a44aa';
   const SELECTOR='.sideVersion,.mobileMoreVersion';
 
-  function isAdmin(){
-    if(window.currentRole==='admin')return true;
-    const nav=document.getElementById('adminSideNav');
-    if(!nav)return false;
-    const visible=!nav.hidden&&nav.style.display!=='none';
-    return visible;
+  function isOwner(){
+    const user=(typeof currentUser!=='undefined'&&currentUser)||window.currentUser||null;
+    const role=(typeof currentRole!=='undefined'&&currentRole)||window.currentRole||'employee';
+    return role==='admin'&&user?.id===OWNER_USER_ID;
   }
 
   function label(){
-    return isAdmin()
+    return isOwner()
       ? `Pallet Tools · ${VERSION} · обновление №${UPDATE_NO}`
       : `Pallet Tools · ${VERSION}`;
   }
 
   function installVisibilityGuard(){
-    if(document.getElementById('versionLabelGuardV145'))return;
+    if(document.getElementById('versionLabelGuardV146'))return;
     document.getElementById('versionLabelGuardV143')?.remove();
+    document.getElementById('versionLabelGuardV145')?.remove();
     const style=document.createElement('style');
-    style.id='versionLabelGuardV145';
+    style.id='versionLabelGuardV146';
     style.textContent=`
       .sideVersion,.mobileMoreVersion{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
       .mobileMoreSheet[hidden]{display:none!important}
