@@ -1,0 +1,31 @@
+name: Compact pallet picker v119
+on:
+  push:
+    paths:
+      - '.github/workflows/compact-picker-v119.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make picker zones smaller
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+          p = Path('assets/theme-industrial-v130.css')
+          s = p.read_text(encoding='utf-8')
+          marker = '/* pickerCompactV1119 */'
+          patch = base64.b64decode('Ci8qIHBpY2tlckNvbXBhY3RWMTExOSAqLwovKiBNYWtlIHBpY2tlciBoaXQgYXJlYXMgdmlzaWJseSBzbWFsbGVyIGFuZCBsaWdodGVyIHdpdGhvdXQgZGlzYWJsaW5nIGNsaWNrcy4gKi8KLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpub3QoW2hpZGRlbl0pewogIHRyYW5zZm9ybTpzY2FsZSguODQpIWltcG9ydGFudDsKICB0cmFuc2Zvcm0tb3JpZ2luOmNlbnRlciBjZW50ZXIhaW1wb3J0YW50OwogIGJvcmRlci1jb2xvcjpyZ2JhKDQ1LDExMSwxNzMsLjQyKSFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDpyZ2JhKDYyLDEzMiwxOTYsLjA4KSFpbXBvcnRhbnQ7CiAgYm94LXNoYWRvdzpub25lIWltcG9ydGFudDsKfQoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lIHNwYW57CiAgZGlzcGxheTpub25lIWltcG9ydGFudDsKfQoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lOmhvdmVyLAoucHJldmlld0NhcmQucGFydFBpY2tNb2RlIC5wYWxsZXRCb2FyZFBpY2tab25lOmZvY3VzLXZpc2libGV7CiAgdHJhbnNmb3JtOnNjYWxlKC44NCkhaW1wb3J0YW50OwogIGJvcmRlci1jb2xvcjpyZ2JhKDQ1LDExMSwxNzMsLjcyKSFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDpyZ2JhKDYyLDEzMiwxOTYsLjE0KSFpbXBvcnRhbnQ7CiAgYm94LXNoYWRvdzowIDAgMCAycHggcmdiYSg0NSwxMTEsMTczLC4xMCkhaW1wb3J0YW50Owp9Ci5wcmV2aWV3Q2FyZC5wYXJ0UGlja01vZGUgLnBhbGxldEJvYXJkUGlja1pvbmU6aG92ZXIgc3BhbiwKLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpmb2N1cy12aXNpYmxlIHNwYW57CiAgZGlzcGxheTpncmlkIWltcG9ydGFudDsKICB0cmFuc2Zvcm06dHJhbnNsYXRlKC01MCUsLTUwJSkgc2NhbGUoLjg4KSFpbXBvcnRhbnQ7Cn0KaHRtbFtkYXRhLXRoZW1lPSJkYXJrIl0gLnByZXZpZXdDYXJkLnBhcnRQaWNrTW9kZSAucGFsbGV0Qm9hcmRQaWNrWm9uZTpub3QoW2hpZGRlbl0pewogIGJvcmRlci1jb2xvcjpyZ2JhKDEwNywxNjksMjI0LC40NikhaW1wb3J0YW50OwogIGJhY2tncm91bmQ6cmdiYSg3MSwxMzcsMTk2LC4wOSkhaW1wb3J0YW50Owp9CkBtZWRpYShtYXgtd2lkdGg6NjIwcHgpewogIC5wcmV2aWV3Q2FyZC5wYXJ0UGlja01vZGUgLnBhbGxldEJvYXJkUGlja1pvbmU6bm90KFtoaWRkZW5dKXsKICAgIHRyYW5zZm9ybTpzY2FsZSguODApIWltcG9ydGFudDsKICB9Cn0K').decode('utf-8')
+          if marker not in s:
+              p.write_text(s + '\n\n' + patch, encoding='utf-8')
+          PY
+      - name: Commit compact picker
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/theme-industrial-v130.css
+          git commit -m "Make pallet picker zones smaller" || exit 0
+          git push
