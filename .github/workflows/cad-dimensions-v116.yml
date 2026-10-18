@@ -14,12 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
-      - name: Verify expected main
-        run: test "$(git rev-parse HEAD)" = "22bcf3103cdae07e673b6789043cf11c40223bee"
+      - name: Prepare main
+        run: |
+          cp .github/scripts/cad_dimensions_v116.py /tmp/cad_dimensions_v116.py
+          git fetch origin main
+          git checkout -B main origin/main
+          test "$(git rev-parse HEAD)" = "22bcf3103cdae07e673b6789043cf11c40223bee"
       - name: Apply updater
-        run: python3 .github/scripts/cad_dimensions_v116.py
+        run: python3 /tmp/cad_dimensions_v116.py
       - name: Validate
         run: |
           node --check assets/pallet3d-v10.js
