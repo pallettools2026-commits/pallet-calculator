@@ -1,0 +1,29 @@
+name: UI layout refresh v138
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ui-layout-v138.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable structural UI refresh
+        run: python .github/scripts/enable_ui_layout_v138.py
+      - name: Commit UI refresh
+        run: |
+          if git diff --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Apply structural UI refresh"
+          git push
