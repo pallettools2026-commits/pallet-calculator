@@ -224,7 +224,27 @@
     const setPickHint=(text,selected=false)=>{if(!pickHint)return;pickHint.textContent=text;pickHint.classList.toggle('selected',selected);};
     const showInspect=(mesh)=>{const info=mesh?.userData?.palletInspect;if(!info)return false;resetInspectHighlight();mesh.material.emissive.setHex(0x8a5525);mesh.material.emissiveIntensity=.42;const boardNo=Number(info.index||0)+1,qty=Math.max(1,Math.round(num(el('qty')?.value,1))),total=info.n*qty;if(partInspector){partInspector.hidden=false;partInspector.querySelector('strong').textContent=`Настил №${boardNo}`;partInspector.querySelector('span').textContent=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;partInspector.querySelector('b').textContent=`${info.n} шт. / поддон · ${total.toLocaleString('ru-RU')} шт. / заказ`;}setPickHint(`Выбрана доска №${boardNo} · ${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`,true);window.dispatchEvent(new CustomEvent('pallet3d:partselect',{detail:{...info,boardNo,per:info.n,total}}));renderer.render(scene,camera);lastInspectAt=performance.now();return true;};
     const pickAt=(clientX,clientY)=>{const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return null;pickPoint.x=((clientX-rect.left)/rect.width)*2-1;pickPoint.y=-((clientY-rect.top)/rect.height)*2+1;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);raycaster.setFromCamera(pickPoint,camera);return raycaster.intersectObjects(inspectable,false).find(hit=>hit.object?.userData?.palletInspect)||null;};
-    const selectAt=(clientX,clientY)=>{const hit=pickAt(clientX,clientY);return hit?showInspect(hit.object):false;};
+    const pointInPolygon=(x,y,poly)=>{let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>y)!==(b.y>y))&&(x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x))inside=!inside;}return inside;};
+    const projectToCanvas=(x,y,z,rect)=>{const v=new THREE.Vector3(x,y,z).project(camera);if(!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.z<-1.1||v.z>1.1)return null;return{x:(v.x*.5+.5)*rect.width,y:(-v.y*.5+.5)*rect.height};};
+    const pickDeckByProjection=(clientX,clientY)=>{
+      const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height||!inspectable.length)return null;
+      const px=clientX-rect.left,py=clientY-rect.top;
+      scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+      const y=topY+deckT/2+groups.deck.position.y+.025,halfW=actualDeckW/2+.09,halfL=deckL/2+.07;
+      const candidates=[];
+      inspectable.forEach((mesh,i)=>{
+        const x=topXs[i]??mesh.position.x;
+        const poly=[projectToCanvas(x-halfW,y,-halfL,rect),projectToCanvas(x+halfW,y,-halfL,rect),projectToCanvas(x+halfW,y,halfL,rect),projectToCanvas(x-halfW,y,halfL,rect)];
+        if(poly.some(p=>!p))return;
+        if(pointInPolygon(px,py,poly)){
+          const c=projectToCanvas(x,y,0,rect),d=c?Math.hypot(px-c.x,py-c.y):0;
+          candidates.push({object:mesh,d});
+        }
+      });
+      if(candidates.length){candidates.sort((a,b)=>a.d-b.d);return candidates[0];}
+      return null;
+    };
+    const selectAt=(clientX,clientY)=>{const projected=pickDeckByProjection(clientX,clientY);if(projected)return showInspect(projected.object);const hit=pickAt(clientX,clientY);return hit?showInspect(hit.object):false;};
     canvas.addEventListener('pointerdown',e=>{inspectDown={x:e.clientX,y:e.clientY};},true);
     canvas.addEventListener('pointerup',e=>{if(!inspectDown)return;const moved=Math.hypot(e.clientX-inspectDown.x,e.clientY-inspectDown.y);inspectDown=null;if(moved<=18)selectAt(e.clientX,e.clientY);},true);
     canvas.addEventListener('click',e=>{if(performance.now()-lastInspectAt>220)selectAt(e.clientX,e.clientY);});
@@ -330,7 +350,7 @@
     refresh();setInterval(refresh,1500);
   }
 
-  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.13 · обновление №346':'Pallet Tools · v1.1.13';}
+  function updateSiteVersion(){const node=document.querySelector('.sideVersion');if(!node)return;const admin=typeof currentRole!=='undefined'&&currentRole==='admin';node.textContent=admin?'Pallet Tools · v1.1.14 · обновление №346':'Pallet Tools · v1.1.14';}
   window.updateSiteVersion=updateSiteVersion;
   const adminVersionTarget=el('adminSideNav');if(adminVersionTarget&&window.MutationObserver){new MutationObserver(updateSiteVersion).observe(adminVersionTarget,{attributes:true,attributeFilter:['hidden','style']});}
 

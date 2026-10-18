@@ -1,4 +1,4 @@
-/* Pallet Tools smart production helpers v1.1.12 */
+/* Pallet Tools smart production helpers v1.1.14 */
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
@@ -86,11 +86,16 @@
     $('smartDensity')?.addEventListener('input',()=>{try{localStorage.setItem('pallettools:woodDensity',$('smartDensity').value);}catch(_){}update();});
     $('smartSelect3D')?.addEventListener('click',()=>{
       const preview=$('palletPreview3D')?.closest('.previewCard');
-      preview?.classList.add('partPickMode');
-      preview?.scrollIntoView({behavior:'smooth',block:'center'});
-      const hint=document.querySelector('.palletPickHint');
-      if(hint){hint.textContent='Нажмите на любую верхнюю доску';hint.classList.add('attention');}
-      setTimeout(()=>hint?.classList.remove('attention'),2200);
+      const mode3d=$('palletPreview3D')?.querySelector('[data-p3d-mode="3d"]');
+      if(mode3d&&!mode3d.classList.contains('active'))mode3d.click();
+      setTimeout(()=>{
+        const livePreview=$('palletPreview3D')?.closest('.previewCard')||preview;
+        livePreview?.classList.add('partPickMode');
+        livePreview?.scrollIntoView({behavior:'smooth',block:'center'});
+        const hint=document.querySelector('.palletPickHint');
+        if(hint){hint.textContent='Режим выбора: нажмите прямо на верхнюю доску';hint.classList.add('attention');}
+        setTimeout(()=>hint?.classList.remove('attention'),2600);
+      },90);
     });
     return panel;
   }
@@ -133,7 +138,7 @@
     if(!ensurePanel())return;
     document.addEventListener('input',e=>{if(e.target?.id&&/^(pL|pW|qty|n[0-6]|t[0-6]|w[0-6]|l[0-6])$/.test(e.target.id))requestAnimationFrame(update);});
     document.addEventListener('change',e=>{if(e.target?.id&&/^(pL|pW|qty|n[0-6]|t[0-6]|w[0-6]|l[0-6])$/.test(e.target.id))requestAnimationFrame(update);});
-    window.addEventListener('pallet3d:partselect',e=>{selectedPart=e.detail||null;document.querySelector('.previewCard')?.classList.remove('partPickMode');document.querySelector('.palletPickHint')?.classList.remove('attention');renderSelected();});
+    window.addEventListener('pallet3d:partselect',e=>{selectedPart=e.detail||null;document.querySelector('.previewCard')?.classList.remove('partPickMode');document.querySelector('.palletPickHint')?.classList.remove('attention');const card=$('smartSelectedTitle')?.closest('.smartToolCard');card?.classList.add('hasSelection');renderSelected();});
     update();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
