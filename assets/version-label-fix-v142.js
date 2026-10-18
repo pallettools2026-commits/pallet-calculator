@@ -1,39 +1,28 @@
 (()=>{
+  const LABEL='Pallet Tools · v1.1.16';
   const SELECTOR='.sideVersion,.mobileMoreVersion';
-  const FALLBACK_VERSION='v1.1.16';
 
-  function getVersion(text){
-    const m=String(text||'').match(/v\d+(?:\.\d+)+/i);
-    return m?m[0]:null;
-  }
-
-  function getUpdates(text){
-    const out=[];
-    const re=/обновление\s*№\s*(\d+)/gi;
-    let m;
-    while((m=re.exec(String(text||''))))out.push(Number(m[1]));
-    return out.filter(Number.isFinite);
+  function installVisibilityGuard(){
+    if(document.getElementById('versionLabelGuardV143'))return;
+    const style=document.createElement('style');
+    style.id='versionLabelGuardV143';
+    style.textContent=`
+      .sideVersion,.mobileMoreVersion{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+      .mobileMoreSheet[hidden]{display:none!important}
+      @media(min-width:761px){.mobileBottomNav,.mobileMoreSheet{display:none!important}}
+      @media(max-width:760px){.appSidebar .sideVersion{display:none!important}}
+    `;
+    document.head.appendChild(style);
   }
 
   function normalize(){
-    const nodes=[...document.querySelectorAll(SELECTOR)];
-    if(!nodes.length)return;
-
-    const combined=nodes.map(n=>n.textContent||'').join(' ');
-    const version=getVersion(combined)||FALLBACK_VERSION;
-    const updates=getUpdates(combined);
-    const latest=updates.length?Math.max(...updates):null;
-    const label=`Pallet Tools · ${version}${latest!==null?` · обновление №${latest}`:''}`;
-
-    nodes.forEach(node=>{
-      if(node.textContent.trim()!==label)node.textContent=label;
-      node.style.whiteSpace='nowrap';
-      node.style.overflow='hidden';
-      node.style.textOverflow='ellipsis';
+    document.querySelectorAll(SELECTOR).forEach(node=>{
+      if(node.textContent.trim()!==LABEL)node.replaceChildren(document.createTextNode(LABEL));
     });
   }
 
   function start(){
+    installVisibilityGuard();
     normalize();
     const observer=new MutationObserver(()=>queueMicrotask(normalize));
     document.querySelectorAll(SELECTOR).forEach(node=>observer.observe(node,{childList:true,characterData:true,subtree:true}));
