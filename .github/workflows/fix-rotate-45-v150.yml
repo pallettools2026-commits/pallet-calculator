@@ -1,6 +1,10 @@
 name: Fix pallet rotation v150
 
 on:
+  push:
+    paths:
+      - '.github/workflows/fix-rotate-45-v150.yml'
+      - '.github/scripts/fix_rotate_45_v150.py'
   workflow_dispatch:
 
 permissions:
@@ -12,6 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python .github/scripts/fix_rotate_45_v150.py
+      - run: |
+          grep -F 'const pallet3DState=window.pallet3DState' index.html
+          node --check assets/pallet3d-v10.js
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
