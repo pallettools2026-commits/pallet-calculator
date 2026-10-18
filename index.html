@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script id="themeBootstrapV111">
+(function(){try{var t=localStorage.getItem('pallettools:theme');document.documentElement.dataset.theme=t==='dark'?'dark':'light';document.documentElement.style.colorScheme=t==='dark'?'dark':'light';}catch(_){document.documentElement.dataset.theme='light';}})();
+</script>
 <title>Pallet Tools — калькулятор поддонов</title>
 <style>
 *{box-sizing:border-box}
@@ -439,7 +442,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
 @media(max-width:560px){.stockMeta>span:first-child{align-items:flex-start}.stockRepeat{font-size:9px;min-height:20px;padding:2px 6px}.sawLegendHint{width:100%;justify-content:center}.sawGroupTitle span{width:100%}}
 
 </style>
-<link rel="stylesheet" href="assets/theme-industrial-v130.css?v=156">
+<link rel="stylesheet" href="assets/theme-industrial-v130.css?v=157">
 <link rel="stylesheet" href="assets/pallet3d-v9.css?v=92">
 </head>
 <body>
@@ -464,6 +467,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
     <div class="appSearch" role="search"><span>⌕</span><input id="appSearchInput" name="ptSearchFieldV122" type="search" role="searchbox" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" readonly aria-label="Поиск по Pallet Tools" placeholder="Поиск по заказам, размерам, материалам…"></div>
     <div class="appTopChip"><span>▣</span><div><small>Сегодня</small><b id="dashboardToday">—</b></div></div>
     <div class="appTopChip shift"><span class="liveDot"></span><div><small>Текущая смена</small><b id="dashboardShift">Смена</b></div></div>
+    <button class="themeToggle" type="button" data-theme-toggle aria-label="Переключить дневной и ночной режим" title="Дневной / ночной режим"><span class="themeIcon" aria-hidden="true">☾</span><span class="themeText">Ночь</span></button>
   </div>
   <button class="topAccount" id="topAccount" type="button" title="Аккаунт" aria-haspopup="menu" aria-expanded="false">
     <span class="accountShield">♜</span>
@@ -505,6 +509,7 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
   <div class="authBackdropGlow authGlowTwo"></div>
   <div class="authLoginPanel">
     <div class="authAccent"></div>
+    <button class="authThemeToggle" type="button" data-theme-toggle aria-label="Переключить дневной и ночной режим" title="Дневной / ночной режим"><span class="themeIcon" aria-hidden="true">☾</span></button>
     <div class="authBrand">
       <img src="assets/pallet-clean-3d-1.webp" alt="Чистый деревянный поддон">
       <div class="authBrandName"><strong>PALLET</strong><span>TOOLS</span></div>
@@ -608,8 +613,9 @@ main{max-width:1440px;margin:0 auto;padding:0 20px 44px}
       <button class="mobileMoreAction appSideLink" type="button" data-screen="production"><span>▥</span><b>Производство</b><i>›</i></button>
       <button class="mobileMoreAction" id="mobileProfileBtn" type="button"><span>👤</span><b>Мой профиль</b><i>›</i></button>
       <button class="mobileMoreAction appSideLink adminSideLink" id="mobileAdminNav" type="button" data-screen="admin" hidden><span>⚙</span><b>Админ-панель</b><i>›</i></button>
+      <button class="mobileMoreAction themeMobileToggle" type="button" data-theme-toggle><span class="themeIcon" aria-hidden="true">☾</span><b class="themeText">Ночной режим</b><i>›</i></button>
     </div>
-    <div class="mobileMoreVersion">Pallet Tools · v1.1.10</div>
+    <div class="mobileMoreVersion">Pallet Tools · v1.1.11</div>
   </section>
 </div>
 
@@ -1705,7 +1711,27 @@ window.addEventListener('scroll',()=>{const menu=document.getElementById('accoun
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
 
-<script src="assets/pallet3d-v10.js?v=153"></script>
+<script src="assets/pallet3d-v10.js?v=154"></script>
 
+<script id="themeRuntimeV111">
+(function(){
+  const KEY='pallettools:theme',root=document.documentElement;
+  const apply=theme=>{
+    const dark=theme==='dark';
+    root.dataset.theme=dark?'dark':'light';
+    root.style.colorScheme=dark?'dark':'light';
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn=>{
+      const icon=btn.querySelector('.themeIcon'),text=btn.querySelector('.themeText');
+      if(icon)icon.textContent=dark?'☀':'☾';
+      if(text)text.textContent=btn.classList.contains('themeMobileToggle')?(dark?'Дневной режим':'Ночной режим'):(dark?'День':'Ночь');
+      btn.setAttribute('aria-pressed',dark?'true':'false');
+      btn.setAttribute('title',dark?'Включить дневной режим':'Включить ночной режим');
+    });
+  };
+  let saved='light';try{saved=localStorage.getItem(KEY)==='dark'?'dark':'light';}catch(_){}
+  apply(saved);
+  document.addEventListener('click',e=>{const btn=e.target.closest('[data-theme-toggle]');if(!btn)return;const next=root.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem(KEY,next);}catch(_){}apply(next);});
+})();
+</script>
 </body>
 </html>
