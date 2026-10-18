@@ -1,0 +1,56 @@
+name: Fix rear door opening direction
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-rear-doors-v9.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix rear door hinge rotation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('assets/truck-planner-v9.js')
+          s = js_path.read_text(encoding='utf-8')
+
+          old1 = "rearDoorLeft.rotation.y=a;rearDoorRight.rotation.y=-a;doorAnim=a;"
+          new1 = "rearDoorLeft.rotation.y=-a;rearDoorRight.rotation.y=a;doorAnim=a;"
+          old2 = "rearDoorLeft.rotation.y=doorAnim;rearDoorRight.rotation.y=-doorAnim;"
+          new2 = "rearDoorLeft.rotation.y=-doorAnim;rearDoorRight.rotation.y=doorAnim;"
+
+          if old1 not in s:
+              raise SystemExit('Static rear-door rotation pattern not found')
+          if old2 not in s:
+              raise SystemExit('Animated rear-door rotation pattern not found')
+
+          s = s.replace(old1, new1, 1).replace(old2, new2, 1)
+          js_path.write_text(s, encoding='utf-8')
+
+          html_path = Path('truck-planner.html')
+          h = html_path.read_text(encoding='utf-8')
+          old_q = 'assets/truck-planner-v9.js?v=20261018-2228'
+          new_q = 'assets/truck-planner-v9.js?v=20261018-2232'
+          if old_q not in h:
+              raise SystemExit('Planner cache-buster pattern not found')
+          html_path.write_text(h.replace(old_q, new_q, 1), encoding='utf-8')
+          PY
+
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/truck-planner-v9.js truck-planner.html
+          git commit -m 'Fix rear trailer doors opening outward'
+          git push origin HEAD:main
