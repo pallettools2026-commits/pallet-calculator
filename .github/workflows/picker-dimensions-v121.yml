@@ -1,0 +1,114 @@
+name: Picker dimensions labels v121
+on:
+  push:
+    paths:
+      - '.github/workflows/picker-dimensions-v121.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace blue picker zones with mm labels
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          js = Path('assets/pallet3d-v10.js')
+          s = js.read_text(encoding='utf-8')
+          old = "btn.innerHTML=`<span>${info.short||''}${Number(info.index||0)+1}</span>`;pickOverlay.appendChild(btn);return btn;"
+          new = "const dimLabel=`${fmtMm(info.t)} × ${fmtMm(info.w)} × ${fmtMm(info.l)} мм`;btn.title=dimLabel;btn.innerHTML=`<span>${dimLabel}</span>`;pickOverlay.appendChild(btn);return btn;"
+          if old not in s:
+              raise SystemExit('picker label source not found')
+          s = s.replace(old, new, 1)
+          js.write_text(s, encoding='utf-8')
+
+          css = Path('assets/theme-industrial-v130.css')
+          c = css.read_text(encoding='utf-8')
+          marker = '/* pickerDimensionsV1121 */'
+          if marker not in c:
+              c += r'''
+
+/* pickerDimensionsV1121 */
+/* Show physical dimensions instead of blue picker rectangles. */
+.previewCard.partPickMode .palletBoardPickZone:not([hidden]),
+.previewCard .palletBoardPickZone:not([hidden]){
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  outline:0!important;
+  transform:none!important;
+  pointer-events:auto!important;
+}
+.previewCard.partPickMode .palletBoardPickZone span,
+.previewCard .palletBoardPickZone span{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+  width:max-content!important;
+  max-width:150px!important;
+  min-width:0!important;
+  height:auto!important;
+  padding:3px 6px!important;
+  border:1px solid rgba(84,64,43,.22)!important;
+  border-radius:6px!important;
+  background:rgba(255,252,246,.94)!important;
+  color:#4d3b2a!important;
+  box-shadow:0 1px 4px rgba(55,42,28,.12)!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1.15!important;
+  white-space:nowrap!important;
+  letter-spacing:0!important;
+  pointer-events:none!important;
+}
+.previewCard.partPickMode .palletBoardPickZone:hover,
+.previewCard .palletBoardPickZone:hover,
+.previewCard.partPickMode .palletBoardPickZone:focus-visible,
+.previewCard .palletBoardPickZone:focus-visible{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+.previewCard.partPickMode .palletBoardPickZone:hover span,
+.previewCard .palletBoardPickZone:hover span,
+.previewCard.partPickMode .palletBoardPickZone:focus-visible span,
+.previewCard .palletBoardPickZone:focus-visible span{
+  background:#fff8ec!important;
+  border-color:rgba(122,82,41,.48)!important;
+  color:#3f2d1d!important;
+  box-shadow:0 2px 7px rgba(70,48,27,.18)!important;
+}
+html[data-theme="dark"] .previewCard .palletBoardPickZone span{
+  background:rgba(42,37,31,.94)!important;
+  color:#f3dfbd!important;
+  border-color:rgba(232,202,154,.32)!important;
+}
+@media(max-width:620px){
+  .previewCard .palletBoardPickZone span{
+    font-size:9px!important;
+    padding:2px 4px!important;
+    max-width:120px!important;
+  }
+}
+'''
+              css.write_text(c, encoding='utf-8')
+
+          idx = Path('index.html')
+          h = idx.read_text(encoding='utf-8')
+          h = re.sub(r'assets/theme-industrial-v130\.css\?v=\d+', 'assets/theme-industrial-v130.css?v=171', h)
+          h = re.sub(r'assets/pallet3d-v10\.js\?v=\d+', 'assets/pallet3d-v10.js?v=121', h)
+          idx.write_text(h, encoding='utf-8')
+          PY
+      - name: Commit dimension picker labels
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/pallet3d-v10.js assets/theme-industrial-v130.css index.html
+          git commit -m "Show pallet part dimensions in mm" || exit 0
+          git push
