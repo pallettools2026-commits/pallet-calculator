@@ -29,8 +29,9 @@ jobs:
           grep -q "const topView=mode==='top',sideView=mode==='side'" assets/pallet3d-v10.js
           grep -q "showDeckLength=Math.abs(deckLengthMm-profile.length)>1" assets/pallet3d-v10.js
           grep -q "labelDy:topView?-17" assets/pallet3d-v10.js
-          grep -q 'v1.1.8' index.html
-          grep -q 'обновление №342' index.html
+          grep -q 'v1.1.8' assets/theme-industrial-v130.css
+          grep -q 'обновление №342' assets/theme-industrial-v130.css
+          grep -Eq 'pallet3d-v10.js\?v=[0-9]+' index.html
       - name: Commit to main
         run: |
           git config user.name 'github-actions[bot]'
