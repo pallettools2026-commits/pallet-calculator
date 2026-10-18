@@ -1,6 +1,6 @@
 (()=>{
   const VERSION='v1.1.16';
-  const UPDATE_NO=359;
+  const UPDATE_NO=360;
   const OWNER_USER_ID='8c7c190b-8d8c-4e51-adb6-580b519a44aa';
   const SELECTOR='.sideVersion,.mobileMoreVersion';
 
@@ -20,6 +20,30 @@
       const labels=[...sheet.querySelectorAll('.mobileMoreVersion')];
       labels.slice(1).forEach(node=>node.remove());
     });
+  }
+
+  function installTruckPlannerLink(){
+    const nav=document.querySelector('.appSidebar .sideNav');
+    if(nav&&!document.getElementById('truckPlannerSideNav')){
+      const link=document.createElement('a');
+      link.id='truckPlannerSideNav';
+      link.className='navLink appSideLink truckPlannerSideLink';
+      link.href='truck-planner.html';
+      link.innerHTML='<span>🚛</span>Планировщик фуры';
+      const before=nav.querySelector('[data-screen="saved"]');
+      nav.insertBefore(link,before||null);
+    }
+
+    const mobileActions=document.querySelector('.mobileMoreActions');
+    if(mobileActions&&!document.getElementById('mobileTruckPlannerNav')){
+      const link=document.createElement('a');
+      link.id='mobileTruckPlannerNav';
+      link.className='mobileMoreAction truckPlannerMobileLink';
+      link.href='truck-planner.html';
+      link.innerHTML='<span>🚛</span><b>Планировщик фуры</b><i>›</i>';
+      const before=mobileActions.querySelector('#mobileProfileBtn');
+      mobileActions.insertBefore(link,before||null);
+    }
   }
 
   function installVisibilityGuard(){
@@ -48,6 +72,8 @@
         font-size:.92em!important;
         white-space:nowrap!important;
       }
+      .truckPlannerSideLink{text-decoration:none!important;box-sizing:border-box!important}
+      .truckPlannerMobileLink{text-decoration:none!important;box-sizing:border-box!important}
       .mobileMoreSheet[hidden]{display:none!important}
       @media(min-width:761px){.mobileBottomNav,.mobileMoreSheet{display:none!important}}
       @media(max-width:760px){.appSidebar .sideVersion{display:none!important}}
@@ -57,6 +83,7 @@
 
   function normalize(){
     removeDuplicates();
+    installTruckPlannerLink();
     const owner=isOwner();
     const baseText=`Pallet Tools · ${VERSION}`;
     const updateText=`обновление №${UPDATE_NO}`;
@@ -93,6 +120,7 @@
 
   function start(){
     installVisibilityGuard();
+    installTruckPlannerLink();
     normalize();
     observe(document.getElementById('adminSideNav'));
     observe(document.querySelector('.appSidebar'));
