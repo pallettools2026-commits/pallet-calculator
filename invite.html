@@ -48,6 +48,7 @@ save.addEventListener('click',async()=>{
   message('Пароль сохранён. Открываем Pallet Tools…');
   setTimeout(()=>{location.replace(MAIN_URL);},700);
 });
+p1.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();p2.focus();}});
 p2.addEventListener('keydown',event=>{if(event.key==='Enter'&&!save.disabled){event.preventDefault();save.click();}});
 sb.auth.onAuthStateChange((event,session)=>{if(session&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'))setTimeout(ready,0);});
 setTimeout(ready,150);
