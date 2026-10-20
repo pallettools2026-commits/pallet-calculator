@@ -15,8 +15,8 @@
   <h1>Создайте пароль</h1>
   <p class="lead">Придумайте пароль для входа в Pallet Tools. Администратор ваш пароль не увидит.</p>
   <div id="form" class="hidden">
-    <div class="field"><label for="password">НОВЫЙ ПАРОЛЬ</label><input id="password" type="password" minlength="6" autocomplete="new-password" autocapitalize="none" spellcheck="false" placeholder="Минимум 6 символов"></div>
-    <div class="field"><label for="password2">ПОВТОРИТЕ ПАРОЛЬ</label><input id="password2" type="password" minlength="6" autocomplete="new-password" autocapitalize="none" spellcheck="false" placeholder="Повторите пароль"></div>
+    <div class="field"><label for="password">НОВЫЙ ПАРОЛЬ</label><input id="password" type="password" minlength="6" autocomplete="new-password" autocapitalize="none" spellcheck="false" aria-describedby="message" placeholder="Минимум 6 символов"></div>
+    <div class="field"><label for="password2">ПОВТОРИТЕ ПАРОЛЬ</label><input id="password2" type="password" minlength="6" autocomplete="new-password" autocapitalize="none" spellcheck="false" aria-describedby="message" placeholder="Повторите пароль"></div>
     <button id="savePassword" type="button">Сохранить пароль и войти</button>
   </div>
   <div id="message" class="message" role="status" aria-live="polite" aria-atomic="true">Проверяем ссылку приглашения…</div>
