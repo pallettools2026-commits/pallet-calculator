@@ -1,7 +1,7 @@
 const CACHE_VERSION='pallet-tools-pwa-v1';
 const STATIC_CACHE=`${CACHE_VERSION}-static`;
 const RUNTIME_CACHE=`${CACHE_VERSION}-runtime`;
-const CORE=['./','./index.html','./manifest.webmanifest','./assets/pwa-icon.svg'];
+const CORE=['./','./index.html','./manifest.webmanifest','./assets/pwa-icon.svg','./assets/pwa-icon-192.png','./assets/pwa-icon-512.png'];
 const STATIC_CDN_HOSTS=new Set(['cdn.jsdelivr.net']);
 
 self.addEventListener('install',event=>{
