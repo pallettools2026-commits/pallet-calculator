@@ -1,4 +1,4 @@
-const CACHE_VERSION='pallet-tools-pwa-v1';
+const CACHE_VERSION='pallet-tools-pwa-v2';
 const STATIC_CACHE=`${CACHE_VERSION}-static`;
 const RUNTIME_CACHE=`${CACHE_VERSION}-runtime`;
 const CORE=['./','./index.html','./manifest.webmanifest','./assets/pwa-icon.svg','./assets/pwa-icon-192.png','./assets/pwa-icon-512.png'];
