@@ -43,9 +43,9 @@ save.addEventListener('click',async()=>{
   const a=p1.value,b=p2.value;
   if(a.length<6){message('Пароль должен содержать минимум 6 символов.',true);p1.focus();return;}
   if(a!==b){message('Пароли не совпадают.',true);p2.focus();return;}
-  save.disabled=true;message('Сохраняем пароль…');
+  save.disabled=true;save.setAttribute('aria-busy','true');message('Сохраняем пароль…');
   const {error}=await sb.auth.updateUser({password:a});
-  if(error){save.disabled=false;message('Не удалось сохранить пароль: '+error.message,true);return;}
+  if(error){save.disabled=false;save.removeAttribute('aria-busy');message('Не удалось сохранить пароль: '+error.message,true);return;}
   message('Пароль сохранён. Открываем Pallet Tools…');
   setTimeout(()=>{location.replace(MAIN_URL);},700);
 });
