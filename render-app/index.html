@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Production Pulse Black</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><div class="logo">PP</div><div><b>Production Pulse</b><small>BLACK EDITION</small></div></div>
+  <input class="search" id="search" placeholder="Поиск по меню и данным">
+  <div class="label">Главная</div>
+  <div class="nav" id="nav">
+    <button class="active" data-page="dashboard">▧ &nbsp; Дашборд владельца</button>
+    <button data-page="productions">▦ &nbsp; Все производства</button>
+    <button data-page="plan">▤ &nbsp; План производства</button>
+    <button data-page="orders">⬡ &nbsp; Заказы</button>
+    <button data-page="warehouse">▣ &nbsp; Склад пиломатериала</button>
+    <button data-page="defects">◉ &nbsp; Журнал дефектов</button>
+    <button data-page="employees">♙ &nbsp; Сотрудники</button>
+    <button data-page="downtime">⌛ &nbsp; Простои</button>
+    <button data-page="settings">⚙ &nbsp; Настройки</button>
+  </div>
+  <div class="owner"><small>Владелец</small><b>PalletTools Group</b><div id="ownerSummary">4 производства · 99 сотрудников</div></div>
+</aside>
+<main class="main">
+  <header class="top">
+    <div class="crumb"><small>Production Pulse / Owner</small><b id="crumb">Дашборд владельца</b></div>
+    <div class="actions">
+      <select id="productionSelect"></select>
+      <button class="icon" id="notifyBtn" title="Уведомления">◌</button>
+      <button class="icon" id="settingsBtn" title="Настройки">⚙</button>
+    </div>
+  </header>
+  <div id="content"></div>
+</main>
+</div>
+<div class="modalback" id="modalBack"><div class="modal"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="modalfoot"><button class="btn" id="modalCancel">Закрыть</button><button class="btn primary" id="modalSave">Сохранить</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
